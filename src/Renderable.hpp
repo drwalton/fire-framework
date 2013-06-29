@@ -11,7 +11,7 @@ class Scene;
 class Renderable;
 class Solid;
 template <int nVertices> class ArrSolid;
-class ElemSolid;
+template <int nVertices, int nElements> class ElemSolid;
 
 /* Renderable
  * A Renderable is an ADT for an Element which has a render() function called by it's owning Scene each frame.
