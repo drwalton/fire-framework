@@ -9,6 +9,11 @@
 
 class Scene;
 
+/* Light
+ * An Element which is a light source (ADT).
+ * **Note** Ambient lights are not Light objects. Ambient light may only be 
+ 			adjusted per-scene by calling Scene::setAmbLight().
+ */
 class Light : public Element
 {
 public:
@@ -22,6 +27,9 @@ public:
 	Scene* scene;
 };
 
+/* DirLight
+ * An ideal directional light source. Has only direction and intensity.
+ */
 class DirLight : public Light
 {
 public:
@@ -32,6 +40,9 @@ public:
 	glm::vec3 dir;
 };
 
+/* PointLight
+ * An ideal point light source. Has position and intensity.
+ */
 class PointLight : public Light
 {
 public:

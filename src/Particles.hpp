@@ -7,6 +7,9 @@
 #include "Texture.hpp"
 #include "Shader.hpp"
 
+/* ParticleSystem
+ * An ADT for a renderable object which is a particle system.
+ */
 template <int MaxParticles>
 class ParticleSystem : public Renderable
 {
@@ -14,6 +17,20 @@ public:
 	ParticleSystem(Shader* _renderShader) :Renderable(_renderShader) {};
 };
 
+/* AdvectParticles
+ * A ParticleSystem consisting of MaxParticles particles, which behave as follows:
+ * #1: Particles spawn at a random point in a disk of radius baseRadius, around (0,0,0) in model space.
+ * #2: Particles have an initial acceleration of initAcn, an intial velocity of initVel.
+ * #3: On each frame, particles have a 1/perturbChance probability of being perturbed.
+ *  	In this case, the particle is given a random force in the disk of radius perturbRadius in the x-z plane.
+ * #4: A centering force of magnitude centerForce pulls the particles towards the y-axis in model space at all times.
+ * #5: Particles live for a random lifetime in [avgLifetime - varLifetime, avgLifetime + varLifetime] (units ms). 
+ * 		Upon death, a new particle is spawned (so MaxParticles particles are present at all times).
+ * Particles are rendered as billboards of height bbHeight, width bbWidth. 
+ * The bbTex is applied to each particle billboard. The colour of the billboard is set by a point along
+ *  decayTex determined by the particle's remaining lifetime.
+ * **Note** that scrollTexParticles.glsl uses bbTex in a different way. See the shader source for more details.
+ */
 template <int MaxParticles>
 class AdvectParticles : public ParticleSystem<MaxParticles>
 {

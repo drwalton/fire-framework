@@ -13,6 +13,10 @@ class Solid;
 template <int nVertices> class ArrSolid;
 class ElemSolid;
 
+/* Renderable
+ * A Renderable is an ADT for an Element which has a render() function called by it's owning Scene each frame.
+ * All Renderable implementations must also provide an update() function, which may well be a do-nothing for static objects.
+ */
 class Renderable : public Element
 {
 public:
@@ -27,6 +31,10 @@ protected:
 	glm::mat4 modelToWorld;
 };
 
+/* Solid
+ * A Solid is an ADT for a Renderable consisting of a solid mesh.
+ * This class also contains functions returning simple geometric Solid objects.
+ */
 class Solid : public Renderable
 {
 public:
@@ -58,15 +66,16 @@ private:
 /* ElemSolid
  * Solid using indexed drawing.
  */
+template<int nVertices, int nElements>
 class ElemSolid : public Solid
 {
 public:
 private:
-	int numVertices;
-	int numElements;
-	glm::mat4* v;
-	glm::vec3* n;
-	GLushort* e;
+	std::array<glm::vec4, nVertices> v;
+	std::array<glm::vec3, nVertices> n;
+	std::array<GLushort, nElements> e;
+	GLuint v_vbo;
+	GLuint n_vbo;
 	GLuint v_attrib;
 	GLuint n_attrib;
 	GLuint e_attrib;

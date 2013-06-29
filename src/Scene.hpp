@@ -16,6 +16,10 @@
 
 const float PI = 3.141592653589793238462f;
 
+/* Scene
+ * The Scene object handles all Element objects added to it, and renders them appropriately.
+ * Destroying a Scene also calls the destructors of added objects.
+ */
 class Scene
 {
 public:

@@ -10,6 +10,9 @@
 #include <array>
 #include <iostream>
 
+/* Shader
+ * Handles opening & compiling glsl source from a file, and setting uniforms.
+ */
 class Shader
 {
 public:
@@ -32,23 +35,10 @@ private:
 	GLuint modelToWorld_u;
 };
 
-class SFlameShader : public Shader
-{
-public:
-	SFlameShader(bool hasGeomShader, const std::string& filename);
-	void setWidth(float _width); void setHeight(float _height);
-	void setDisplaceWidth(float _displaceWidth);
-	void setTime(float _time);
-	void setTimeScale(float _timeScale);
-	void setHeightScale(float _heightScale);
-private:
-	GLuint width_u; GLuint height_u;
-	GLuint displaceWidth_u;
-	GLuint time_u;
-	GLuint timeScale_u;
-	GLuint heightScale_u;
-};
-
+/* ParticleShader
+ * A Shader with additional setters for uniforms related to particle systems.
+ * Designed to handle shaders for the AdvectParticle class.
+ */
 class ParticleShader : public Shader
 {
 public:
@@ -66,6 +56,10 @@ private:
 	GLuint decayTex_u;
 };
 
+/* LightShader
+ * A Shader with additional setters for uniforms related to light sources.
+ * Designed for objects illuminated by ambient, point and directional lights (e.g. Solid)
+ */
 class LightShader : public Shader
 {
 public:

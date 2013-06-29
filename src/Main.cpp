@@ -2,6 +2,10 @@
 
 #include <glm.hpp>
 
+/* This file will contain the construction and rendering of the scene
+ * I am working on right now. 
+ */
+
 int init();
 void display();
 void reshape (int, int);
@@ -29,7 +33,6 @@ const float delta = 0.05f;
 
 int main(int argc, char** argv)
 {
-
 	glutInit(&argc, argv);
 	time = glutGet(GLUT_ELAPSED_TIME);
     glutInitDisplayMode(GLUT_DOUBLE);
@@ -49,6 +52,7 @@ int main(int argc, char** argv)
 	delete scene;
 }
 
+// Called by glutInit().
 int init()
 {
 	glEnable(GL_CULL_FACE);
@@ -99,7 +103,7 @@ int init()
 	return 1;
 }
 
-
+// Perform rendering and updates here.
 void display()
 {
 	dTime = glutGet(GLUT_ELAPSED_TIME) - time;
@@ -111,6 +115,7 @@ void display()
 	glutPostRedisplay();
 }
 
+// Called when window size changes.
 void reshape (int w, int h)
 {
 	float aspect = (float) w / (float) h;
@@ -118,6 +123,7 @@ void reshape (int w, int h)
 	glViewport(0, 0, (GLsizei) w, (GLsizei) h);
 }
 
+// Called when a key is pressed.
 void keyboard(unsigned char key, int x, int y)
 {
     switch (key)
