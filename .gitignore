@@ -6,8 +6,20 @@
 # Compiled Dynamic libraries
 *.so
 *.dylib
+*.dll
 
 # Compiled Static libraries
 *.lai
 *.la
 *.a
+
+# Visual Studio gubbins
+*.sdf
+*.sdf.*
+*.suo
+*.sln
+*.ilk
+*.pdb
+
+# Executables
+*.exe
