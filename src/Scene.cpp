@@ -1,5 +1,27 @@
 #include "Scene.hpp"
 
+Scene::Scene()
+	 :ambLight(0.2f), nDirLights(0), 
+		nPointLights(0) 
+{
+	camera = new Camera();
+	int i;
+	for(i = 0; i < maxDirLights; ++i)
+	{
+		dirLights[i] = nullptr;
+		dirLightOn[i] = 0;
+		dirLightDir[i] = glm::vec3(0.0f);
+		dirIntensity[i] = -1.0f;
+	}
+	for(i = 0; i < maxPointLights; ++i)
+	{
+		pointLights[i] = nullptr;
+		pointLightOn[i] = 0;
+		pointLightPos[i] = glm::vec4(0.0f);
+		pointIntensity[i] = -1.0f;
+	}
+}
+
 Scene::~Scene()
 {
 	for(std::set<Renderable*>::iterator i = renderables.begin(); i != renderables.end(); ++i)
@@ -55,7 +77,7 @@ void Scene::remove(Renderable* r)
 
 void Scene::add(DirLight* d)
 {
-	if(nDirLights >= MaxDirLights) return;
+	if(nDirLights >= maxDirLights) return;
 	dirLights[nDirLights] = d;
 	dirLightOn[nDirLights] = d->on ? 1 : 0;
 	dirLightDir[nDirLights] = d->dir;
@@ -97,8 +119,8 @@ void Scene::remove(DirLight* d)
 
 void Scene::add(PointLight* p)
 {
-	if(nPointLights >= MaxPointLights) return;
-	pointLightOn[p->index] = p->on ? 1 : 0;
+	if(nPointLights >= maxPointLights) return;
+	pointLightOn[nPointLights] = p->on ? 1 : 0;
 	pointLights[nPointLights] = p;
 	pointLightPos[nPointLights] = p->pos;
 	pointIntensity[nPointLights] = p->intensity;
@@ -156,7 +178,7 @@ void Scene::updateDirLights()
 	{
 		if((*i)->hasDirLights)
 			((LightShader*)(*i))->setDirLights(dirLightOn, 
-				dirLightDir, dirIntensity, MaxDirLights);
+				dirLightDir, dirIntensity, maxDirLights);
 	}
 }
 
@@ -167,7 +189,7 @@ void Scene::updatePointLights()
 	{
 		if((*i)->hasPointLights)
 			((LightShader*)(*i))->setPointLights(pointLightOn, pointLightPos, 
-				pointIntensity, MaxPointLights);
+				pointIntensity, maxPointLights);
 	}
 }
 

@@ -29,7 +29,7 @@ int time;
 int dTime;
 
 float z;
-const float delta = 0.05f;
+const float delta = 0.4f;
 
 int main(int argc, char** argv)
 {
@@ -55,19 +55,20 @@ int main(int argc, char** argv)
 // Called by glutInit().
 int init()
 {
+	z = -8.4f;
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_BLEND); 
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	scene = new Scene();
 
-	shader = new LightShader(false, "Simple", true, true, false);
+	shader = new LightShader(false, "Simple", true, true, true);
 	ArrSolid<36>* cube = Solid::Cube(shader);
-	d = new DirLight(glm::vec3(0.0, 0.5, -1.0), 0.2, false);
-	p = new PointLight(glm::vec4(0.0, 0.0, 5.0, 1.0), 0.4, false);
 
-	scene->add(d);
-	scene->add(p);
+	//scene->add(new DirLight(glm::vec3(0.0, 0.5, -1.0), 0.2));
+	scene->add(new PointLight(glm::vec4(2.0, 2.0, 0.0, 1.0), 1.0));
+	scene->add(new PointLight(glm::vec4(-2.0, -2.0, 0.0, 1.0), 1.0));
+	scene->add(new PointLight(glm::vec4(2.0, 2.0, 0.0, 1.0), 1.0));
 
 	for(int i = -k; i <= k; ++i)
 		for(int j = -k; j <= k; ++j)
@@ -83,7 +84,7 @@ int init()
 			scene->add(cube);
 		}
 
-	scene->setAmbLight(0.1);
+	scene->setAmbLight(0.01);
 	/*
 	shader = new Shader(true, "Particles", false, false, false);
 	swirl = new AdvectParticles<nSwirls>(shader, "bbFlame.png", "decay2.png");

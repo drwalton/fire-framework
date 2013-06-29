@@ -23,8 +23,7 @@ const float PI = 3.141592653589793238462f;
 class Scene
 {
 public:
-	Scene() :ambLight(0.2f), nDirLights(0), 
-		nPointLights(0) {camera = new Camera();};
+	Scene();
 	~Scene();
 	void render();
 	void update(int dTime);
@@ -42,11 +41,11 @@ public:
 
 	void setAmbLight(float _ambLight);
 	
-	static const int MaxDirLights = 10;
+	static const int maxDirLights = 10;
 	GLuint* getDirLightOn() {return dirLightOn;};
 	glm::vec3* getDirLightDir();
 
-	static const int MaxPointLights = 10;
+	static const int maxPointLights = 10;
 	GLuint* getPointLightOn() {return pointLightOn;};
 	glm::vec4* getPointLightPos();
 	
@@ -60,17 +59,17 @@ private:
 	std::set<Shader*> shaders;
 
 	int nDirLights;
-	DirLight* dirLights[MaxDirLights];
-	GLuint dirLightOn[MaxDirLights];
-	glm::vec3 dirLightDir[MaxDirLights];
-	float dirIntensity[MaxDirLights];
+	DirLight* dirLights[maxDirLights];
+	GLuint dirLightOn[maxDirLights];
+	glm::vec3 dirLightDir[maxDirLights];
+	float dirIntensity[maxDirLights];
 	void updateDirLights();
 	
 	int nPointLights;
-	PointLight* pointLights[MaxPointLights];
-	GLuint pointLightOn[MaxPointLights];
-	glm::vec4 pointLightPos[MaxPointLights];
-	float pointIntensity[MaxPointLights];
+	PointLight* pointLights[maxPointLights];
+	GLuint pointLightOn[maxPointLights];
+	glm::vec4 pointLightPos[maxPointLights];
+	float pointIntensity[maxPointLights];
 	void updatePointLights();
 
 	void updateCamera();
