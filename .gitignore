@@ -13,6 +13,9 @@
 *.la
 *.a
 
+# Library directory (contains FreeGLUT, GLEW, SOIL etc.)
+lib/
+
 # Visual Studio gubbins
 *.sdf
 *.sdf.*
