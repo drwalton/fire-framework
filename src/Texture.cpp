@@ -1,10 +1,13 @@
 #include "Texture.hpp"
 
+#include <iostream>
+
 GLuint Texture::nextTexUnit = 0;
 
 Texture::Texture(const std::string& filename)
 {
 	texUnit = nextTexUnit;
+	std::cout << "Texture unit " << texUnit << " created\n";
 	++nextTexUnit;
 
 	glActiveTexture(GL_TEXTURE0 + texUnit);
@@ -16,6 +19,7 @@ Texture::Texture(const std::string& filename)
 		SOIL_CREATE_NEW_ID,
 		SOIL_FLAG_INVERT_Y
 	);
+	if(id == 0) std::cout << "Texture file \"" << filename << "\" could not be loaded.\n";
 }
 
 Texture::~Texture()

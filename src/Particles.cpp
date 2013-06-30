@@ -1,22 +1,20 @@
-#include "Particles.hpp"
-
 template<int maxParticles>
-AdvectParticles<maxParticles>::AdvectParticles(Shader* _renderShader, 
+AdvectParticles<maxParticles>::AdvectParticles(ParticleShader* _shader, 
 	Texture* _bbTex, Texture* _decayTex)
-	:ParticleSystem(_renderShader),
+	:ParticleSystem(_shader),
 	 bbTex(_bbTex), decayTex(_decayTex),
 	 avgLifetime(1500), varLifetime(200),
 	 perturbChance(10),
-	 initAcn(glm::vec4(0.0, 0.00000001, 0.0, 0.0)),
+	 initAcn(glm::vec4(0.0, 0.000001, 0.0, 0.0)),
 	 initVel(glm::vec4(0.0, 0.0, 0.0, 0.0)),
-	 perturbRadius(0.000005f),
+	 perturbRadius(0.0005f),
 	 centerForce(0.00001f),
-	 baseRadius(0.0005f),
-	 bbHeight(0.002f), bbWidth(0.001f),
+	 baseRadius(0.2f),
+	 bbHeight(0.2), bbWidth(0.2f),
 	 perturb_on(true), init_perturb(false)
 {
 	cameraPos = glm::vec3(0.0, 0.0, -1.0);
-	renderShader->use();
+	shader->use();
 
 	// Set up particles.
 	for(int i = 0; i < maxParticles; ++i)
@@ -30,7 +28,7 @@ AdvectParticles<maxParticles>::AdvectParticles(Shader* _renderShader,
 }
 
 template<int maxParticles>
-AdvectParticles<maxParticles>::AdvectParticles(Shader* _renderShader, 
+AdvectParticles<maxParticles>::AdvectParticles(ParticleShader* _shader, 
 	Texture* _bbTex, Texture* _decayTex,
 	int _avgLifetime, int _varLifetime, 
 	glm::vec4 _initAcn, glm::vec4 _initVel,
@@ -38,7 +36,7 @@ AdvectParticles<maxParticles>::AdvectParticles(Shader* _renderShader,
 	float _baseRadius, float _centerForce,
 	float _bbHeight, float _bbWidth,
 	bool _perturb_on, bool _init_perturb)
-	:ParticleSystem(_renderShader),
+	:ParticleSystem(_shader),
      bbTex(_bbTex), decayTex(_decayTex),
 	 avgLifetime(_avgLifetime), varLifetime(_varLifetime),
 	 perturbChance(_perturbChance),
@@ -51,7 +49,7 @@ AdvectParticles<maxParticles>::AdvectParticles(Shader* _renderShader,
 	 perturb_on(_perturb_on), init_perturb(_init_perturb)
 {
 	cameraPos = glm::vec3(0.0, 0.0, -1.0);
-	renderShader->use();
+	shader->use();
 
 	// Set up particles.
 	for(int i = 0; i < maxParticles; ++i)
@@ -70,14 +68,16 @@ void AdvectParticles<maxParticles>::render()
 {
 	if(!scene) return;
 
-	renderShader->setModelToWorld(modelToWorld);
+	shader->setModelToWorld(modelToWorld);
 
-	renderShader->setBBTexUnit(bbTex->getTexUnit());
-	renderShader->setDecayTexUnit(decayTex->getTexUnit());
+	shader->setBBTexUnit(bbTex->getTexUnit());
+	shader->setDecayTexUnit(decayTex->getTexUnit());
 
 	glm::mat4 cam = scene->camera->getMat();
 	cameraPos = glm::vec3(cam[3][0], cam[3][1], cam[3][2]);
-	renderShader->setCameraPos(cameraPos);
+	shader->setCameraPos(cameraPos);
+
+	shader->use();
 
 	glBindBuffer(GL_ARRAY_BUFFER, pos_vbo);
 	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(pos), &(pos));
@@ -91,7 +91,7 @@ void AdvectParticles<maxParticles>::render()
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	
-	glDrawArrays(GL_POINTS, 0, MaxParticles);
+	glDrawArrays(GL_POINTS, 0, maxParticles);
 
 	glUseProgram(0);
 }
@@ -99,7 +99,7 @@ void AdvectParticles<maxParticles>::render()
 template <int maxParticles>
 void AdvectParticles<maxParticles>::update(int dTime)
 {
-	for(int i = 0; i < MaxParticles; ++i)
+	for(int i = 0; i < maxParticles; ++i)
 	{
 		updateParticle(i, dTime);
 	}
@@ -162,8 +162,8 @@ int AdvectParticles<maxParticles>::randi(int low, int high)
 template <int maxParticles>
 void AdvectParticles<maxParticles>::init(Texture* bbTex, Texture* decayTex)
 {
-	renderShader->setBBTexUnit(bbTex->getTexUnit());
-	renderShader->setDecayTexUnit(decayTex->getTexUnit());
+	shader->setBBTexUnit(bbTex->getTexUnit());
+	shader->setDecayTexUnit(decayTex->getTexUnit());
 
 	// Set up vertex buffer objects.
 	glGenBuffers(1, &pos_vbo);
@@ -175,20 +175,45 @@ void AdvectParticles<maxParticles>::init(Texture* bbTex, Texture* decayTex)
 	glBufferData(GL_ARRAY_BUFFER, sizeof(decay), &decay, GL_DYNAMIC_DRAW);
 
 	// Set up uniforms.
-	renderShader->setBBWidth(bbWidth);
-	renderShader->setBBHeight(bbHeight);
-	renderShader->setCameraPos(cameraPos);
+	shader->setBBWidth(bbWidth);
+	shader->setBBHeight(bbHeight);
+	shader->setCameraPos(cameraPos);
 
-	pos_attrib = renderShader->getAttribLoc("vPos");
-	decay_attrib = renderShader->getAttribLoc("vDecay");
+	pos_attrib = shader->getAttribLoc("vPos");
+	decay_attrib = shader->getAttribLoc("vDecay");
 }
 
 template <int maxParticles>
 AdvectParticlesRandLights<maxParticles>::AdvectParticlesRandLights(int _nLights, 
-	Shader* _renderShader, Texture* _bbTex, Texture* _decayTex)
-		:AdvectParticles(Shader* _renderShader, 
-			Texture* _bbTex, Texture* _decayTex),
-		nLights(_nLights)
+	ParticleShader* _shader, Texture* _bbTex, Texture* _decayTex)
+	:AdvectParticles<maxParticles>(_shader, _bbTex, _decayTex),
+	 nLights(_nLights)
+{
+	// Set up vector of lights.
+	for(int i = 0; i < nLights; ++i)
+	{
+		lights.push_back(new PointLight(getOrigin(), 0.2f));
+	}
+}
+
+template <int maxParticles>
+AdvectParticlesRandLights<maxParticles>::AdvectParticlesRandLights(
+	int nLights, ParticleShader* _shader, 
+	Texture* _bbTex, Texture* _decayTex,
+	int avgLifetime, int varLifetime, 
+	glm::vec4 initAcn, glm::vec4 initVel,
+	int perturbChance, float perturbRadius,
+	float baseRadius, float centerForce,
+	float bbHeight, float bbWidth,
+	bool perturb_on, bool _init_perturb)
+	:AdvectParticles<maxParticles>(_shader, _bbTex, _decayTex,
+	 avgLifetime, varLifetime, 
+	 initAcn, initVel,
+	 perturbChance, perturbRadius,
+	 baseRadius, centerForce,
+	 bbHeight, bbWidth,
+	 perturb_on, _init_perturb),
+	 nLights(_nLights)
 {
 	// Set up vector of lights.
 	for(int i = 0; i < nLights; ++i)
@@ -216,5 +241,24 @@ void AdvectParticlesRandLights<maxParticles>::onRemove()
 	for (int i = 0; i < nLights; ++i)
 	{
 		scene->remove(lights[i]);
+	}
+}
+
+template <int maxParticles>
+void AdvectParticlesRandLights<maxParticles>::update(int dTime)
+{
+	AdvectParticles<maxParticles>::update(dTime);
+	updateLights();
+}
+
+template <int maxParticles>
+void AdvectParticlesRandLights<maxParticles>::updateLights()
+{
+	//Move each light to the location of a randomly selected particle.
+	int randIndex;
+	for(int i = 0; i < nLights; ++i)
+	{
+		randIndex = randi(0, maxParticles);
+		lights[i]->setPos(pos[randIndex]);
 	}
 }

@@ -17,7 +17,10 @@ template <int maxParticles>
 class ParticleSystem : public Renderable
 {
 public:
-	ParticleSystem(Shader* _renderShader) :Renderable(_renderShader) {};
+	ParticleSystem(ParticleShader* _shader) :shader(_shader) {};
+	Shader* getShader() {return (Shader*) shader;};
+protected:
+	ParticleShader* shader;
 };
 
 /* AdvectParticles
@@ -38,8 +41,8 @@ template <int maxParticles>
 class AdvectParticles : public ParticleSystem<maxParticles>
 {
 public:
-	AdvectParticles(Shader* _renderShader, Texture* _bbTex, Texture* _decayTex);
-	AdvectParticles(Shader* _renderShader, Texture* _bbTex, Texture* _decayTex,
+	AdvectParticles(ParticleShader* _shader, Texture* _bbTex, Texture* _decayTex);
+	AdvectParticles(ParticleShader* _shader, Texture* _bbTex, Texture* _decayTex,
 		int avgLifetime, int varLifetime, 
 		glm::vec4 initAcn, glm::vec4 initVel,
 		int perturbChance, float perturbRadius,
@@ -48,7 +51,11 @@ public:
 		bool perturb_on, bool _init_perturb);
 
 	void render();
-	void update(int dTime);
+	virtual void update(int dTime);
+protected:
+	std::array<glm::vec4, maxParticles> pos;
+	int randi(int low, int high);
+	float randf(float low, float high);
 private:
 	const int avgLifetime;
 	const int varLifetime;
@@ -61,7 +68,6 @@ private:
 	const float bbHeight; //Particle billboard width.
 	const float bbWidth;  //Particle billboard height.
 	glm::vec3 cameraPos;
-	std::array<glm::vec4, maxParticles> pos;
 	std::array<glm::vec4, maxParticles> vel;
 	std::array<glm::vec4, maxParticles> acn;
 	std::array<int,       maxParticles> time;
@@ -81,8 +87,6 @@ private:
 	void spawnParticle(int index);
 	void init(Texture* bbTex, Texture* decayTex);
 	glm::vec4 perturb(glm::vec4 input);
-	int randi(int low, int high);
-	float randf(float low, float high);
 	glm::vec4 randInitPos();
 };
 
@@ -90,9 +94,9 @@ template <int maxParticles>
 class AdvectParticlesRandLights : public AdvectParticles<maxParticles>
 {
 public:
-	AdvectParticlesRandLights(int _nLights, Shader* _renderShader, 
+	AdvectParticlesRandLights(int _nLights, ParticleShader* _shader, 
 		Texture* _bbTex, Texture* _decayTex);
-	AdvectParticlesRandLights(int nLights, Shader* _renderShader, 
+	AdvectParticlesRandLights(int nLights, ParticleShader* _shader, 
 		Texture* _bbTex, Texture* _decayTex,
 		int avgLifetime, int varLifetime, 
 		glm::vec4 initAcn, glm::vec4 initVel,
@@ -104,8 +108,11 @@ public:
 	std::vector<PointLight*> lights;
 	void onAdd();
 	void onRemove();
+	void update(int dTime);
 private:
 	void updateLights();
 };
+
+#include "Particles.cpp"
 
 #endif

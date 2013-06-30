@@ -20,13 +20,13 @@ template <int nVertices, int nElements> class ElemSolid;
 class Renderable : public Element
 {
 public:
-	Renderable(Shader* _render);
+	Renderable();
 	void setModelToWorld(const glm::mat4& newPos) {modelToWorld = newPos;};
 	void concatTransform(const glm::mat4& t) {modelToWorld = t * modelToWorld;};
 	glm::vec4 getOrigin(); //Return pos'n of model space origin in world space.
 	virtual void update(int dTime) = 0;
 	virtual void render() = 0;
-	Shader* renderShader;
+	virtual Shader* getShader() = 0;
 	Scene* scene; //Points to scene containing renderable (nullptr if not in scene).
 	virtual void onAdd() {}; //Called when the renderable is added to the scene.
 	virtual void onRemove() {}; //Called when the renderable is removed from the scene.
@@ -41,8 +41,11 @@ protected:
 class Solid : public Renderable
 {
 public:
-	Solid(LightShader* _render) :Renderable(_render) {};
-	static ArrSolid<36>* Cube(LightShader* _render);
+	Solid(LightShader* _shader) :shader(_shader) {};
+	static ArrSolid<36>* Cube(LightShader* _shader);
+	Shader* getShader() {return (Shader*) shader;};
+protected:
+	LightShader* shader;
 };
 
 /* ArrSolid
@@ -52,7 +55,7 @@ template<int nVertices>
 class ArrSolid : public Solid
 {
 public:
-	ArrSolid(LightShader* _render, 
+	ArrSolid(LightShader* _shader, 
 		const std::array<glm::vec4, nVertices>& _v, 
 		const std::array<glm::vec3, nVertices>& _n);	
 	void render();

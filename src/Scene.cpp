@@ -61,7 +61,7 @@ Renderable* Scene::add(Renderable* const r)
 	if(r == nullptr) return nullptr;
 	renderables.insert(r);
 	r->scene = this;
-	shaders.insert(r->renderShader);
+	shaders.insert(r->getShader());
 
 	r->onAdd();
 	

@@ -12,12 +12,14 @@ void reshape (int, int);
 void keyboard(unsigned char, int, int);
 void updatePos();
 
-const int nSwirls = 100;
+const int nSwirls = 400;
 const int nSparks = 5;
 
 Scene* scene;
-LightShader* shader;
-AdvectParticles<nSwirls>* swirl;
+
+LightShader* lShader;
+ParticleShader* pShader;
+AdvectParticlesRandLights<nSwirls>* swirl;
 AdvectParticles<nSwirls>* swirl2;
 AdvectParticles<nSwirls>* swirl3;
 AdvectParticles<nSparks>* sparks;
@@ -48,33 +50,34 @@ int main(int argc, char** argv)
 	glutKeyboardFunc(keyboard);
     glutMainLoop();
 
-	delete shader;
+	delete lShader;
+	delete pShader;
 	delete scene;
 }
 
 // Called by glutInit().
 int init()
 {
-	z = -8.4f;
+	z = 0.0f;
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_BLEND); 
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	scene = new Scene();
 
-	shader = new LightShader(false, "Simple", true, true, true);
-	ArrSolid<36>* cube = Solid::Cube(shader);
+	lShader = new LightShader(false, "Simple", true, true, true);
+	ArrSolid<36>* cube = Solid::Cube(lShader);
 
 	//scene->add(new DirLight(glm::vec3(0.0, 0.5, -1.0), 0.2));
-	scene->add(new PointLight(glm::vec4(2.0, 2.0, 0.0, 1.0), 1.0));
-	scene->add(new PointLight(glm::vec4(-2.0, -2.0, 0.0, 1.0), 1.0));
-	scene->add(new PointLight(glm::vec4(2.0, 2.0, 0.0, 1.0), 1.0));
+	//scene->add(new PointLight(glm::vec4(2.0, 2.0, 0.0, 1.0), 1.0));
+	//scene->add(new PointLight(glm::vec4(-2.0, -2.0, 0.0, 1.0), 1.0));
+	//scene->add(new PointLight(glm::vec4(2.0, 2.0, 0.0, 1.0), 1.0));
 
 	for(int i = -k; i <= k; ++i)
 		for(int j = -k; j <= k; ++j)
 		{
 
-			cube = Solid::Cube(shader);
+			cube = Solid::Cube(lShader);
 
 			cube->concatTransform(glm::mat4(
 				1.0, 0.0, 0.0, 0.0,
@@ -85,22 +88,17 @@ int init()
 		}
 
 	scene->setAmbLight(0.01f);
-	/*
-	shader = new Shader(true, "Particles", false, false, false);
-	swirl = new AdvectParticles<nSwirls>(shader, "bbFlame.png", "decay2.png");
-	//scene->add(swirl);
-	shader = new Shader(true, "Particles", false, false, false);
-	swirl2 = new AdvectParticles<nSwirls>(shader, "bbFlame.png", "decay2.png");
-	scene->add(swirl2);
-	shader = new Shader(true, "Particles", false, false, false);
-	swirl3 = new AdvectParticles<nSwirls>(shader, "bbFlame2.png", "decay2.png");
-	scene->add(swirl3);
-	shader = new Shader(true, "Sparks", false, false, false);
-	sparks = new AdvectParticles<nSparks>(shader, "bbSolid.png", "sparkDecay.png", 
-		1000, 200, glm::vec4(0.0, -0.00000002, 0.0, 0.0), glm::vec4(0.0, 0.00002, 0.0, 0.0),
-		10, 0.00002f, 0.0f, 0.0f, 0.0005f, 0.0005f, true, true);
-	scene->add(sparks);
-	*/
+
+	pShader = new ParticleShader(true, "ScrollTexFire");
+	Texture* flameTex = new Texture("bigFlame.png");
+	Texture* decayTex = new Texture("decay2.png");
+	swirl = new AdvectParticlesRandLights<nSwirls>(10, pShader, flameTex, decayTex);
+	swirl->concatTransform(glm::mat4(
+			1.0, 0.0, 0.0, 0.0,
+			0.0, 1.0, 0.0, 0.0,
+			0.0, 0.0, 1.0, 0.0,
+			0.0, -1.0, 3.0, 1.0));
+	scene->add(swirl);
 	return 1;
 }
 

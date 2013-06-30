@@ -1,8 +1,7 @@
 #include "Renderable.hpp"
 
-Renderable::Renderable(Shader* _render)
-	:renderShader(_render),
-	scene(nullptr),
+Renderable::Renderable()
+	:scene(nullptr),
 	modelToWorld(glm::mat4(1.0))
 {
 	
@@ -18,10 +17,10 @@ glm::vec4 Renderable::getOrigin()
 }
 
 template<int nVertices>
-ArrSolid<nVertices>::ArrSolid(LightShader* _render,
+ArrSolid<nVertices>::ArrSolid(LightShader* _shader,
 	const std::array<glm::vec4, nVertices>& _v,
 	const std::array<glm::vec3, nVertices>& _n)
-	:Solid(_render), v(_v), n(_n)
+	:Solid(_shader), v(_v), n(_n)
 {
 	glGenBuffers(1, &v_vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, v_vbo);
@@ -30,8 +29,8 @@ ArrSolid<nVertices>::ArrSolid(LightShader* _render,
 	glBindBuffer(GL_ARRAY_BUFFER, n_vbo);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(n), &n, GL_STATIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	v_attrib = renderShader->getAttribLoc("vPosition");
-	n_attrib = renderShader->getAttribLoc("vNorm");
+	v_attrib = shader->getAttribLoc("vPosition");
+	n_attrib = shader->getAttribLoc("vNorm");
 }
 
 template<int nVertices>
@@ -39,9 +38,9 @@ void ArrSolid<nVertices>::render()
 {
 
 	if(!scene) return;
-	renderShader->setModelToWorld(modelToWorld);
+	shader->setModelToWorld(modelToWorld);
 
-	renderShader->use();
+	shader->use();
 	glEnableVertexAttribArray(v_attrib);
 	glEnableVertexAttribArray(n_attrib);
 	glBindBuffer(GL_ARRAY_BUFFER, v_vbo);
@@ -57,7 +56,7 @@ void ArrSolid<nVertices>::render()
 	glUseProgram(0);
 }
 
-ArrSolid<36>* Solid::Cube(LightShader* _render)
+ArrSolid<36>* Solid::Cube(LightShader* _shader)
 {
 	std::array<glm::vec4, 36> v;
 	std::array<glm::vec3, 36> n;
@@ -126,6 +125,6 @@ ArrSolid<36>* Solid::Cube(LightShader* _render)
 		n[i+30] = glm::vec3( 0.0,  1.0,  0.0); //Right
 	}
 
-	ArrSolid<36>* cube = new ArrSolid<36>(_render, v, n);
+	ArrSolid<36>* cube = new ArrSolid<36>(_shader, v, n);
 	return cube;
 }
