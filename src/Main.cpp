@@ -84,7 +84,7 @@ int init()
 			scene->add(cube);
 		}
 
-	scene->setAmbLight(0.01);
+	scene->setAmbLight(0.01f);
 	/*
 	shader = new Shader(true, "Particles", false, false, false);
 	swirl = new AdvectParticles<nSwirls>(shader, "bbFlame.png", "decay2.png");

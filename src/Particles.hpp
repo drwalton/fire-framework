@@ -6,6 +6,9 @@
 
 #include "Texture.hpp"
 #include "Shader.hpp"
+#include "Light.hpp"
+
+#include <vector>
 
 /* ParticleSystem
  * An ADT for a renderable object which is a particle system.
@@ -99,6 +102,8 @@ public:
 		bool perturb_on, bool _init_perturb);
 	const int nLights;
 	std::vector<PointLight*> lights;
+	void onAdd();
+	void onRemove();
 private:
 	void updateLights();
 };

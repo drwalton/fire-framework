@@ -28,6 +28,8 @@ public:
 	virtual void render() = 0;
 	Shader* renderShader;
 	Scene* scene; //Points to scene containing renderable (nullptr if not in scene).
+	virtual void onAdd() {}; //Called when the renderable is added to the scene.
+	virtual void onRemove() {}; //Called when the renderable is removed from the scene.
 protected:
 	glm::mat4 modelToWorld;
 };

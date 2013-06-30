@@ -44,9 +44,6 @@ public:
 	PointLight* updateLight(PointLight* p);
 	PointLight* remove(PointLight* p);
 
-	AdvectParticlesRandLights* add(AdvectParticlesRandLights* a);
-	AdvectParticlesRandLights* remove(AdvectParticlesRandLights* a);
-
 	void setAmbLight(float _ambLight);
 	
 	static const int maxDirLights = 10;

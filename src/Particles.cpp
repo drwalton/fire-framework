@@ -184,7 +184,7 @@ void AdvectParticles<maxParticles>::init(Texture* bbTex, Texture* decayTex)
 }
 
 template <int maxParticles>
-AdvectParticlesRandLights::AdvectParticlesRandLights(int _nLights, 
+AdvectParticlesRandLights<maxParticles>::AdvectParticlesRandLights(int _nLights, 
 	Shader* _renderShader, Texture* _bbTex, Texture* _decayTex)
 		:AdvectParticles(Shader* _renderShader, 
 			Texture* _bbTex, Texture* _decayTex),
@@ -194,5 +194,27 @@ AdvectParticlesRandLights::AdvectParticlesRandLights(int _nLights,
 	for(int i = 0; i < nLights; ++i)
 	{
 		lights.push_back(new PointLight(getOrigin(), 0.2));
+	}
+}
+
+template <int maxParticles>
+void AdvectParticlesRandLights<maxParticles>::onAdd()
+{
+	PointLight* p;
+	// Add lights
+	for(int i = 0; i < nLights; ++i)
+	{
+		p = scene->add(lights[i]);
+		if(p == nullptr) //Light not added correctly (too many lights?).
+			; //TODO throw appropriate exception, break.
+	}
+}
+
+template <int maxParticles>
+void AdvectParticlesRandLights<maxParticles>::onRemove()
+{
+	for (int i = 0; i < nLights; ++i)
+	{
+		scene->remove(lights[i]);
 	}
 }
