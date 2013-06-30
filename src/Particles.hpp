@@ -10,7 +10,7 @@
 /* ParticleSystem
  * An ADT for a renderable object which is a particle system.
  */
-template <int MaxParticles>
+template <int maxParticles>
 class ParticleSystem : public Renderable
 {
 public:
@@ -31,8 +31,8 @@ public:
  *  decayTex determined by the particle's remaining lifetime.
  * **Note** that scrollTexParticles.glsl uses bbTex in a different way. See the shader source for more details.
  */
-template <int MaxParticles>
-class AdvectParticles : public ParticleSystem<MaxParticles>
+template <int maxParticles>
+class AdvectParticles : public ParticleSystem<maxParticles>
 {
 public:
 	AdvectParticles(Shader* _renderShader, Texture* _bbTex, Texture* _decayTex);
@@ -58,12 +58,12 @@ private:
 	const float bbHeight; //Particle billboard width.
 	const float bbWidth;  //Particle billboard height.
 	glm::vec3 cameraPos;
-	std::array<glm::vec4, MaxParticles> pos;
-	std::array<glm::vec4, MaxParticles> vel;
-	std::array<glm::vec4, MaxParticles> acn;
-	std::array<int,       MaxParticles> time;
-	std::array<int,       MaxParticles> lifeTime;
-	std::array<float,     MaxParticles> decay;
+	std::array<glm::vec4, maxParticles> pos;
+	std::array<glm::vec4, maxParticles> vel;
+	std::array<glm::vec4, maxParticles> acn;
+	std::array<int,       maxParticles> time;
+	std::array<int,       maxParticles> lifeTime;
+	std::array<float,     maxParticles> decay;
 	GLuint pos_vbo;
 	GLuint decay_vbo;
 	GLuint pos_attrib;
@@ -81,6 +81,26 @@ private:
 	int randi(int low, int high);
 	float randf(float low, float high);
 	glm::vec4 randInitPos();
+};
+
+template <int maxParticles>
+class AdvectParticlesRandLights : public AdvectParticles<maxParticles>
+{
+public:
+	AdvectParticlesRandLights(int _nLights, Shader* _renderShader, 
+		Texture* _bbTex, Texture* _decayTex);
+	AdvectParticlesRandLights(int nLights, Shader* _renderShader, 
+		Texture* _bbTex, Texture* _decayTex,
+		int avgLifetime, int varLifetime, 
+		glm::vec4 initAcn, glm::vec4 initVel,
+		int perturbChance, float perturbRadius,
+		float baseRadius, float centerForce,
+		float bbHeight, float bbWidth,
+		bool perturb_on, bool _init_perturb);
+	const int nLights;
+	std::vector<PointLight*> lights;
+private:
+	void updateLights();
 };
 
 #endif

@@ -28,16 +28,24 @@ public:
 	void render();
 	void update(int dTime);
 
-	void add(Renderable* r);
-	void remove(Renderable* r);
+	/* add() and remove() functions return a pointer to the element added/removed.
+	 * e.g. Renderable* p = scene.add(new AdvectParticles(s, t1, t2));
+	 * If the element could not be added/removed (e.g. maxPointLights is exceeded),
+	 * nullptr is returned.
+	 */
+	Renderable* add(Renderable* r);
+	Renderable* remove(Renderable* r);
 
-	void add(DirLight* d);
-	void updateLight(DirLight* d);
-	void remove(DirLight* d);
+	DirLight* add(DirLight* d);
+	DirLight* updateLight(DirLight* d);
+	DirLight* remove(DirLight* d);
 
-	void add(PointLight* p);
-	void updateLight(PointLight* p);
-	void remove(PointLight* p);
+	PointLight* add(PointLight* p);
+	PointLight* updateLight(PointLight* p);
+	PointLight* remove(PointLight* p);
+
+	AdvectParticlesRandLights* add(AdvectParticlesRandLights* a);
+	AdvectParticlesRandLights* remove(AdvectParticlesRandLights* a);
 
 	void setAmbLight(float _ambLight);
 	

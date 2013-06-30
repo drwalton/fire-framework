@@ -56,7 +56,7 @@ void Scene::update(int dTime)
 	}
 }
 
-void Scene::add(Renderable* const r)
+Renderable* Scene::add(Renderable* const r)
 {
 	if(r == nullptr) return;
 	renderables.insert(r);
@@ -67,17 +67,19 @@ void Scene::add(Renderable* const r)
 	setAmbLight(ambLight);
 	updateDirLights();
 	updatePointLights();
+	return r;
 }
 
-void Scene::remove(Renderable* r)
+Renderable* Scene::remove(Renderable* r)
 {
 	renderables.erase(r);
 	//TODO Remove shaders if appropriate (not needed by another renderable).
+	return r;
 }
 
-void Scene::add(DirLight* d)
+DirLight* Scene::add(DirLight* d)
 {
-	if(nDirLights >= maxDirLights) return;
+	if(nDirLights >= maxDirLights) return nullptr;
 	dirLights[nDirLights] = d;
 	dirLightOn[nDirLights] = d->on ? 1 : 0;
 	dirLightDir[nDirLights] = d->dir;
@@ -86,20 +88,23 @@ void Scene::add(DirLight* d)
 	d->scene = this;
 	++nDirLights;
 	updateDirLights();
+	return d;
 }
 
-void Scene::updateLight(DirLight* d)
+DirLight* Scene::updateLight(DirLight* d)
 {
-	if(d->scene != this || d->index == -1 || dirLights[d->index] != d) return;
+	if(d->scene != this || d->index == -1 || dirLights[d->index] != d) 
+		return nullptr;
 	dirLightOn[d->index] = d->on ? 1 : 0;
 	dirLightDir[d->index] = d->dir;
 	dirIntensity[d->index] = d->intensity;
 	updateDirLights(); 
+	return d;
 }
 
-void Scene::remove(DirLight* d)
+DirLight* Scene::remove(DirLight* d)
 {
-	if(nDirLights <= 0 || d->index == -1) return;
+	if(nDirLights <= 0 || d->index == -1) return nullptr;
 	for(int i = d->index; i < nDirLights-1; ++i)
 	{
 		dirLights[i] = dirLights[i+1];
@@ -115,11 +120,12 @@ void Scene::remove(DirLight* d)
 	--nDirLights;
 	d->index = -1;
 	updateDirLights();
+	return d;
 }
 
-void Scene::add(PointLight* p)
+PointLight* Scene::add(PointLight* p)
 {
-	if(nPointLights >= maxPointLights) return;
+	if(nPointLights >= maxPointLights) return nullptr;
 	pointLightOn[nPointLights] = p->on ? 1 : 0;
 	pointLights[nPointLights] = p;
 	pointLightPos[nPointLights] = p->pos;
@@ -128,20 +134,22 @@ void Scene::add(PointLight* p)
 	p->scene = this;
 	++nPointLights;
 	updatePointLights();
+	return p;
 }
 
-void Scene::updateLight(PointLight* p)
+PointLight* Scene::updateLight(PointLight* p)
 {
-	if(p->scene != this || p->index == -1) return;
+	if(p->scene != this || p->index == -1) return nullptr;
 	pointLightOn[p->index] = p->on ? 1 : 0;
 	pointLightPos[p->index] = p->pos;
 	pointIntensity[p->index] = p->intensity;
 	updatePointLights();
+	return p;
 }
 
-void Scene::remove(PointLight* p)
+PointLight* Scene::remove(PointLight* p)
 {
-	if(nPointLights <= 0 || p->index == -1) return;
+	if(nPointLights <= 0 || p->index == -1) return nullptr;
 	for(int i = p->index; i < nPointLights-1; ++i)
 	{
 		pointLights[i] = pointLights[i+1];
@@ -157,6 +165,30 @@ void Scene::remove(PointLight* p)
 	--nDirLights;
 	p->index = -1;
 	updatePointLights();
+	return p;
+}
+
+AdvectParticlesRandLights* Scene::add(AdvectParticlesRandLights* a)
+{
+	// Check there is room for the lights.
+	if(maxPointLights - nPointLights < a->nLights) return nullptr;
+	// Add lights
+	for(int i = 0; i < a->nLights; ++i)
+	{
+		add(a->lights[i]);
+	}
+	add((Renderable*) a);
+	return a;
+}
+
+AdvectParticlesRandLights* Scene::remove(AdvectParticlesRandLights* a)
+{
+	for (int i = 0; i < a->nLights; ++i)
+	{
+		remove(a->lights[i]);
+	}
+	remove((Renderable*) a);
+	return a;
 }
 
 //TODO replace with checking by type of shader.

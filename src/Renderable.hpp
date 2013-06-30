@@ -23,6 +23,7 @@ public:
 	Renderable(Shader* _render);
 	void setModelToWorld(const glm::mat4& newPos) {modelToWorld = newPos;};
 	void concatTransform(const glm::mat4& t) {modelToWorld = t * modelToWorld;};
+	glm::vec4 getOrigin(); //Return pos'n of model space origin in world space.
 	virtual void update(int dTime) = 0;
 	virtual void render() = 0;
 	Shader* renderShader;

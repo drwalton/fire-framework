@@ -8,6 +8,15 @@ Renderable::Renderable(Shader* _render)
 	
 }
 
+glm::vec4 Renderable::getOrigin()
+{
+	glm::vec4 o = glm::vec4(0.0, 0.0, 0.0, 1.0);
+	o.x = modelToWorld[3][0];
+	o.y = modelToWorld[3][1];
+	o.z = modelToWorld[3][2];
+	return o;
+}
+
 template<int nVertices>
 ArrSolid<nVertices>::ArrSolid(LightShader* _render,
 	const std::array<glm::vec4, nVertices>& _v,
