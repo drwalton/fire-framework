@@ -67,7 +67,7 @@ private:
 	const float centerForce;
 	const float bbHeight; //Particle billboard width.
 	const float bbWidth;  //Particle billboard height.
-	glm::vec3 cameraPos;
+	glm::vec3 cameraDir;
 	std::array<glm::vec4, maxParticles> vel;
 	std::array<glm::vec4, maxParticles> acn;
 	std::array<int,       maxParticles> time;

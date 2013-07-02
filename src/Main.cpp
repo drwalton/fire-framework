@@ -58,9 +58,17 @@ int init()
 {
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_BLEND); 
+	glEnable(GL_DEPTH_TEST);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	scene = new Scene();
+
+	pShader = new ParticleShader(true, "ScrollTexFire");
+	Texture* flameTex = new Texture("bigFlame.png");
+	Texture* decayTex = new Texture("decay2.png");
+	swirl = new AdvectParticlesRandLights<nSwirls>(10, pShader, flameTex, decayTex);
+	swirl->translate(glm::vec3(0.0, -1.0, 3.0));
+	scene->add(swirl);
 
 	lShader = new LightShader(false, "Simple", true, true, true);
 	ArrSolid<36>* cube = Solid::Cube(lShader);
@@ -79,13 +87,6 @@ int init()
 		}
 
 	scene->setAmbLight(0.01f);
-
-	pShader = new ParticleShader(true, "ScrollTexFire");
-	Texture* flameTex = new Texture("bigFlame.png");
-	Texture* decayTex = new Texture("decay2.png");
-	swirl = new AdvectParticlesRandLights<nSwirls>(10, pShader, flameTex, decayTex);
-	swirl->translate(glm::vec3(0.0, -1.0, 3.0));
-	scene->add(swirl);
 	return 1;
 }
 
@@ -94,7 +95,7 @@ void display()
 {
 	dTime = glutGet(GLUT_ELAPSED_TIME) - time;
 	time = glutGet(GLUT_ELAPSED_TIME);
-	glClear(GL_COLOR_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	scene->update(dTime);
 	scene->render();
 	glutSwapBuffers();

@@ -24,7 +24,7 @@ uniform float bbHeight;
 
 uniform mat4 worldToCamera;
 
-uniform vec3 cameraPos;
+uniform vec3 cameraDir;
 
 layout(points) in;
 
@@ -43,7 +43,7 @@ void main()
 {
 	decay = VertexIn[0].decay;
 	vec3 pointPos = gl_in[0].gl_Position.xyz;
-	vec3 toCamera = normalize(pointPos - cameraPos);
+	vec3 toCamera = normalize(cameraDir);
 
 	// Find vectors in plane of billboard.
 	vec3 up = vec3(0.0, 1.0, 0.0);

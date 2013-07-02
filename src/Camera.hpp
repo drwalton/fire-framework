@@ -10,7 +10,7 @@
  * FREELOOK: Camera rotates & moves relative to itself.
  * CENTRED: Camera rotates around (0,0,0).
  */
-enum CameraModes : char { FREELOOK, CENTRED };
+enum CameraModes : char { FREELOOK, CENTERED };
 
 /* Camera
  * Every Scene has a Camera object, which describes how world space is transformed into 
@@ -36,6 +36,7 @@ public:
 	void mouseInput(int mouseX, int mouseY);
 
 	glm::mat4 getMat() {return worldToCamera;};
+	glm::vec3 getCameraDir(); //Get direction camera is facing.
 private:
 	CameraModes mode;
 	glm::mat4 worldToCamera;

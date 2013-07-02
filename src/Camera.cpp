@@ -7,7 +7,7 @@ Camera::Camera()
 	:FOV(45.0f), aspect(1.0f), zNear(0.01f), zFar(50.0f),
 	 theta(0.0f), phi(0.0f),
 	 rotation(glm::mat4(1.0f)), translation(glm::mat4(1.0f)),
-	 mode(CameraModes::CENTRED)
+	 mode(CameraModes::CENTERED)
 
 {
 	projection = glm::perspective(FOV, aspect, zNear, zFar);
@@ -76,7 +76,7 @@ void Camera::setZFar(const float& newZFar)
 
 void Camera::keyboardInput(unsigned char key, int x, int y)
 {
-	if(mode == CameraModes::CENTRED)
+	if(mode == CameraModes::CENTERED)
 	{
 		switch(key)
 		{
@@ -134,7 +134,7 @@ void Camera::keyboardInput(unsigned char key, int x, int y)
 			rotate(0.0f,  rotDelta);
 			break;
 		case 'c':
-			mode = CameraModes::CENTRED;
+			mode = CameraModes::CENTERED;
 			reset();
 			break;
 		}
@@ -144,6 +144,12 @@ void Camera::keyboardInput(unsigned char key, int x, int y)
 void Camera::mouseInput(int mouseX, int mouseY)
 {
 
+}
+
+glm::vec3 Camera::getCameraDir()
+{
+	glm::vec4 rotDir = glm::inverse(rotation) * glm::vec4(0.0, 0.0, -1.0, 1.0);
+	return glm::vec3(rotDir.x, rotDir.y, rotDir.z);
 }
 
 void Camera::updateRotation()
@@ -158,7 +164,7 @@ void Camera::updateRotation()
 
 void Camera::updateWorldToCamera()
 {
-	if(mode == CameraModes::CENTRED)
+	if(mode == CameraModes::CENTERED)
 		worldToCamera = projection * translation * rotation;
 	else if(mode == CameraModes::FREELOOK)
 		worldToCamera = projection * rotation * translation;

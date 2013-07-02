@@ -217,7 +217,7 @@ ParticleShader::ParticleShader(bool hasGeomShader, const std::string& filename)
 	use();
 	bbWidth_u = getUniformLoc("bbWidth");
 	bbHeight_u = getUniformLoc("bbHeight");
-	cameraPos_u = getUniformLoc("cameraPos");
+	cameraDir_u = getUniformLoc("cameraDir");
 	bbTex_u = getUniformLoc("bbTexture");
 	decayTex_u = getUniformLoc("decayTexture");
 	glUseProgram(0);
@@ -237,10 +237,10 @@ void ParticleShader::setBBHeight(float _bbHeight)
 	glUseProgram(0);
 }
 
-void ParticleShader::setCameraPos(const glm::vec3& _cameraPos)
+void ParticleShader::setCameraDir(const glm::vec3& _cameraDir)
 {
 	use();
-	glUniform3fv(cameraPos_u, 1, &(_cameraPos.x));
+	glUniform3fv(cameraDir_u, 1, &(_cameraDir.x));
 	glUseProgram(0);
 }
 

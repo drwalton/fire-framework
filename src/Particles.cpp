@@ -10,10 +10,10 @@ AdvectParticles<maxParticles>::AdvectParticles(ParticleShader* _shader,
 	 perturbRadius(0.0005f),
 	 centerForce(0.00001f),
 	 baseRadius(0.2f),
-	 bbHeight(0.2), bbWidth(0.2f),
-	 perturb_on(true), init_perturb(false)
+	 bbHeight(0.2f), bbWidth(0.2f),
+	 perturb_on(true), init_perturb(false),
+	 cameraDir(glm::vec3(0.0, 0.0, -1.0))
 {
-	cameraPos = glm::vec3(0.0, 0.0, -1.0);
 	shader->use();
 
 	// Set up particles.
@@ -66,6 +66,7 @@ AdvectParticles<maxParticles>::AdvectParticles(ParticleShader* _shader,
 template <int maxParticles>
 void AdvectParticles<maxParticles>::render()
 {
+	glDepthFunc(GL_ALWAYS);
 	if(!scene) return;
 
 	shader->setModelToWorld(modelToWorld);
@@ -73,9 +74,7 @@ void AdvectParticles<maxParticles>::render()
 	shader->setBBTexUnit(bbTex->getTexUnit());
 	shader->setDecayTexUnit(decayTex->getTexUnit());
 
-	glm::mat4 cam = scene->camera->getMat();
-	cameraPos = glm::vec3(cam[3][0], cam[3][1], cam[3][2]);
-	shader->setCameraPos(cameraPos);
+	shader->setCameraDir(scene->camera->getCameraDir());
 
 	shader->use();
 
@@ -94,6 +93,7 @@ void AdvectParticles<maxParticles>::render()
 	glDrawArrays(GL_POINTS, 0, maxParticles);
 
 	glUseProgram(0);
+	glDepthFunc(GL_LESS);
 }
 
 template <int maxParticles>
@@ -177,7 +177,7 @@ void AdvectParticles<maxParticles>::init(Texture* bbTex, Texture* decayTex)
 	// Set up uniforms.
 	shader->setBBWidth(bbWidth);
 	shader->setBBHeight(bbHeight);
-	shader->setCameraPos(cameraPos);
+	shader->setCameraDir(cameraDir);
 
 	pos_attrib = shader->getAttribLoc("vPos");
 	decay_attrib = shader->getAttribLoc("vDecay");
@@ -259,6 +259,6 @@ void AdvectParticlesRandLights<maxParticles>::updateLights()
 	for(int i = 0; i < nLights; ++i)
 	{
 		randIndex = randi(0, maxParticles);
-		lights[i]->setPos(pos[randIndex]);
+		lights[i]->setPos(modelToWorld * pos[randIndex]);
 	}
 }

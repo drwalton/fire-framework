@@ -45,13 +45,13 @@ public:
 	ParticleShader(bool hasGeomShader, const std::string& filename);
 	void setBBWidth(float _bbWidth);
 	void setBBHeight(float _bbHeight);
-	void setCameraPos(const glm::vec3& _cameraPos);
+	void setCameraDir(const glm::vec3& _cameraDir);
 	void setBBTexUnit(GLuint _bbTexUnit);
 	void setDecayTexUnit(GLuint _decayTexUnit);
 private:
 	GLuint bbWidth_u;
 	GLuint bbHeight_u;
-	GLuint cameraPos_u;
+	GLuint cameraDir_u;
 	GLuint bbTex_u;
 	GLuint decayTex_u;
 };
