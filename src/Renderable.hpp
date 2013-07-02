@@ -5,6 +5,7 @@
 #include "Shader.hpp"
 
 #include <glm.hpp>
+#include <gtc/matrix_transform.hpp>
 
 class Scene;
 
@@ -22,7 +23,9 @@ class Renderable : public Element
 public:
 	Renderable();
 	void setModelToWorld(const glm::mat4& newPos) {modelToWorld = newPos;};
-	void concatTransform(const glm::mat4& t) {modelToWorld = t * modelToWorld;};
+	void prependTransform(const glm::mat4& t) {modelToWorld = t * modelToWorld;};
+	void appendTransform(const glm::mat4& t) {modelToWorld = modelToWorld * t;};
+	void translate(const glm::vec3& t) {modelToWorld = glm::translate(modelToWorld, t);};
 	glm::vec4 getOrigin(); //Return pos'n of model space origin in world space.
 	virtual void update(int dTime) = 0;
 	virtual void render() = 0;
@@ -42,8 +45,10 @@ class Solid : public Renderable
 {
 public:
 	Solid(LightShader* _shader) :shader(_shader) {};
-	static ArrSolid<36>* Cube(LightShader* _shader);
 	Shader* getShader() {return (Shader*) shader;};
+
+	static ArrSolid<36>* Cube(LightShader* _shader);
+	static ArrSolid<6>*  Quad(LightShader* _shader);
 protected:
 	LightShader* shader;
 };

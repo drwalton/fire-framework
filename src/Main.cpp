@@ -10,7 +10,6 @@ int init();
 void display();
 void reshape (int, int);
 void keyboard(unsigned char, int, int);
-void updatePos();
 
 const int nSwirls = 400;
 const int nSparks = 5;
@@ -30,7 +29,6 @@ const int k = 5;
 int time;
 int dTime;
 
-float z;
 const float delta = 0.4f;
 
 int main(int argc, char** argv)
@@ -58,7 +56,6 @@ int main(int argc, char** argv)
 // Called by glutInit().
 int init()
 {
-	z = 0.0f;
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_BLEND); 
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -76,14 +73,8 @@ int init()
 	for(int i = -k; i <= k; ++i)
 		for(int j = -k; j <= k; ++j)
 		{
-
 			cube = Solid::Cube(lShader);
-
-			cube->concatTransform(glm::mat4(
-				1.0, 0.0, 0.0, 0.0,
-				0.0, 1.0, 0.0, 0.0,
-				0.0, 0.0, 1.0, 0.0,
-				3.0*i, 3.0*j, 0.0, 1.0));
+			cube->translate(glm::vec3(3.0*i, 3.0*j, 0.0));
 			scene->add(cube);
 		}
 
@@ -93,11 +84,7 @@ int init()
 	Texture* flameTex = new Texture("bigFlame.png");
 	Texture* decayTex = new Texture("decay2.png");
 	swirl = new AdvectParticlesRandLights<nSwirls>(10, pShader, flameTex, decayTex);
-	swirl->concatTransform(glm::mat4(
-			1.0, 0.0, 0.0, 0.0,
-			0.0, 1.0, 0.0, 0.0,
-			0.0, 0.0, 1.0, 0.0,
-			0.0, -1.0, 3.0, 1.0));
+	swirl->translate(glm::vec3(0.0, -1.0, 3.0));
 	scene->add(swirl);
 	return 1;
 }
@@ -125,16 +112,10 @@ void reshape (int w, int h)
 // Called when a key is pressed.
 void keyboard(unsigned char key, int x, int y)
 {
+	scene->camera->keyboardInput(key, x, y);
+
     switch (key)
     {
-    	case 'w':
-    		z += delta; 
-			updatePos();
-			break;
-    	case 's':
-    		z -= delta; 
-			updatePos();
-			break;
 		case 't':
 			d->on = !(d->on);
 			scene->updateLight(d);
@@ -147,14 +128,4 @@ void keyboard(unsigned char key, int x, int y)
             exit(0);
             return;
     }
-	std::cout<< z << std::endl;
-}
-
-void updatePos()
-{
-	scene->camera->setPos(glm::mat4(
-		1.0, 0.0, 0.0, 0.0,
-		0.0, 1.0, 0.0, 0.0,
-		0.0, 0.0, 1.0, 0.0,
-		0.0, 0.0, z, 1.0));
 }

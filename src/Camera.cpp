@@ -1,39 +1,171 @@
 #include "Camera.hpp"
 
+const float Camera::moveDelta = 0.4f;
+const float Camera::rotDelta = 0.8f;
+
 Camera::Camera()
+	:FOV(45.0f), aspect(1.0f), zNear(0.01f), zFar(50.0f),
+	 theta(0.0f), phi(0.0f),
+	 rotation(glm::mat4(1.0f)), translation(glm::mat4(1.0f)),
+	 mode(CameraModes::CENTRED)
+
 {
-	worldToCamera = glm::mat4(1.0);
-	FOV = 45.0f; aspect = 1.0f; zNear = 0.01f; zFar = 50.0f;
 	projection = glm::perspective(FOV, aspect, zNear, zFar);
+	updateWorldToCamera();
 }
 
-void Camera::setPos(glm::mat4 _translation)
+void Camera::translate(const glm::vec3& t)
 {
-	translation = _translation;
-	worldToCamera = projection * translation;
+	translation = glm::translate(translation, t);
+	updateWorldToCamera();
 }
 
-void Camera::setFOV(float newFOV)
+void Camera::fly(const glm::vec3& t)
+{
+	glm::vec4 translateBy = glm::vec4(glm::inverse(rotation) * glm::vec4(t, 1.0));
+	translation = glm::translate(translation, glm::vec3(translateBy.x, translateBy.y, translateBy.z));
+	updateWorldToCamera();
+}
+
+void Camera::setPos(const glm::vec3& _pos)
+{
+	translation = glm::translate(glm::mat4(1.0), _pos);
+	updateWorldToCamera();
+}
+
+void Camera::rotate(const float& theta, const float& phi)
+{
+	this->theta += theta;
+	this->phi += phi;
+	updateRotation();
+	updateWorldToCamera();
+}
+
+void Camera::setRot(const float& theta, const float& phi)
+{
+	this->theta = theta;
+	this->phi = phi;
+	updateRotation();
+	updateWorldToCamera();
+}
+
+void Camera::setFOV(const float& newFOV)
 {
 	FOV = newFOV;
 	projection = glm::perspective(FOV, aspect, zNear, zFar);
-	worldToCamera = projection * translation;
+	updateWorldToCamera();
 }
-void Camera::setAspect(float newAspect)
+void Camera::setAspect(const float& newAspect)
 {
 	aspect = newAspect;
 	projection = glm::perspective(FOV, aspect, zNear, zFar);
-	worldToCamera = projection * translation;
+	updateWorldToCamera();
 }
-void Camera::setZNear(float newZNear)
+void Camera::setZNear(const float& newZNear)
 {
 	zNear = newZNear;
 	projection = glm::perspective(FOV, aspect, zNear, zFar);
-	worldToCamera = projection * translation;
+	updateWorldToCamera();
 }
-void Camera::setZFar(float newZFar)
+void Camera::setZFar(const float& newZFar)
 {
 	zFar = newZFar;
 	projection = glm::perspective(FOV, aspect, zNear, zFar);
-	worldToCamera = projection * translation;
+	updateWorldToCamera();
+}
+
+void Camera::keyboardInput(unsigned char key, int x, int y)
+{
+	if(mode == CameraModes::CENTRED)
+	{
+		switch(key)
+		{
+		case 'w':
+			translate(glm::vec3(0.0, 0.0,  moveDelta));
+			break;
+		case 's':
+			translate(glm::vec3(0.0, 0.0, -moveDelta));
+			break;
+		case 'j':
+			rotate( rotDelta, 0.0f);
+			break;
+		case 'l':
+			rotate(-rotDelta, 0.0f);
+			break;
+		case 'i':
+			rotate(0.0f,  rotDelta);
+			break;
+		case 'k':
+			rotate(0.0f, -rotDelta);
+			break;
+		case 'c':
+			mode = CameraModes::FREELOOK;
+			reset();
+			break;
+		}
+	}
+
+	else if(mode == CameraModes::FREELOOK)
+	{
+		switch(key)
+		{
+		case 'w':
+			fly(glm::vec3(0.0, 0.0,  moveDelta));
+			break;
+		case 's':
+			fly(glm::vec3(0.0, 0.0, -moveDelta));
+			break;
+		case 'a':
+			fly(glm::vec3(moveDelta, 0.0, 0.0));
+			break;
+		case 'd':
+			fly(glm::vec3(-moveDelta, 0.0, 0.0));
+			break;
+		case 'j':
+			rotate(-rotDelta, 0.0f);
+			break;
+		case 'l':
+			rotate( rotDelta, 0.0f);
+			break;
+		case 'i':
+			rotate(0.0f, -rotDelta);
+			break;
+		case 'k':
+			rotate(0.0f,  rotDelta);
+			break;
+		case 'c':
+			mode = CameraModes::CENTRED;
+			reset();
+			break;
+		}
+	}
+}
+
+void Camera::mouseInput(int mouseX, int mouseY)
+{
+
+}
+
+void Camera::updateRotation()
+{
+	//Look up/down
+	rotation = glm::rotate(glm::mat4(1.0), phi, glm::vec3(1.0, 0.0, 0.0));
+	//Spin around
+	rotation = glm::rotate(rotation,     theta, glm::vec3(0.0, 1.0, 0.0));
+
+	std::cout << theta << ", " << phi << "\n";
+}
+
+void Camera::updateWorldToCamera()
+{
+	if(mode == CameraModes::CENTRED)
+		worldToCamera = projection * translation * rotation;
+	else if(mode == CameraModes::FREELOOK)
+		worldToCamera = projection * rotation * translation;
+}
+
+void Camera::reset()
+{
+	setRot(0.0, 0.0);
+	setPos(glm::vec3(0.0, 0.0, 2.0));
 }

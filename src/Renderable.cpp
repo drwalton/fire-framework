@@ -128,3 +128,23 @@ ArrSolid<36>* Solid::Cube(LightShader* _shader)
 	ArrSolid<36>* cube = new ArrSolid<36>(_shader, v, n);
 	return cube;
 }
+
+ArrSolid<6>* Solid::Quad(LightShader* _shader)
+{
+	std::array<glm::vec4, 6> v;
+	std::array<glm::vec3, 6> n;
+
+	v[0] = glm::vec4( 0.5,  0.5,  0.0, 1.0);
+	v[1] = glm::vec4(-0.5,  0.5,  0.0, 1.0);
+	v[2] = glm::vec4(-0.5, -0.5,  0.0, 1.0);
+
+	v[3] = glm::vec4( 0.5, -0.5,  0.0, 1.0);
+	v[4] = glm::vec4( 0.5,  0.5,  0.0, 1.0);
+	v[5] = glm::vec4(-0.5, -0.5,  0.0, 1.0);
+
+	for(int i = 0; i < 6; ++i)
+		n[i] = glm::vec3(0.0, 0.0, 1.0);
+
+	ArrSolid<6>* quad = new ArrSolid<6>(_shader, v, n);
+	return quad;
+}
