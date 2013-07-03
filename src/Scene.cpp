@@ -24,7 +24,12 @@ Scene::Scene()
 
 Scene::~Scene()
 {
-	for(std::set<Renderable*>::iterator i = renderables.begin(); i != renderables.end(); ++i)
+	for(std::set<Renderable*>::iterator i = opaque.begin(); i != opaque.end(); ++i)
+	{
+		delete (*i);
+	}
+
+	for(std::set<Renderable*>::iterator i = translucent.begin(); i != translucent.end(); ++i)
 	{
 		delete (*i);
 	}
@@ -42,7 +47,13 @@ Scene::~Scene()
 void Scene::render()
 {
 	updateCamera();
-	for(std::set<Renderable*>::iterator i = renderables.begin(); i != renderables.end(); ++i)
+	//Render opaque renderables first.
+	for(std::set<Renderable*>::iterator i = opaque.begin(); i != opaque.end(); ++i)
+	{
+		(*i)->render();
+	}
+	//Render translucent ones second.
+	for(std::set<Renderable*>::iterator i = translucent.begin(); i != translucent.end(); ++i)
 	{
 		(*i)->render();
 	}
@@ -50,7 +61,11 @@ void Scene::render()
 
 void Scene::update(int dTime)
 {
-	for(std::set<Renderable*>::iterator i = renderables.begin(); i != renderables.end(); ++i)
+	for(std::set<Renderable*>::iterator i = opaque.begin(); i != opaque.end(); ++i)
+	{
+		(*i)->update(dTime);
+	}
+	for(std::set<Renderable*>::iterator i = translucent.begin(); i != translucent.end(); ++i)
 	{
 		(*i)->update(dTime);
 	}
@@ -59,7 +74,10 @@ void Scene::update(int dTime)
 Renderable* Scene::add(Renderable* const r)
 {
 	if(r == nullptr) return nullptr;
-	renderables.insert(r);
+	if(r->translucent)
+		translucent.insert(r);
+	else
+		opaque.insert(r);
 	r->scene = this;
 	shaders.insert(r->getShader());
 
@@ -73,7 +91,10 @@ Renderable* Scene::add(Renderable* const r)
 
 Renderable* Scene::remove(Renderable* r)
 {
-	renderables.erase(r);
+	if(r->translucent)
+		translucent.erase(r);
+	else
+		opaque.erase(r);
 	//TODO Remove shaders if appropriate (not needed by another renderable).
 	r->onRemove();
 	return r;

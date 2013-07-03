@@ -1,7 +1,7 @@
 #include "Camera.hpp"
 
 const float Camera::moveDelta = 0.4f;
-const float Camera::rotDelta = 0.8f;
+const float Camera::rotDelta = 1.6f;
 
 Camera::Camera()
 	:FOV(45.0f), aspect(1.0f), zNear(0.01f), zFar(50.0f),

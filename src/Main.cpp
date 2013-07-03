@@ -71,6 +71,13 @@ int init()
 	//scene->add(new PointLight(glm::vec4(-2.0, -2.0, 0.0, 1.0), 1.0));
 	//scene->add(new PointLight(glm::vec4(2.0, 2.0, 0.0, 1.0), 1.0));
 
+	pShader = new ParticleShader(true, "ScrollTexFire");
+	Texture* flameTex = new Texture("bigFlame.png");
+	Texture* decayTex = new Texture("decay2.png");
+	swirl = new AdvectParticlesRandLights<nSwirls>(10, pShader, flameTex, decayTex);
+	swirl->translate(glm::vec3(0.0, -1.0, 3.0));
+	scene->add(swirl);
+
 	for(int i = -k; i <= k; ++i)
 		for(int j = -k; j <= k; ++j)
 		{
@@ -78,13 +85,6 @@ int init()
 			cube->translate(glm::vec3(3.0*i, 3.0*j, 0.0));
 			scene->add(cube);
 		}
-
-	pShader = new ParticleShader(true, "ScrollTexFire");
-	Texture* flameTex = new Texture("bigFlame.png");
-	Texture* decayTex = new Texture("decay2.png");
-	swirl = new AdvectParticlesRandLights<nSwirls>(10, pShader, flameTex, decayTex);
-	swirl->translate(glm::vec3(0.0, -1.0, 3.0));
-	scene->add(swirl);
 
 	scene->setAmbLight(0.01f);
 	return 1;

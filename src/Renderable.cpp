@@ -1,8 +1,9 @@
 #include "Renderable.hpp"
 
-Renderable::Renderable()
+Renderable::Renderable(bool _translucent)
 	:scene(nullptr),
-	modelToWorld(glm::mat4(1.0))
+	modelToWorld(glm::mat4(1.0)),
+	translucent(_translucent)
 {
 	
 }
@@ -117,12 +118,12 @@ ArrSolid<36>* Solid::Cube(LightShader* _shader)
 
 	for(int i = 0; i < 6; ++i)
 	{
-		n[i   ] = glm::vec3( 0.0,  1.0,  0.0); //Top
-		n[i+6 ] = glm::vec3( 0.0,  0.0,  1.0); //Front
-		n[i+12] = glm::vec3( 0.0, -1.0,  0.0); //Bottom
-		n[i+18] = glm::vec3( 0.0,  0.0, -1.0); //Back
-		n[i+24] = glm::vec3( 0.0, -1.0,  0.0); //Left
-		n[i+30] = glm::vec3( 0.0,  1.0,  0.0); //Right
+		n[i   ] = glm::vec3(  0.0,  1.0,  0.0); //Top
+		n[i+6 ] = glm::vec3(  0.0,  0.0,  1.0); //Front
+		n[i+12] = glm::vec3(  0.0, -1.0,  0.0); //Bottom
+		n[i+18] = glm::vec3(  0.0,  0.0, -1.0); //Back
+		n[i+24] = glm::vec3( -1.0,  0.0,  0.0); //Left
+		n[i+30] = glm::vec3(  1.0,  0.0,  0.0); //Right
 	}
 
 	ArrSolid<36>* cube = new ArrSolid<36>(_shader, v, n);

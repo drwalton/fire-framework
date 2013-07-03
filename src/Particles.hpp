@@ -17,7 +17,7 @@ template <int maxParticles>
 class ParticleSystem : public Renderable
 {
 public:
-	ParticleSystem(ParticleShader* _shader) :shader(_shader) {};
+	ParticleSystem(ParticleShader* _shader) :Renderable(true), shader(_shader) {};
 	Shader* getShader() {return (Shader*) shader;};
 protected:
 	ParticleShader* shader;

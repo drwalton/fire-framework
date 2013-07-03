@@ -21,7 +21,8 @@ template <int nVertices, int nElements> class ElemSolid;
 class Renderable : public Element
 {
 public:
-	Renderable();
+	Renderable(bool _translucent);
+	const bool translucent;
 	void setModelToWorld(const glm::mat4& newPos) {modelToWorld = newPos;};
 	void prependTransform(const glm::mat4& t) {modelToWorld = t * modelToWorld;};
 	void appendTransform(const glm::mat4& t) {modelToWorld = modelToWorld * t;};
@@ -44,7 +45,7 @@ protected:
 class Solid : public Renderable
 {
 public:
-	Solid(LightShader* _shader) :shader(_shader) {};
+	Solid(LightShader* _shader) :Renderable(false), shader(_shader) {};
 	Shader* getShader() {return (Shader*) shader;};
 
 	static ArrSolid<36>* Cube(LightShader* _shader);

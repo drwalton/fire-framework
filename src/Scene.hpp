@@ -62,7 +62,8 @@ private:
 	float ambLight;
 	GLuint ambLight_u;
 
-	std::set<Renderable*> renderables;
+	std::set<Renderable*> opaque;
+	std::set<Renderable*> translucent;
 
 	std::set<Shader*> shaders;
 
