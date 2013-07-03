@@ -63,13 +63,6 @@ int init()
 
 	scene = new Scene();
 
-	pShader = new ParticleShader(true, "ScrollTexFire");
-	Texture* flameTex = new Texture("bigFlame.png");
-	Texture* decayTex = new Texture("decay2.png");
-	swirl = new AdvectParticlesRandLights<nSwirls>(10, pShader, flameTex, decayTex);
-	swirl->translate(glm::vec3(0.0, -1.0, 3.0));
-	scene->add(swirl);
-
 	lShader = new LightShader(false, "Simple", true, true, true);
 	ArrSolid<36>* cube = Solid::Cube(lShader);
 
@@ -85,6 +78,13 @@ int init()
 			cube->translate(glm::vec3(3.0*i, 3.0*j, 0.0));
 			scene->add(cube);
 		}
+
+	pShader = new ParticleShader(true, "ScrollTexFire");
+	Texture* flameTex = new Texture("bigFlame.png");
+	Texture* decayTex = new Texture("decay2.png");
+	swirl = new AdvectParticlesRandLights<nSwirls>(10, pShader, flameTex, decayTex);
+	swirl->translate(glm::vec3(0.0, -1.0, 3.0));
+	scene->add(swirl);
 
 	scene->setAmbLight(0.01f);
 	return 1;

@@ -66,7 +66,7 @@ AdvectParticles<maxParticles>::AdvectParticles(ParticleShader* _shader,
 template <int maxParticles>
 void AdvectParticles<maxParticles>::render()
 {
-	glDepthFunc(GL_ALWAYS);
+	glDepthMask(GL_FALSE);
 	if(!scene) return;
 
 	shader->setModelToWorld(modelToWorld);
@@ -93,7 +93,7 @@ void AdvectParticles<maxParticles>::render()
 	glDrawArrays(GL_POINTS, 0, maxParticles);
 
 	glUseProgram(0);
-	glDepthFunc(GL_LESS);
+	glDepthMask(GL_TRUE);
 }
 
 template <int maxParticles>

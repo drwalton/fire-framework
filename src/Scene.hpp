@@ -25,6 +25,9 @@ class Scene
 public:
 	Scene();
 	~Scene();
+	/* render() renders all renderables added to the scene in a first-added, first-rendered order.
+	 * This means that transparent objects should be added _last_ to be rendered correctly.
+	 */
 	void render();
 	void update(int dTime);
 
