@@ -86,12 +86,12 @@ int init()
 	cube->translate(glm::vec3(2.0f, 0.0f, 0.0f));
 	scene->add(cube);
 
-	std::vector<Mesh*> loaded = Mesh::loadFile("house plant.obj", lShader);
+	std::vector<Mesh*> loaded = Mesh::loadFile("teapot.obj", lShader);
 
 	for(std::vector<Mesh*>::iterator i = loaded.begin();
 		i != loaded.end(); ++i)
 	{
-		(*i)->uniformScale(0.0008f);
+		(*i)->uniformScale(0.08f);
 		scene->add(*i);
 		std::cout << "Adding a mesh to scene.\n";
 

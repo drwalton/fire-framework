@@ -50,7 +50,7 @@ void main()
 	for(i = 0; i < maxDirLights; ++i)
 	{
 		if(dirLightOn[i] != 0)
-			intensity += clamp(dot(norm, normalize(-dirLightDir[i])), 0, 1) * dirIntensity[i];
+			intensity += clamp(dot(normalize(norm), normalize(-dirLightDir[i])), 0, 1) * dirIntensity[i];
 	}
 
 	//Point lighting.
@@ -58,12 +58,14 @@ void main()
 	{
 		if(pointLightOn[i] != 0)
 		{
-			vec3 toLight = normalize((pointLightPos[i] - worldPos).xyz);
-			intensity += clamp(dot(normalize(norm), toLight), 0, 1) * pointIntensity[i];
+			vec3 toLight = (pointLightPos[i] - worldPos).xyz;
+			intensity += (clamp(dot(normalize(norm), normalize(toLight)), 0, 1) * pointIntensity[i])
+							/ length(toLight);
 		}
 	}
 
 	intensity = clamp(intensity, 0, 1);
 
 	fragColor = vec4(intensity, intensity, intensity, 1.0);
+	//fragColor = vec4(1.0);
 }
