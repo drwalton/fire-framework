@@ -8,6 +8,15 @@ Renderable::Renderable(bool _translucent)
 	
 }
 
+void Renderable::uniformScale(float s)
+{
+	modelToWorld = modelToWorld * glm::mat4(
+		s  , 0.0, 0.0, 0.0,
+		0.0, s  , 0.0, 0.0,
+		0.0, 0.0, s  , 0.0,
+		0.0, 0.0, 0.0, 1.0);
+}
+
 glm::vec4 Renderable::getOrigin()
 {
 	glm::vec4 o = glm::vec4(0.0, 0.0, 0.0, 1.0);

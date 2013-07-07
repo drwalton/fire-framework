@@ -63,14 +63,6 @@ int init()
 
 	scene = new Scene();
 
-	lShader = new LightShader(false, "Simple", true, true, true);
-	ArrSolid<36>* cube = Solid::Cube(lShader);
-
-	//scene->add(new DirLight(glm::vec3(0.0, 0.5, -1.0), 0.2));
-	//scene->add(new PointLight(glm::vec4(2.0, 2.0, 0.0, 1.0), 1.0));
-	//scene->add(new PointLight(glm::vec4(-2.0, -2.0, 0.0, 1.0), 1.0));
-	//scene->add(new PointLight(glm::vec4(2.0, 2.0, 0.0, 1.0), 1.0));
-
 	pShader = new ParticleShader(true, "ScrollTexFire");
 	Texture* flameTex = new Texture("bigFlame.png");
 	Texture* decayTex = new Texture("decay2.png");
@@ -78,6 +70,9 @@ int init()
 	swirl->translate(glm::vec3(0.0, -1.0, 3.0));
 	scene->add(swirl);
 
+	lShader = new LightShader(false, "Simple", true, true, true);
+	/*
+	ArrSolid<36>* cube;
 	for(int i = -k; i <= k; ++i)
 		for(int j = -k; j <= k; ++j)
 		{
@@ -85,8 +80,24 @@ int init()
 			cube->translate(glm::vec3(3.0*i, 3.0*j, 0.0));
 			scene->add(cube);
 		}
+	*/
 
-	scene->setAmbLight(0.01f);
+	ArrSolid<36>* cube = Solid::Cube(lShader);
+	cube->translate(glm::vec3(2.0f, 0.0f, 0.0f));
+	scene->add(cube);
+
+	std::vector<Mesh*> loaded = Mesh::loadFile("house plant.obj", lShader);
+
+	for(std::vector<Mesh*>::iterator i = loaded.begin();
+		i != loaded.end(); ++i)
+	{
+		(*i)->uniformScale(0.0008f);
+		scene->add(*i);
+		std::cout << "Adding a mesh to scene.\n";
+
+	}
+
+	scene->setAmbLight(0.1f);
 	return 1;
 }
 

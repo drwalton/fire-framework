@@ -6,6 +6,7 @@
 #include "Light.hpp"
 #include "Shader.hpp"
 #include "Camera.hpp"
+#include "Mesh.hpp"
 
 #include <glm.hpp>
 #include <glut.h>
