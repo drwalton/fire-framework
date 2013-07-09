@@ -1,6 +1,7 @@
 #include <glm.hpp>
 #include <functional>
-#include "gsl_sf_legendre.h"
+#include <vector>
+#include <boost/math/special_functions/legendre.hpp>
 
 namespace SH
 {

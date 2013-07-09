@@ -11,7 +11,7 @@ std::vector<float> SH::shProject(int sqrtNSamples, int nBands,
 
 	/* Perform stratified random sampling over the sphere */
 	double sqrWidth = 1 / (double) sqrtNSamples;
-	double u, v, theta, phi, coefft;
+	double u, v, theta, phi;
 
 	for(int i = 0; i < sqrtNSamples; ++i)
 		for(int j = 0; j < sqrtNSamples; ++j)
@@ -45,21 +45,21 @@ std::vector<float> SH::shProject(int sqrtNSamples, int nBands,
 double SH::realSH(int l, int m, double theta, double phi)
 {
 	//Check values of l, m are sensible,
-	if(m < 0 || l > m || -l > m) return; //TODO: exception
+	if(m < 0 || l > m || -l > m) return 0.0; //TODO: exception
 	if(m > 0) 
-		return SQRT_TWO * AssLegendre(l,  m, cos(theta)) * cos( m * phi);
+		return SQRT_TWO * aLegendre(l,  m, cos(theta)) * cos( m * phi);
 	else if(m < 0)
-		return SQRT_TWO * AssLegendre(l, -m, cos(theta)) * sin(-m * phi);
+		return SQRT_TWO * aLegendre(l, -m, cos(theta)) * sin(-m * phi);
 	else // m == 0
-		return AssLegendre(l, m, cos(theta));
+		return aLegendre(l, m, cos(theta));
 }
 
 double SH::aLegendre(int l, int m, double x)
 {
-	return gsl_sf_legendre_sphPlm(l, m, x);
+	return boost::math::legendre_p(l, m, x);
 }
 
-double SH:randd(double low, double high)
+double SH::randd(double low, double high)
 {
 	double r = (double) rand() / (double) RAND_MAX;
 	return low + ((high - low) * r);
