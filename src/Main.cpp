@@ -56,7 +56,7 @@ int main(int argc, char** argv)
 // Called by glutInit().
 int init()
 {
-	glEnable(GL_CULL_FACE);
+	//glEnable(GL_CULL_FACE);
 	glEnable(GL_BLEND); 
 	glEnable(GL_DEPTH_TEST);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -66,8 +66,12 @@ int init()
 	pShader = new ParticleShader(true, "ScrollTexFire");
 	Texture* flameTex = new Texture("bigFlame.png");
 	Texture* decayTex = new Texture("decay2.png");
-	swirl = new AdvectParticlesRandLights<nSwirls>(10, pShader, flameTex, decayTex);
-	swirl->translate(glm::vec3(0.0, -1.0, 3.0));
+	AdvectParticlesCentroidLights<nSwirls>* centreParticles = new AdvectParticlesCentroidLights<nSwirls>(10, 10, 1000, pShader, flameTex, decayTex);
+	centreParticles->translate(glm::vec3(0.0, -1.0, 3.0));
+	scene->add(centreParticles);
+
+	swirl = new AdvectParticlesRandLights<nSwirls>(10, 2000, pShader, flameTex, decayTex);
+	swirl->translate(glm::vec3(0.0, -1.0, -3.0));
 	scene->add(swirl);
 
 	lShader = new LightShader(false, "Simple", true, true, true);
@@ -94,7 +98,17 @@ int init()
 		(*i)->uniformScale(0.08f);
 		scene->add(*i);
 		std::cout << "Adding a mesh to scene.\n";
+	}
 
+	loaded = Mesh::loadFile("Rabbit.obj", lShader);
+
+	for(std::vector<Mesh*>::iterator i = loaded.begin();
+		i != loaded.end(); ++i)
+	{
+		(*i)->uniformScale(2.0f);
+		(*i)->translate(glm::vec3(-1.0, -0.8, 0.0));
+		scene->add(*i);
+		std::cout << "Adding a mesh to scene.\n";
 	}
 
 	scene->setAmbLight(0.1f);

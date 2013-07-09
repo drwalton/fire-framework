@@ -2,6 +2,7 @@
 #define PARTICLES_HPP
 
 #include <SOIL.h>
+#include <glut.h>
 #include "glm.hpp"
 
 #include "Texture.hpp"
@@ -90,13 +91,17 @@ private:
 	glm::vec4 randInitPos();
 };
 
+/* AdvectParticlesLights
+ * ADT for a derived class of AdvectParticles owning a number of light
+ * sources
+ */
 template <int maxParticles>
-class AdvectParticlesRandLights : public AdvectParticles<maxParticles>
+class AdvectParticlesLights : public AdvectParticles<maxParticles>
 {
 public:
-	AdvectParticlesRandLights(int _nLights, ParticleShader* _shader, 
+	AdvectParticlesLights(int _nLights, ParticleShader* _shader, 
 		Texture* _bbTex, Texture* _decayTex);
-	AdvectParticlesRandLights(int nLights, ParticleShader* _shader, 
+	AdvectParticlesLights(int nLights, ParticleShader* _shader, 
 		Texture* _bbTex, Texture* _decayTex,
 		int avgLifetime, int varLifetime, 
 		glm::vec4 initAcn, glm::vec4 initVel,
@@ -109,8 +114,73 @@ public:
 	void onAdd();
 	void onRemove();
 	void update(int dTime);
-private:
+protected:
+	virtual void updateLights() = 0;
+};
+
+/* AdvectParticlesRandLights
+ * Places nLights lights at the location of nLights particles.
+ * The particles are initially randomly selected, and the lights
+ * follow them, hopping to new randomly selected particles whenever
+ * an interval elapses.
+ * Special cases: 
+ *     * interval == 0 : Lights hop every frame.
+ *     * interval == -1: Lights never hop.
+ */
+template <int maxParticles>
+class AdvectParticlesRandLights : public AdvectParticlesLights<maxParticles>
+{
+public:
+	AdvectParticlesRandLights(int _nLights, int _interval, ParticleShader* _shader, 
+		Texture* _bbTex, Texture* _decayTex);
+	AdvectParticlesRandLights(int _nLights, int _interval, ParticleShader* _shader, 
+		Texture* _bbTex, Texture* _decayTex,
+		int avgLifetime, int varLifetime, 
+		glm::vec4 initAcn, glm::vec4 initVel,
+		int perturbChance, float perturbRadius,
+		float baseRadius, float centerForce,
+		float bbHeight, float bbWidth,
+		bool perturb_on, bool _init_perturb);
+protected:
 	void updateLights();
+private:
+	int counter;
+	const int interval;
+	void init();
+	void randomizeLights();
+	std::vector<int> particles;
+};
+
+/* AdvectParticlesCentroidLights
+ * Similar approach to AdvectParticlesRandLights, but each light is placed at the 
+ * centroid of "clumpSize" particles.
+ */
+template <int maxParticles>
+class AdvectParticlesCentroidLights : public AdvectParticlesLights<maxParticles>
+{
+public:
+	AdvectParticlesCentroidLights(int _nLights, int _clumpSize,
+		int _interval, ParticleShader* _shader, 
+		Texture* _bbTex, Texture* _decayTex);
+	AdvectParticlesCentroidLights(int _nLights, int _clumpSize,
+		int _interval, ParticleShader* _shader, 
+		Texture* _bbTex, Texture* _decayTex,
+		int avgLifetime, int varLifetime, 
+		glm::vec4 initAcn, glm::vec4 initVel,
+		int perturbChance, float perturbRadius,
+		float baseRadius, float centerForce,
+		float bbHeight, float bbWidth,
+		bool perturb_on, bool _init_perturb);
+	const int clumpSize;
+protected:
+	void updateLights();
+private:
+	int counter;
+	const int interval;
+	void init();
+	void randomizeClumps();
+	std::vector<std::vector<int>> clumps;
+	glm::vec4 getParticleCentroid(const std::vector<int>& clump);
 };
 
 #include "Particles.cpp"

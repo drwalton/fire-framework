@@ -50,11 +50,11 @@ public:
 
 	void setAmbLight(float _ambLight);
 	
-	static const int maxDirLights = 10;
+	static const int maxDirLights = 50;
 	GLuint* getDirLightOn() {return dirLightOn;};
 	glm::vec3* getDirLightDir();
 
-	static const int maxPointLights = 10;
+	static const int maxPointLights = 50;
 	GLuint* getPointLightOn() {return pointLightOn;};
 	glm::vec4* getPointLightPos();
 	
