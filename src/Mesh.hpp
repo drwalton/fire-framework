@@ -12,7 +12,7 @@
 #include <vector>
 
 /* Mesh
- * Supports loading & rendering of meshes loaded via the AssImp library.]
+ * Supports loading & rendering of meshes loaded via the AssImp library.
  * In general, a file can contain multiple meshes. Thus, meshes should be 
  * loaded via Mesh::loadFile() which returns a vector of pointers to 
  * the loaded mesh objects.
