@@ -1,4 +1,5 @@
 #include "Scene.hpp"
+#include "SH.hpp"
 
 #include <glm.hpp>
 
@@ -26,15 +27,15 @@ DirLight* d;
 PointLight* p;
 const int k = 5;
 
-int time;
-int dTime;
+int eTime;
+int deTime;
 
 const float delta = 0.4f;
 
 int main(int argc, char** argv)
 {
 	glutInit(&argc, argv);
-	time = glutGet(GLUT_ELAPSED_TIME);
+	eTime = glutGet(GLUT_ELAPSED_TIME);
     glutInitDisplayMode(GLUT_DOUBLE);
     glutInitWindowSize(500, 500);
     glutInitWindowPosition(100, 100);
@@ -56,6 +57,9 @@ int main(int argc, char** argv)
 // Called by glutInit().
 int init()
 {
+	std::vector<float> c = SH::shProject(10, 3, [] (double x, double y) -> double {return SH::realSH(1,1,x,y) + SH::realSH(1,-1,x,y) + SH::realSH(2,1,x,y) + SH::realSH(2,-1,x,y)+ SH::realSH(2,2,x,y) + SH::realSH(2,-2,x,y) ;});
+	for(std::vector<float>::iterator i = c.begin(); i != c.end(); ++i)
+		std::cout << (*i) << "\n";
 	//glEnable(GL_CULL_FACE);
 	glEnable(GL_BLEND); 
 	glEnable(GL_DEPTH_TEST);
@@ -118,10 +122,10 @@ int init()
 // Perform rendering and updates here.
 void display()
 {
-	dTime = glutGet(GLUT_ELAPSED_TIME) - time;
-	time = glutGet(GLUT_ELAPSED_TIME);
+	deTime = glutGet(GLUT_ELAPSED_TIME) - eTime;
+	eTime = glutGet(GLUT_ELAPSED_TIME);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	scene->update(dTime);
+	scene->update(deTime);
 	scene->render();
 	glutSwapBuffers();
 	glutPostRedisplay();
