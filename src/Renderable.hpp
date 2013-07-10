@@ -94,5 +94,4 @@ private:
 	GLuint e_attrib;
 };
 
-
 #endif

@@ -42,15 +42,15 @@ std::vector<float> SH::shProject(int sqrtNSamples, int nBands,
 	for(int i = 0; i < sqrtNSamples; ++i)
 		for(int j = 0; j < sqrtNSamples; ++j)
 		{
+			/* Remove comments below for jittered sampling */
 			u = (i * sqrWidth);// + randd(0, sqrWidth);
 			v = (j * sqrWidth);// + randd(0, sqrWidth);
-			theta = acos((2 * v) - 1);
-			phi = 2 * SH::PI * u;
+			theta = acos((2 * u) - 1);
+			phi = 2 * SH::PI * v;
 			for(int l = 0; l < nBands; ++l)
 				for(int m = -l; m <= l; ++m)
 				{
 					coeffts[l*(l+1) + m] += func(theta, phi) * realSH(l, m, theta, phi);
-					//std::cout << l << " " << m << " " << theta << " " << phi << " " << realSH(l, m, theta, phi) << "\n";
 				}
 		}
 
