@@ -1,5 +1,6 @@
 #include "Scene.hpp"
 #include "SH.hpp"
+#include "Matrix.hpp"
 
 #include <glm.hpp>
 
@@ -34,6 +35,9 @@ const float delta = 0.4f;
 
 int main(int argc, char** argv)
 {
+	Matrix<float> p(4, 4.0f);
+	std::vector<float> v(4, 1.0f);
+	std::cout << (p * v)[0] << "\n"; 
 	glutInit(&argc, argv);
 	eTime = glutGet(GLUT_ELAPSED_TIME);
     glutInitDisplayMode(GLUT_DOUBLE);
