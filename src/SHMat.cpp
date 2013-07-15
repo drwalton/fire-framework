@@ -29,4 +29,3 @@ std::vector<float> SHMat::operator * (const std::vector<float>& p)
 
 	return ans;
 }
-
