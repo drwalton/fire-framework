@@ -21,14 +21,15 @@ private:
 	void init(const glm::mat3& rotation, int nBands);
 
 	inline float del(int a, int b) { return a==b ? 1 : 0; }
+	inline float abs(int a) { return a >= 0 ? a : -a; }
 
 	float P(int i, int l, int m, int n, const Matrix<float>& R);
 	float u(int l, int m, int n);
 	float v(int l, int m, int n);
 	float w(int l, int m, int n);
-	float U(int l, int m, int n, const Matrix<float>& P);
-	float V(int l, int m, int n, const Matrix<float>& P);
-	float W(int l, int m, int n, const Matrix<float>& P);
+	float U(int l, int m, int n, const Matrix<float>& R);
+	float V(int l, int m, int n, const Matrix<float>& R);
+	float W(int l, int m, int n, const Matrix<float>& R);
 
 };
 
