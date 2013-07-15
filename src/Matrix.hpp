@@ -32,6 +32,8 @@ public:
 
 	const T& operator () (unsigned i, unsigned j) const;
 	T& operator () (unsigned i, unsigned j);
+	/* Access elements indexed from centre of matrix*/
+	T& i(int i, int j);
 
 	Matrix<T>& operator += (const Matrix<T>& m);
 	Matrix<T> operator + (const Matrix<T>& m);
@@ -124,6 +126,15 @@ T& Matrix<T>::operator () (unsigned i, unsigned j)
 {
 	if(i >= r || j >= c) throw new MatDimException;
 	return data[i][j];
+}
+
+template <typename T>
+T& Matrix<T>::i(int i, int j)
+{
+	/* Even dimensioned matrices have no central entry */
+	if(r % 2 == 0 || c % 2 == 0)
+		throw new MatDimException;
+	return data[i + ((r-1)/2)][j + ((c-1)/2)]
 }
 
 template <typename T>
