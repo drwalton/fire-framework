@@ -129,13 +129,72 @@ std::vector<DiffPRTMesh*> DiffPRTMesh::loadFile(
 }
 
 
-DiffPRTMesh::DiffPRTMesh(const MeshData& d, int nBands, SHShader* _shader)
-	:Solid(_shader)
+DiffPRTMesh::DiffPRTMesh(const MeshData& d, int _nBands, SHShader* _shader)
+	:Solid(_shader), nBands(_nBands)
 {
-	//TODO: this!
+	nCoeffts = (nBands + 1)*(nBands + 1);
+
+	numElems = d.e.size();
+
+	std::vector<float> s;
+
+	for(std::vector<glm::vec3>::iterator i = d.n.begin(); i != d.n.end(); ++i)
+	{
+		std::vector<float> coeffts = shProject(Scene::sqrtSHSamples, Scene::nSHBands, 
+			[&i](double theta, double phi) -> double 
+				{
+					glm::vec3 dir
+						(
+						sin(theta) * cos(phi),
+						sin(theta) * sin(phi),
+						cos(phi)
+						);
+					double proj = glm::dot(dir, *i);
+					return proj > 0.0 ? proj : 0.0;
+				}
+			);
+
+		s.insert(s.end, coeffts.begin(), coeffts.end());
+	}
+
+	glGenBuffers(1, &v_vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, v_vbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec4) * d.v.size(), d.v.data(), GL_STATIC_DRAW);
+	glGenBuffers(1, &n_vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, s_vbo);
+	glBufferData(GL_ARRAY_BUFFER, s.size(), s.data(), GL_STATIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glGenBuffers(1, &e_vbo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, e_vbo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLushort) * d.e.size(), d.e.data(), GL_STATIC_DRAW);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+	v_attrib = shader->getAttribLoc("vPosition");
+	s_attrib = shader->getAttribLoc("vCoeffts");
 }
 
 void DiffPRTMesh::render()
 {
-	//TODO: this!
+	if(!scene) return;
+	
+	shader->setModelToWorld(modelToWorld);
+
+	shader->use();
+	glEnableVertexAttribArray(v_attrib);
+	glEnableVertexAttribArray(s_attrib);
+
+	glBindBuffer(GL_ARRAY_BUFFER, v_vbo);
+	glVertexAttribPointer(v_attrib, 4, GL_FLOAT, GL_FALSE, 0, 0);
+	glBindBuffer(GL_ARRAY_BUFFER, n_vbo);
+	glVertexAttribPointer(s_attrib, nCoeffts, GL_FLOAT, GL_FALSE, 0, 0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, e_vbo);
+
+	glDrawElements(GL_TRIANGLES, (GLsizei) numElems, GL_UNSIGNED_SHORT, 0);
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+	glDisableVertexAttribArray(v_attrib);
+	glDisableVertexAttribArray(s_attrib);
 }

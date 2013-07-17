@@ -95,7 +95,18 @@ private:
 
 class SHShader : public Shader
 {
+public:
+	SHShader(bool hasGeomShader, int _nSHLights, int _nCoeffts, const std::string& filename);
+	void setSHLights(GLuint* SHLightOn, float* SHLights, float* SHIntensity, int nSHLights);
+private:
+	int nSHLights;
+	int nCoeffts;
+	GLuint nSHLights_u;
+	GLuint nCoeffts_u;
 
+	GLuint SHLights_u;
+	GLuint SHLightOn_u;
+	GLuint SHIntensity_u;
 };
 
 #endif

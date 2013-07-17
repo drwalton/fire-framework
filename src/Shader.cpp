@@ -256,3 +256,27 @@ void ParticleShader::setDecayTexUnit(GLuint _decayTexUnit)
 	glUniform1i(decayTex_u, _decayTexUnit);
 	glUseProgram(0);
 }
+
+SHShader::SHShader(bool hasGeomShader, int _nSHLights, int _nCoeffts, const std::string& filename)
+	:Shader(hasGeomShader, filename), nSHLights(_nSHLights), nCoeffts(_nCoeffts)
+{
+	use();
+	nCoeffts_u = getUniformLoc("nCoeffts");
+	nSHLights_u = getUniformLoc("nSHLights");
+	SHLights_u = getUniformLoc("SHLights");
+	SHLightOn_u = getUniformLoc("SHLightOn");
+	SHIntensity_u = getUniformLoc("SHIntensity");
+
+	glUniform1i(nSHLights_u, &nSHLights);
+	glUniform1i(nCoeffts_u, &nCoeffts);
+	glUseProgram(0);
+}
+
+void SHShader::setSHLights(GLuint* SHLightOn, float* SHLights, float* SHIntensity)
+{
+	use();
+	glUniform1uiv(SHLightOn_u, nSHLights, SHLightOn);
+	glUniform1fv(SHLights_u, nSHLights * nCoeffts, SHLights);
+	glUniform1fv(SHIntensity_u, nSHLights, SHIntensity);
+	glUseProgram(0);
+}

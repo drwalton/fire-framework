@@ -67,6 +67,7 @@ private:
 	DiffPRTMesh(const MeshData& d, int nBands, SHShader* _shader);
 
 	size_t nBands;
+	size_t nCoeffts;
 	GLuint nBands_u;
 
 	size_t numElems;
