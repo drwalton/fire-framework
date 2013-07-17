@@ -17,14 +17,16 @@ class Shader
 {
 public:
 	Shader(bool hasGeomShader, const std::string& filename);
-	Shader(bool hasGeomShader, const std::string& filename,
-		bool hasAmbLight, bool hasDirLights, bool hasPointLights);
 	void use();
 	void setWorldToCamera(const glm::mat4& _worldToCamera);
 	void setModelToWorld(const glm::mat4& _modelToWorld);
 	GLuint getAttribLoc(const std::string& name);
-	//Determines if shader ignores calls to set certain light values.
-	bool hasAmbLight; bool hasDirLights; bool hasPointLights;
+
+	virtual void setAmbLight(float _ambLight) {};
+	virtual void setDirLights(GLuint* dirLightOn, glm::vec3* dirLightDir, 
+		float* dirIntensity, int nDirLights) {};
+	virtual void setPointLights(GLuint* pointLightOn, 
+		glm::vec4* pointLightPos, float* pointIntensity, int nPointLights) {};
 protected:
 	GLuint getUniformLoc(const std::string& name);
 private:
@@ -63,6 +65,7 @@ private:
 class LightShader : public Shader
 {
 public:
+	LightShader(bool hasGeomShader, const std::string& filename);
 	LightShader(bool hasGeomShader, const std::string& filename,
 		bool _hasAmbLight, bool _hasDirLights, bool _hasPointLights);
 	void setAmbLight(float _ambLight);
@@ -71,6 +74,9 @@ public:
 	void setPointLights(GLuint* pointLightOn, 
 		glm::vec4* pointLightPos, float* pointIntensity, int nPointLights);
 private:
+	void init();
+
+	bool hasAmbLight; bool hasDirLights; bool hasPointLights;
 	int nDirLights;
 	int nPointLights;
 
@@ -85,6 +91,11 @@ private:
 	GLuint pointLightOn_u;
 	GLuint pointLightPos_u;
 	GLuint pointIntensity_u;
+};
+
+class SHShader : public Shader
+{
+
 };
 
 #endif

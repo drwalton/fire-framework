@@ -15,6 +15,9 @@
 #include <vector>
 #include <set>
 
+class DirLight;
+class PointLight;
+
 const float PI = 3.141592653589793238462f;
 
 /* Scene
@@ -59,6 +62,10 @@ public:
 	GLuint* getPointLightOn() {return pointLightOn;};
 	glm::vec4* getPointLightPos();
 	
+	static const int maxSHLights = 10;
+	static const int nSHBands = 5;
+	static const int sqrtSHSamples = 100;
+
 	Camera* camera;
 private:
 	float ambLight;

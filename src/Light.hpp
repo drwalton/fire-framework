@@ -1,7 +1,8 @@
 #ifndef LIGHT_HPP
 #define LIGHT_HPP
 
-#include "Element.hpp"
+#include "SH.hpp"
+#include "Scene.hpp"
 
 #include <glm.hpp>
 
@@ -23,7 +24,6 @@ public:
 	GLuint on;
 	int index;
 	float intensity;
-	bool shadow;
 	Scene* scene;
 };
 
@@ -36,7 +36,9 @@ public:
 	DirLight(glm::vec3 _dir, float _intensity)
 		:Light(_intensity), dir(_dir) {};
 	void setDir(glm::vec3 _dir);
+	glm::vec3 getDir() {return dir;};
 	void setIntensity(float _intensity);
+private:
 	glm::vec3 dir;
 };
 
@@ -49,8 +51,35 @@ public:
 	PointLight(glm::vec4 _pos, float _intensity)
 		: Light(_intensity), pos(_pos) {};
 	void setPos(glm::vec4 _pos);
+	glm::vec4 getPos() {return pos;};
 	void setIntensity(float _intensity);
+private:
 	glm::vec4 pos;
 };
+
+/* SHLight
+ * A SH projected lighting environment.
+ */
+class SHLight : public Light
+{
+public:
+	template <typename Fn>
+	SHLight(Fn func, float _intensity);
+	template <typename Fn>
+	void setFunc(Fn func);
+	void setCoeffts(std::vector<float>);
+	std::vector<float> getCoeffts() {return coeffts;};
+	void setIntensity(float _intensity);
+private:
+	std::vector<float> coeffts;
+};
+
+template <typename Fn>
+SHLight::SHLight(Fn func, float _intensity)
+	:Light(_intensity)
+{
+	coeffts = SH::shProject(Scene::sqrtSHSamples, Scene::nSHBands, func);
+};
+
 
 #endif

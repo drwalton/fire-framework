@@ -17,12 +17,12 @@ namespace SH
 		Fn func);
 
 	/* Computes the real spherical harmonic SH_l^m(\theta, \phi) */
-	double realSH(int l, int m, double theta, double phi);
+	static double realSH(int l, int m, double theta, double phi);
 
 	/* Computes the _normalised_ associated Legendre polynomial P_l^m at x*/
-	double aLegendre(int l, int m, double x);
+	static double aLegendre(int l, int m, double x);
 
-	double randd(double low, double high);
+	static double randd(double low, double high);
 }
 
 template<typename Fn>

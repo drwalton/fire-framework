@@ -46,13 +46,13 @@ protected:
 class Solid : public Renderable
 {
 public:
-	Solid(LightShader* _shader) :Renderable(false), shader(_shader) {};
+	Solid(Shader* _shader) :Renderable(false), shader(_shader) {};
 	Shader* getShader() {return (Shader*) shader;};
 
 	static ArrSolid<36>* Cube(LightShader* _shader);
 	static ArrSolid<6>*  Quad(LightShader* _shader);
 protected:
-	LightShader* shader;
+	Shader* shader;
 };
 
 /* ArrSolid

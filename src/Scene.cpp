@@ -105,7 +105,7 @@ DirLight* Scene::add(DirLight* d)
 	if(nDirLights >= maxDirLights || d == nullptr) return nullptr;
 	dirLights[nDirLights] = d;
 	dirLightOn[nDirLights] = d->on ? 1 : 0;
-	dirLightDir[nDirLights] = d->dir;
+	dirLightDir[nDirLights] = d->getDir();
 	dirIntensity[nDirLights] = d->intensity;
 	d->index = nDirLights;
 	d->scene = this;
@@ -120,7 +120,7 @@ DirLight* Scene::updateLight(DirLight* d)
 		|| d == nullptr) 
 		return nullptr;
 	dirLightOn[d->index] = d->on ? 1 : 0;
-	dirLightDir[d->index] = d->dir;
+	dirLightDir[d->index] = d->getDir();
 	dirIntensity[d->index] = d->intensity;
 	updateDirLights(); 
 	return d;
@@ -152,7 +152,7 @@ PointLight* Scene::add(PointLight* p)
 	if(nPointLights >= maxPointLights || p == nullptr) return nullptr;
 	pointLightOn[nPointLights] = p->on ? 1 : 0;
 	pointLights[nPointLights] = p;
-	pointLightPos[nPointLights] = p->pos;
+	pointLightPos[nPointLights] = p->getPos();
 	pointIntensity[nPointLights] = p->intensity;
 	p->index = nPointLights;
 	p->scene = this;
@@ -165,7 +165,7 @@ PointLight* Scene::updateLight(PointLight* p)
 {
 	if(p->scene != this || p->index == -1 || p == nullptr) return nullptr;
 	pointLightOn[p->index] = p->on ? 1 : 0;
-	pointLightPos[p->index] = p->pos;
+	pointLightPos[p->index] = p->getPos();
 	pointIntensity[p->index] = p->intensity;
 	updatePointLights();
 	return p;
@@ -199,8 +199,7 @@ void Scene::setAmbLight(float _ambLight)
 	for(std::set<Shader*>::iterator i = shaders.begin();
 		i != shaders.end(); ++i)
 	{
-		if((*i)->hasAmbLight)
-			((LightShader*)(*i))->setAmbLight(ambLight);
+		(*i)->setAmbLight(ambLight);
 	}
 }
 
@@ -209,9 +208,8 @@ void Scene::updateDirLights()
 	for(std::set<Shader*>::iterator i = shaders.begin();
 		i != shaders.end(); ++i)
 	{
-		if((*i)->hasDirLights)
-			((LightShader*)(*i))->setDirLights(dirLightOn, 
-				dirLightDir, dirIntensity, maxDirLights);
+		(*i)->setDirLights(dirLightOn, 
+			dirLightDir, dirIntensity, maxDirLights);
 	}
 }
 
@@ -220,9 +218,8 @@ void Scene::updatePointLights()
 	for(std::set<Shader*>::iterator i = shaders.begin();
 		i != shaders.end(); ++i)
 	{
-		if((*i)->hasPointLights)
-			((LightShader*)(*i))->setPointLights(pointLightOn, pointLightPos, 
-				pointIntensity, maxPointLights);
+		(*i)->setPointLights(pointLightOn, pointLightPos, 
+			pointIntensity, maxPointLights);
 	}
 }
 

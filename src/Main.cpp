@@ -1,6 +1,6 @@
 #include "Scene.hpp"
 #include "SH.hpp"
-#include "Matrix.hpp"
+#include "SHMat.hpp"
 
 #include <glm.hpp>
 
@@ -35,10 +35,6 @@ const float delta = 0.4f;
 
 int main(int argc, char** argv)
 {
-	Matrix<float> p(4, 4.0f);
-	std::vector<float> v(4, 1.0f);
-	std::cout << "4? " << (p * v)[0] << "\n"; 
-	std::cout << "2? " << (0.5f * p)(0,0) << "\n";
 	glutInit(&argc, argv);
 	eTime = glutGet(GLUT_ELAPSED_TIME);
     glutInitDisplayMode(GLUT_DOUBLE);
@@ -65,7 +61,12 @@ int init()
 	std::vector<float> c = SH::shProject(10, 3, [] (double x, double y) -> double {return SH::realSH(1,1,x,y) + SH::realSH(1,-1,x,y) + SH::realSH(2,1,x,y) + SH::realSH(2,-1,x,y)+ SH::realSH(2,2,x,y) + SH::realSH(2,-2,x,y) ;});
 	for(std::vector<float>::iterator i = c.begin(); i != c.end(); ++i)
 		std::cout << (*i) << "\n";
-	//glEnable(GL_CULL_FACE);
+	SHMat rot(glm::rotate(glm::mat4(1.0f), 0.0f, glm::vec3(1.0f, 0.0f, 0.0f)), 3);
+	c = rot * c;
+	std::cout << "Rotated:\n";
+	for(std::vector<float>::iterator i = c.begin(); i != c.end(); ++i)
+		std::cout << (*i) << "\n";
+	glEnable(GL_CULL_FACE);
 	glEnable(GL_BLEND); 
 	glEnable(GL_DEPTH_TEST);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

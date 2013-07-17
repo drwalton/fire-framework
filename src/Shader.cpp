@@ -1,20 +1,6 @@
 #include "Shader.hpp"
 
 Shader::Shader(bool hasGeomShader, const std::string& filename)
-	:hasAmbLight(false),
-	hasDirLights(false),
-	hasPointLights(false)
-{
-	id = compileShader(filename, hasGeomShader, true);
-	worldToCamera_u = getUniformLoc("worldToCamera");
-	modelToWorld_u = getUniformLoc("modelToWorld");
-}
-
-Shader::Shader(bool hasGeomShader, const std::string& filename,
-		bool _hasAmbLight, bool _hasDirLights, bool _hasPointLights)
-	:hasAmbLight(_hasAmbLight),
-	hasDirLights(_hasDirLights),
-	hasPointLights(_hasPointLights)
 {
 	id = compileShader(filename, hasGeomShader, true);
 	worldToCamera_u = getUniformLoc("worldToCamera");
@@ -156,10 +142,22 @@ GLuint Shader::getUniformLoc(const std::string& name)
 	return glGetUniformLocation(id, name.c_str());
 }
 
+LightShader::LightShader(bool hasGeometry, const std::string& filename)
+	:Shader(hasGeometry, filename),
+	hasAmbLight(true), hasDirLights(true), hasPointLights(true)
+{
+	init();
+}
+
 LightShader::LightShader(bool hasGeometry, const std::string& filename,
 	bool _hasAmbLight, bool _hasDirLights, bool _hasPointLights)
-	:Shader(hasGeometry, filename, 
-	_hasAmbLight, _hasDirLights, _hasPointLights)
+	:Shader(hasGeometry, filename),
+	hasAmbLight(_hasAmbLight), hasDirLights(_hasDirLights), hasPointLights(_hasPointLights)
+{
+	init();
+}
+
+void LightShader::init()
 {
 	use();
 	if(hasAmbLight)
@@ -180,6 +178,7 @@ LightShader::LightShader(bool hasGeometry, const std::string& filename,
 	}
 	glUseProgram(0);
 }
+
 
 void LightShader::setAmbLight(float _ambLight)
 {

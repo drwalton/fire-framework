@@ -1,5 +1,4 @@
 #include "Light.hpp"
-#include "Scene.hpp"
 
 void DirLight::setDir(glm::vec3 _dir)
 {
