@@ -22,11 +22,11 @@ public:
 	void setModelToWorld(const glm::mat4& _modelToWorld);
 	GLuint getAttribLoc(const std::string& name);
 
-	virtual void setAmbLight(float _ambLight) {};
-	virtual void setDirLights(GLuint* dirLightOn, glm::vec3* dirLightDir, 
-		float* dirIntensity, int nDirLights) {};
-	virtual void setPointLights(GLuint* pointLightOn, 
-		glm::vec4* pointLightPos, float* pointIntensity, int nPointLights) {};
+	virtual void setAmbLight(const glm::vec4& _ambLight) {};
+	virtual void setPhongLights(glm::vec4* pos, glm::vec4* diffuse, 
+		glm::vec4* ambient, float* attenuation) {};
+	virtual void setMaterial(const Material& material) {};
+
 protected:
 	GLuint getUniformLoc(const std::string& name);
 private:
@@ -66,31 +66,27 @@ class LightShader : public Shader
 {
 public:
 	LightShader(bool hasGeomShader, const std::string& filename);
-	LightShader(bool hasGeomShader, const std::string& filename,
-		bool _hasAmbLight, bool _hasDirLights, bool _hasPointLights);
-	void setAmbLight(float _ambLight);
-	void setDirLights(GLuint* dirLightOn, glm::vec3* dirLightDir, 
-		float* dirIntensity, int nDirLights);
-	void setPointLights(GLuint* pointLightOn, 
-		glm::vec4* pointLightPos, float* pointIntensity, int nPointLights);
+	LightShader(bool hasGeomShader, const std::string& filename);
+	void setAmbLight(const glm::vec4& _ambLight);
+	void setPhongLights(glm::vec4* pos, glm::vec4* diffuse, 
+		glm::vec4* specular, float* attenuation);
+	void setMaterial(const Material& material);
 private:
 	void init();
 
-	bool hasAmbLight; bool hasDirLights; bool hasPointLights;
-	int nDirLights;
-	int nPointLights;
+	int maxPhongLights;
 
 	GLuint ambLight_u;
 
-	GLuint dirLights_u;
-	GLuint dirLightOn_u;
-	GLuint dirLightDir_u;
-	GLuint dirIntensity_u;
+	GLuint lightPos_u;
+	GLuint lightDiffuse_u;
+	GLuint lightSpecular_u;
+	GLuint lightAttenuation_u;
 
-	GLuint pointLights_u;
-	GLuint pointLightOn_u;
-	GLuint pointLightPos_u;
-	GLuint pointIntensity_u;
+	GLuint material_ambient_u;
+	GLuint material_diffuse_u;
+	GLuint material_specular_u;
+	GLuint material_exponent_u;
 };
 
 class SHShader : public Shader

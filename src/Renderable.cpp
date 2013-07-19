@@ -26,6 +26,26 @@ glm::vec4 Renderable::getOrigin()
 	return o;
 }
 
+Solid::Solid(Shader* _shader)
+	:Renderable(false), shader(_shader),
+	material(
+		glm::vec4(0.0f, 0.1f, 0.0f, 1.0f),
+		glm::vec4(0.0f, 1.0f, 0.0f, 1.0f),
+		glm::vec4(1.0f, 1.0f, 1.0f, 1.0f),
+		1.0f
+		)
+{}
+
+Solid::Solid(Shader* _shader, const Material& _material)
+	:Renderable(false), shader(_shader),
+	 material(_material)
+{}
+
+Solid::setMaterial(const Material& _material)
+{
+	material = _material;
+}
+
 template<int nVertices>
 ArrSolid<nVertices>::ArrSolid(LightShader* _shader,
 	const std::array<glm::vec4, nVertices>& _v,
@@ -49,6 +69,7 @@ void ArrSolid<nVertices>::render()
 
 	if(!scene) return;
 	shader->setModelToWorld(modelToWorld);
+	shader->setMaterial(material);
 
 	shader->use();
 	glEnableVertexAttribArray(v_attrib);

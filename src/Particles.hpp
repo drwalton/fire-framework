@@ -112,7 +112,7 @@ public:
 		float bbHeight, float bbWidth,
 		bool perturb_on, bool _init_perturb);
 	const int nLights;
-	std::vector<PointLight*> lights;
+	std::vector<PhongLight*> lights;
 	void onAdd();
 	void onRemove();
 	void update(int dTime);
@@ -133,9 +133,11 @@ template <int maxParticles>
 class AdvectParticlesRandLights : public AdvectParticlesLights<maxParticles>
 {
 public:
-	AdvectParticlesRandLights(int _nLights, int _interval, ParticleShader* _shader, 
+	AdvectParticlesRandLights(int _nLights,
+		int _interval, ParticleShader* _shader, 
 		Texture* _bbTex, Texture* _decayTex);
-	AdvectParticlesRandLights(int _nLights, int _interval, ParticleShader* _shader, 
+	AdvectParticlesRandLights(int _nLights,
+		int _interval, ParticleShader* _shader, 
 		Texture* _bbTex, Texture* _decayTex,
 		int avgLifetime, int varLifetime, 
 		glm::vec4 initAcn, glm::vec4 initVel,

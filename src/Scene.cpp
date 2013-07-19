@@ -6,19 +6,13 @@ Scene::Scene()
 {
 	camera = new Camera();
 	int i;
-	for(i = 0; i < maxDirLights; ++i)
+	for(i = 0; i < maxPhongLights; ++i)
 	{
-		dirLights[i] = nullptr;
-		dirLightOn[i] = 0;
-		dirLightDir[i] = glm::vec3(0.0f);
-		dirIntensity[i] = -1.0f;
-	}
-	for(i = 0; i < maxPointLights; ++i)
-	{
-		pointLights[i] = nullptr;
-		pointLightOn[i] = 0;
-		pointLightPos[i] = glm::vec4(0.0f);
-		pointIntensity[i] = -1.0f;
+		phongLights[i] = nullptr;
+		lightPos[i] = glm::vec4(0.0f);
+		lightDiffuse[i] = glm::vec4(0.0f);
+		lightSpecular[i] = glm::vec4(0.0f);
+		lightAttenuation[i] = 0.0f;
 	}
 }
 
@@ -100,100 +94,71 @@ Renderable* Scene::remove(Renderable* r)
 	return r;
 }
 
-DirLight* Scene::add(DirLight* d)
+PhongLight* Scene::add(PhongLight* l)
 {
-	if(nDirLights >= maxDirLights || d == nullptr) return nullptr;
-	dirLights[nDirLights] = d;
-	dirLightOn[nDirLights] = d->on ? 1 : 0;
-	dirLightDir[nDirLights] = d->getDir();
-	dirIntensity[nDirLights] = d->intensity;
-	d->index = nDirLights;
-	d->scene = this;
-	++nDirLights;
-	updateDirLights();
-	return d;
+	/* Check light to be added is valid, not already in scene */
+	if(nPhongLights >= maxPhongLights || l == nullptr 
+		|| l->scene != nullptr || l->index != -1) return nullptr;
+	phongLights[nPhongLights]      = l;
+	/* Add light's data to uniform buffers */
+	lightPos[nPhongLights]         = l->getPos();
+	lightDiffuse[nPhongLights]     = l->getDiffuse();
+	lightSpecular[nPhongLights]    = l->getSpecular();
+	lightAttenuation[nPhongLights] = l->getAttenuation();
+	l->index = nPhongLights;
+	l->scene = this;
+	++nPhongLights;
+	updatePhongLights();
+	return l;
 }
 
-DirLight* Scene::updateLight(DirLight* d)
+PhongLight* Scene::updateLight(PhongLight* l)
 {
-	if(d->scene != this || d->index == -1 || dirLights[d->index] != d
-		|| d == nullptr) 
-		return nullptr;
-	dirLightOn[d->index] = d->on ? 1 : 0;
-	dirLightDir[d->index] = d->getDir();
-	dirIntensity[d->index] = d->intensity;
-	updateDirLights(); 
-	return d;
+	/* Check light is actually in scene before updating */
+	if(l->scene != this || l == nullptr) return nullptr;
+	/* Check light's index is valid */
+	if(l != phongLights[l->index] ||
+		l->index < 0 || l->index >= nPhongLights)
+		return nullptr; //TODO: throw exception?
+	/* Update values in stored buffers */
+	lightPos[l->index]         = l->getPos();
+	lightDiffuse[l->index]     = l->getDiffuse();
+	lightSpecular[l->index]    = l->getSpecular();
+	lightAttenuation[l->index] = l->getAttenuation();
+	updatePhongLights();
+	return l;
 }
 
-DirLight* Scene::remove(DirLight* d)
+PhongLight* Scene::remove(PhongLight* l)
 {
-	if(nDirLights <= 0 || d->index == -1 || d == nullptr) return nullptr;
-	for(int i = d->index; i < nDirLights-1; ++i)
+	/* Check light is in scene first */
+	if(l->scene != this || l == nullptr) return nullptr;
+	/* Check light's index is valid */
+	if(l != phongLights[l->index] ||
+		l->index < 0 || l->index >= nPhongLights)
+		return nullptr; //TODO: throw exception ?
+	/* Shift lights to fill gap left by removed light */
+	for(int i = l->index; i < nPhongLights-1; ++i)
 	{
-		dirLights[i] = dirLights[i+1];
-		dirLightOn[i] = dirLightOn[i+1];
-		dirLights[i]->index = i;
-		dirLightDir[i] = dirLightDir[i+1];
-		dirIntensity[i] = dirIntensity[i+1];
+		phongLights[i] = phongLights[i+1];
+		lightPos[i] = lightPos[i+1];
+		lightDiffuse[i] = lightDiffuse[i+1];
+		lightSpecular[i] = lightSpecular[i+1];
+		lightAttenuation[i] = lightAttenuation[i+1];
 	}
-	dirLights[nDirLights-1] = nullptr;
-	dirLightOn[nDirLights-1] = 0;
-	dirLightDir[nDirLights-1] = glm::vec3(0.0);
-	dirIntensity[nDirLights-1] = -1.0;
-	--nDirLights;
-	d->index = -1;
-	updateDirLights();
-	return d;
+	phongLights[nPhongLights-1] = nullptr;
+	lightPos[nPhongLights-1] = glm::vec4(0.0f);
+	lightDiffuse[nPhongLights-1] = glm::vec4(0.0f);
+	lightSpecular[nPhongLights-1] = glm::vec4(0.0f);
+	lightAttenuation[nPhongLights-1] = 0.0f;
+	--nPhongLights;
+	l->index = -1;
+	l->scene = nullptr;
+	updatePhongLights();
+	return l;
 }
 
-PointLight* Scene::add(PointLight* p)
-{
-	if(nPointLights >= maxPointLights || p == nullptr) return nullptr;
-	pointLightOn[nPointLights] = p->on ? 1 : 0;
-	pointLights[nPointLights] = p;
-	pointLightPos[nPointLights] = p->getPos();
-	pointIntensity[nPointLights] = p->intensity;
-	p->index = nPointLights;
-	p->scene = this;
-	++nPointLights;
-	updatePointLights();
-	return p;
-}
-
-PointLight* Scene::updateLight(PointLight* p)
-{
-	if(p->scene != this || p->index == -1 || p == nullptr) return nullptr;
-	pointLightOn[p->index] = p->on ? 1 : 0;
-	pointLightPos[p->index] = p->getPos();
-	pointIntensity[p->index] = p->intensity;
-	updatePointLights();
-	return p;
-}
-
-PointLight* Scene::remove(PointLight* p)
-{
-	if(nPointLights <= 0 || p->index == -1 || p == nullptr) return nullptr;
-	for(int i = p->index; i < nPointLights-1; ++i)
-	{
-		pointLights[i] = pointLights[i+1];
-		pointLights[i]->index = i;
-		pointLightOn[i] = pointLightOn[i+1];
-		pointLightPos[i] = pointLightPos[i+1];
-		pointIntensity[i] = pointIntensity[i+1];
-	}
-	pointLights[nPointLights-1] = nullptr;
-	pointLightOn[nPointLights-1] = 0;
-	pointLightPos[nPointLights-1] = glm::vec4(0.0, 0.0, 0.0, 1.0);
-	pointIntensity[nPointLights-1] = -1.0;
-	--nDirLights;
-	p->index = -1;
-	updatePointLights();
-	return p;
-}
-
-//TODO replace with checking by type of shader.
-void Scene::setAmbLight(float _ambLight)
+void Scene::setAmbLight(glm::vec4 _ambLight)
 {
 	ambLight = _ambLight;
 	for(std::set<Shader*>::iterator i = shaders.begin();
@@ -203,23 +168,13 @@ void Scene::setAmbLight(float _ambLight)
 	}
 }
 
-void Scene::updateDirLights()
+void Scene::updatePhongLights()
 {
 	for(std::set<Shader*>::iterator i = shaders.begin();
 		i != shaders.end(); ++i)
 	{
-		(*i)->setDirLights(dirLightOn, 
-			dirLightDir, dirIntensity, maxDirLights);
-	}
-}
-
-void Scene::updatePointLights()
-{
-	for(std::set<Shader*>::iterator i = shaders.begin();
-		i != shaders.end(); ++i)
-	{
-		(*i)->setPointLights(pointLightOn, pointLightPos, 
-			pointIntensity, maxPointLights);
+		(*i)->setPhongLights(lightPos, lightDiffuse,
+			lightSpecular, lightAttenuation);
 	}
 }
 

@@ -14,6 +14,14 @@ class Solid;
 template <int nVertices> class ArrSolid;
 template <int nVertices, int nElements> class ElemSolid;
 
+struct Material
+{
+	glm::vec4 ambient;
+	glm::vec4 diffuse;
+	glm::vec4 specular;
+	float exponent;
+};
+
 /* Renderable
  * A Renderable is an ADT for an Element which has a render() function called by it's owning Scene each frame.
  * All Renderable implementations must also provide an update() function, which may well be a do-nothing for static objects.
@@ -46,13 +54,17 @@ protected:
 class Solid : public Renderable
 {
 public:
-	Solid(Shader* _shader) :Renderable(false), shader(_shader) {};
+	Solid(Shader* _shader);
+	Solid(Shader* _shader, const Material& _material);
 	Shader* getShader() {return (Shader*) shader;};
+	void setMaterial(const Material& _material);
+	Material getMaterial() {return material;};
 
 	static ArrSolid<36>* Cube(LightShader* _shader);
 	static ArrSolid<6>*  Quad(LightShader* _shader);
 protected:
 	Shader* shader;
+	Material material;
 };
 
 /* ArrSolid
@@ -64,7 +76,8 @@ class ArrSolid : public Solid
 public:
 	ArrSolid(LightShader* _shader, 
 		const std::array<glm::vec4, nVertices>& _v, 
-		const std::array<glm::vec3, nVertices>& _n);	
+		const std::array<glm::vec3, nVertices>& _n);
+	void setMaterial(const Material& _material);
 	void render();
 	void update(int dTime) {};
 private:
@@ -74,24 +87,6 @@ private:
 	GLuint n_vbo;
 	GLuint v_attrib;
 	GLuint n_attrib;
-};
-
-/* ElemSolid
- * Solid using indexed drawing.
- */
-template<int nVertices, int nElements>
-class ElemSolid : public Solid
-{
-public:
-private:
-	std::array<glm::vec4, nVertices> v;
-	std::array<glm::vec3, nVertices> n;
-	std::array<GLushort, nElements> e;
-	GLuint v_vbo;
-	GLuint n_vbo;
-	GLuint v_attrib;
-	GLuint n_attrib;
-	GLuint e_attrib;
 };
 
 #endif

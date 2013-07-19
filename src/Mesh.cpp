@@ -93,6 +93,7 @@ void Mesh::render()
 	if(!scene) return;
 	
 	shader->setModelToWorld(modelToWorld);
+	shader->setMaterial(material);
 
 	shader->use();
 	glEnableVertexAttribArray(v_attrib);

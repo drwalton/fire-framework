@@ -84,7 +84,7 @@ int init()
 	swirl->translate(glm::vec3(0.0, -1.0, -3.0));
 	scene->add(swirl);
 
-	lShader = new LightShader(false, "Simple", true, true, true);
+	lShader = new LightShader(false, "Solid", true, true, true);
 	/*
 	ArrSolid<36>* cube;
 	for(int i = -k; i <= k; ++i)

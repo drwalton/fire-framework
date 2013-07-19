@@ -44,23 +44,13 @@ public:
 	Renderable* add(Renderable* r);
 	Renderable* remove(Renderable* r);
 
-	DirLight* add(DirLight* d);
-	DirLight* updateLight(DirLight* d);
-	DirLight* remove(DirLight* d);
-
-	PointLight* add(PointLight* p);
-	PointLight* updateLight(PointLight* p);
-	PointLight* remove(PointLight* p);
+	PhongLight* add(PhongLight* l);
+	PhongLight* updateLight(PhongLight* l);
+	PhongLight* remove(PhongLight* l);
 
 	void setAmbLight(float _ambLight);
 	
-	static const int maxDirLights = 50;
-	GLuint* getDirLightOn() {return dirLightOn;};
-	glm::vec3* getDirLightDir();
-
-	static const int maxPointLights = 50;
-	GLuint* getPointLightOn() {return pointLightOn;};
-	glm::vec4* getPointLightPos();
+	static const int maxPhongLights = 50;
 	
 	static const int maxSHLights = 10;
 	static const int nSHBands = 5;
@@ -68,7 +58,7 @@ public:
 
 	Camera* camera;
 private:
-	float ambLight;
+	glm::vec4 ambLight;
 	GLuint ambLight_u;
 
 	std::set<Renderable*> opaque;
@@ -76,19 +66,13 @@ private:
 
 	std::set<Shader*> shaders;
 
-	int nDirLights;
-	DirLight* dirLights[maxDirLights];
-	GLuint dirLightOn[maxDirLights];
-	glm::vec3 dirLightDir[maxDirLights];
-	float dirIntensity[maxDirLights];
-	void updateDirLights();
-	
-	int nPointLights;
-	PointLight* pointLights[maxPointLights];
-	GLuint pointLightOn[maxPointLights];
-	glm::vec4 pointLightPos[maxPointLights];
-	float pointIntensity[maxPointLights];
-	void updatePointLights();
+	int nPhongLights
+	PhongLight* phongLights[maxPhongLights];
+	glm::vec4 lightPos[maxPhongLights];
+	glm::vec4 lightDiffuse[maxPhongLights];
+	glm::vec4 lightSpecular[maxPhongLights];
+	float lightAttenuation[maxPhongLights];
+	void updatePhongLights();
 
 	void updateCamera();
 };

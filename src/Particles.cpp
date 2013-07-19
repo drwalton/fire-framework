@@ -192,7 +192,7 @@ AdvectParticlesLights<maxParticles>::AdvectParticlesLights(int _nLights,
 	// Set up vector of lights.
 	for(int i = 0; i < nLights; ++i)
 	{
-		lights.push_back(new PointLight(getOrigin(), 0.2f));
+		lights.push_back(new PhongLight(getOrigin()));
 	}
 }
 
@@ -218,7 +218,7 @@ AdvectParticlesLights<maxParticles>::AdvectParticlesLights(
 	// Set up vector of lights.
 	for(int i = 0; i < nLights; ++i)
 	{
-		lights.push_back(new PointLight(getOrigin(), 0.2));
+		lights.push_back(new PhongLight(getOrigin()));
 	}
 }
 

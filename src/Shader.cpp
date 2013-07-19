@@ -144,15 +144,6 @@ GLuint Shader::getUniformLoc(const std::string& name)
 
 LightShader::LightShader(bool hasGeometry, const std::string& filename)
 	:Shader(hasGeometry, filename),
-	hasAmbLight(true), hasDirLights(true), hasPointLights(true)
-{
-	init();
-}
-
-LightShader::LightShader(bool hasGeometry, const std::string& filename,
-	bool _hasAmbLight, bool _hasDirLights, bool _hasPointLights)
-	:Shader(hasGeometry, filename),
-	hasAmbLight(_hasAmbLight), hasDirLights(_hasDirLights), hasPointLights(_hasPointLights)
 {
 	init();
 }
@@ -160,53 +151,45 @@ LightShader::LightShader(bool hasGeometry, const std::string& filename,
 void LightShader::init()
 {
 	use();
-	if(hasAmbLight)
-	{
-		ambLight_u = getUniformLoc("ambLight");
-	}
-	if(hasDirLights)
-	{
-		dirLightOn_u = getUniformLoc("dirLightOn");
-		dirLightDir_u = getUniformLoc("dirLightDir");
-		dirIntensity_u = getUniformLoc("dirIntensity");
-	}
-	if(hasPointLights)
-	{
-		pointLightOn_u = getUniformLoc("pointLightOn");
-		pointLightPos_u = getUniformLoc("pointLightPos");
-		pointIntensity_u = getUniformLoc("pointIntensity");
-	}
+	ambLight_u         = getUniformLoc("ambLight");
+	lightPos_u         = getUniformLoc("lightPos");
+	lightDiffuse_u     = getUniformLoc("lightDiffuse");
+	lightSpecular_u    = getUniformLoc("lightSpecular");
+	lightAttenuation_u = getUniformLoc("lightAttenuation");
+
+	material_ambient_u  = getUniformLoc("material.ambient");
+	material_diffuse_u  = getUniformLoc("material.diffuse");
+	material_specular_u = getUniformLoc("material.specular");
+	material_exponent_u = getUniformLoc("material.exponent");
 	glUseProgram(0);
 }
 
 
-void LightShader::setAmbLight(float _ambLight)
+void LightShader::setAmbLight(const glm::vec4& _ambLight)
 {
-	if(!hasAmbLight) return;
 	use();
-	glUniform1f(ambLight_u, _ambLight);
+	glUniform4f(ambLight_u, &(_ambLight[0]);
 	glUseProgram(0);
 }
 
-void LightShader::setDirLights(GLuint* dirLightOn, glm::vec3* dirLightDir, 
-	float* dirIntensity, int nDirLights)
+void LightShader::setPhongLights(glm::vec4* pos, glm::vec4* diffuse, 
+		glm::vec4* specular, float* attenuation)
 {
-	if(!hasDirLights) return;
 	use();
-	glUniform1uiv(dirLightOn_u, nDirLights, dirLightOn);
-	glUniform3fv(dirLightDir_u, nDirLights, (GLfloat*) dirLightDir);
-	glUniform1fv(dirIntensity_u, nDirLights, (GLfloat*) dirIntensity);
+	glUniform4fv(lightPos_u, maxPhongLights, &(pos[0]));
+	glUniform4fv(lightDiffuse_u, maxPhongLights, &(diffuse[0]));
+	glUniform4fv(lightSpecular_u, maxPhongLights, &(specular[0]));
+	glUniform1fv(lightAttenuation_u, maxPhongLights, &(attenuation[0]));
 	glUseProgram(0);
 }
 
-void LightShader::setPointLights(GLuint* pointLightOn, 
-	glm::vec4* pointLightPos, float* pointIntensity, int nPointLights)
+void LightShader::setMaterial(const Material& material)
 {
-	if(!hasPointLights) return;
 	use();
-	glUniform1uiv(pointLightOn_u, nPointLights, pointLightOn);
-	glUniform4fv(pointLightPos_u, nPointLights, (GLfloat*) pointLightPos);
-	glUniform1fv(pointIntensity_u, nPointLights,(GLfloat*) pointIntensity);
+	glUniform4f(material_ambient_u, &(material.ambient[0]));
+	glUniform4f(material_diffuse_u, &(material.diffuse[0]));
+	glUniform4f(material_specular_u, &(material.specular[0]));
+	glUniform1f(material_exponent_u, &(material.exponent));
 	glUseProgram(0);
 }
 
