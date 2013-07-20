@@ -4,9 +4,7 @@ Renderable::Renderable(bool _translucent)
 	:scene(nullptr),
 	modelToWorld(glm::mat4(1.0)),
 	translucent(_translucent)
-{
-	
-}
+{}
 
 void Renderable::uniformScale(float s)
 {

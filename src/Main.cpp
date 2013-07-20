@@ -125,7 +125,7 @@ int init()
 	SHLight* light = new SHLight(
 		[] (double theta, double phi) -> glm::vec3 
 		{
-			return glm::vec3(theta, phi, 0.0);
+			return glm::vec3((theta > 1.5 ? 1.0 : 0.0));
 		}
 	);
 	scene->add(light);

@@ -2,26 +2,26 @@
 #version 420
 
 in vec4 vPos;
-in vec3 transferCoeffts[numCoeffts];
+in vec3 transferCoeffts[9];
 
-in mat4 modelToWorld;
-in mat4 worldToCamera;
+uniform mat4 modelToWorld;
+uniform mat4 worldToCamera;
 
 out vec3 color;
 
-uniform vec3 lightCoeffts[numCoeffts * numLights];
+uniform vec3 lightCoeffts[9 * 10];
 
 void main()
 {
 	gl_Position = worldToCamera * modelToWorld * vPos;
 
-	color = vec3(0.0, 0.0, 0.0);
+	color = vec3(0.0, 0.0, 1.0);
 
-	for(int l = 0; l < numLights; ++l)
+	for(int l = 0; l < 10; ++l)
 	{
-		for(int c = 0; c < numCoeffts; ++c)
+		for(int c = 0; c < 9; ++c)
 		{
-			color += transferCoeffts[c] * lightCoeffts[c + (l * numCoeffts)];
+			color += transferCoeffts[c] * lightCoeffts[c + (l * 9)];
 		}
 	}
 }

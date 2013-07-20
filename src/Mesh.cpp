@@ -151,7 +151,7 @@ DiffPRTMesh::DiffPRTMesh(const MeshData& d, int _nBands, SHShader* _shader)
 						cos(phi)
 						);
 					double proj = glm::dot(dir, *i);
-					proj = proj > 0.0 ? proj : 0.0;
+					proj = (proj > 0.0 ? proj : 0.0);
 					return glm::vec3(proj, proj, proj);
 				}
 			);
@@ -188,7 +188,10 @@ void DiffPRTMesh::render()
 	glBindBuffer(GL_ARRAY_BUFFER, v_vbo);
 	glVertexAttribPointer(v_attrib, 4, GL_FLOAT, GL_FALSE, 0, 0);
 	glBindBuffer(GL_ARRAY_BUFFER, s_vbo);
-	glVertexAttribPointer(s_attrib, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	for(int c = 0; c < Scene::nSHCoeffts; ++c)
+		glVertexAttribPointer(s_attrib + c, 3, GL_FLOAT, GL_FALSE,
+			3 * sizeof(float) * Scene::nSHCoeffts,
+			reinterpret_cast<GLvoid*> (3 * sizeof(float) * c));
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, e_vbo);
