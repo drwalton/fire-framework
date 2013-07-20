@@ -82,7 +82,7 @@ int init()
 
 	swirl = new AdvectParticlesRandLights<nSwirls>(10, 2000, pShader, flameTex, decayTex);
 	swirl->translate(glm::vec3(0.0, -1.0, -3.0));
-	scene->add(swirl);
+	//scene->add(swirl);
 
 	lShader = new LightShader(false, "Solid");
 	/*
@@ -107,7 +107,6 @@ int init()
 	{
 		(*i)->uniformScale(0.08f);
 		scene->add(*i);
-		std::cout << "Adding a mesh to scene.\n";
 	}
 
 	loaded = Mesh::loadFile("Rabbit.obj", lShader);
@@ -117,11 +116,11 @@ int init()
 	{
 		(*i)->uniformScale(2.0f);
 		(*i)->translate(glm::vec3(-1.0, -0.8, 0.0));
+		(*i)->setAmbient(glm::vec4(1.0, 0.0, 1.0, 1.0));
+		(*i)->setDiffuse(glm::vec4(1.0, 0.0, 1.0, 1.0));
 		scene->add(*i);
-		std::cout << "Adding a mesh to scene.\n";
 	}
 
-	scene->setAmbLight(glm::vec4(0.1f, 0.1f, 0.1f, 1.0f));
 	return 1;
 }
 

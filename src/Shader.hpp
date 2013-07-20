@@ -9,6 +9,7 @@
 #include <string>
 #include <array>
 #include <iostream>
+#include <exception>
 
 struct Material
 {
@@ -26,7 +27,7 @@ class Shader
 public:
 	Shader(bool hasGeomShader, const std::string& filename);
 	void use();
-	void setWorldToCamera(const glm::mat4& _worldToCamera);
+	virtual void setWorldToCamera(const glm::mat4& _worldToCamera);
 	void setModelToWorld(const glm::mat4& _modelToWorld);
 	GLuint getAttribLoc(const std::string& name);
 
@@ -35,6 +36,7 @@ public:
 		glm::vec4* ambient, float* attenuation) {};
 	virtual void setMaterial(const Material& material) {};
 
+	const std::string filename;
 protected:
 	GLuint getUniformLoc(const std::string& name);
 private:
@@ -43,6 +45,27 @@ private:
 	GLuint compileShader(const std::string& filename, bool hasGeomShader, bool DEBUG);
 	GLuint worldToCamera_u;
 	GLuint modelToWorld_u;
+};
+
+/* Error classes for Shader */
+class NoSuchException : public std::exception 
+{
+public:
+	NoSuchException(const std::string& name, Shader* const& shader);
+private:
+	std::string name;
+};
+class NoSuchUniformException : public NoSuchException 
+{
+public:
+	NoSuchUniformException(const std::string& name, Shader* const& shader) 
+		:NoSuchException(name, shader) {};
+};
+class NoSuchAttribException : public NoSuchException 
+{
+public:
+	NoSuchAttribException(const std::string& name, Shader* const& shader) 
+		:NoSuchException(name, shader) {};
 };
 
 /* ParticleShader
@@ -78,12 +101,15 @@ public:
 	void setPhongLights(glm::vec4* pos, glm::vec4* diffuse, 
 		glm::vec4* specular, float* attenuation);
 	void setMaterial(const Material& material);
+	void setWorldToCamera(const glm::mat4& _worldToCamera);
 private:
 	void init();
 
 	int maxPhongLights;
 
 	GLuint ambLight_u;
+
+	GLuint cameraPos_u;
 
 	GLuint lightPos_u;
 	GLuint lightDiffuse_u;

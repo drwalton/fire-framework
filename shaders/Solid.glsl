@@ -25,12 +25,12 @@ in vec4 worldPos;
 
 out vec4 fragColor;
 
-const int numLights = 30;
+uniform mat4 worldToCamera;
 
-uniform vec4 lightPos[30];
-uniform vec4 lightDiffuse[30];
-uniform vec4 lightSpecular[30];
-uniform float lightAttenuation[30];
+uniform vec4 lightPos[50];
+uniform vec4 lightDiffuse[50];
+uniform vec4 lightSpecular[50];
+uniform float lightAttenuation[50];
 
 uniform vec4 ambLight;
 
@@ -47,35 +47,45 @@ void main()
 
 	vec3 norm = normalize(smoothNorm);
 
-	vec3 view = normalize(cameraPos - vec3(worldPos));
+	vec3 view = normalize(-cameraPos - vec3(worldPos));
 
-	for(int i = 0; i < numLights; ++i)
+	for(int i = 0; i < 50; ++i)
 	{
-		if(lightPos[i].w == 0.0)// Directional light source
+		// Check if light is off.
+		// Lights that are on must have diffuse.w and specular.w equal to 1.0
+		if(lightDiffuse[i].w < 0.01 || lightSpecular[i].w < 0.01) continue;
+
+		if(lightPos[i].w < 0.01)// Directional light source
 		{
 			// Diffuse lighting
 			vec3 lightDir = normalize(vec3(lightPos[i]));
-			fragColor += max(dot(lightDir, norm), 0.0) * 
-				material_diffuse * lightDiffuse[i];
+			float nDotL = max(dot(lightDir, norm), 0.0);
+			fragColor += nDotL * material_diffuse * lightDiffuse[i];
 
 			// Specular (Phong) lighting
-			vec3 reflected = reflect(lightDir, norm);
-			fragColor += pow(max(dot(reflected, view), 0.0), material_exponent) * 
-				material_specular * lightSpecular[i];
+			if(dot(lightDir, norm) > 0.0)
+			{
+				vec3 reflected = reflect(lightDir, norm);
+				fragColor += nDotL * pow(max(dot(reflected, view), 0.0), material_exponent) * 
+					material_specular * lightSpecular[i];
+			}
 		}
 
 		else // Point light source
 		{
 			vec3 toLight = vec3(lightPos[i] - worldPos);
-			float denom = lightAttenuation[i] * length(toLight);
+			float denom = max(lightAttenuation[i] * length(toLight), 0.01);
 			toLight = normalize(toLight);
+			float nDotL = max(dot(toLight, norm), 0.0);
 			// Diffuse lighting
-			fragColor += max(dot(toLight, norm), 0.0) * 
-				material_diffuse * lightDiffuse[i] / denom;
+			fragColor += nDotL * material_diffuse * lightDiffuse[i] / denom;
 			// Specular (Phong) lighting
-			vec3 reflected = reflect(toLight, norm);
-			fragColor += pow(max(dot(reflected, view), 0.0), material_exponent) * 
-				material_specular * lightSpecular[i] / denom;
+			if(dot(toLight, norm) > 0.0)
+			{ 
+				vec3 reflected = reflect(toLight, norm);
+				fragColor += nDotL * max(pow(dot(reflected, view), material_exponent), 0.0) * 
+					material_specular * lightSpecular[i] / denom;
+			}
 		}
 	}
 }

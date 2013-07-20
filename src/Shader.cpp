@@ -1,6 +1,13 @@
 #include "Shader.hpp"
 
+NoSuchException::NoSuchException(const std::string& name, Shader* const& shader)
+{
+	std::cout << "Could not find name \"" << name 
+		<<"\" in shader source file \"" << shader->filename << "\".";
+}
+
 Shader::Shader(bool hasGeomShader, const std::string& filename)
+	:filename(filename)
 {
 	id = compileShader(filename, hasGeomShader, true);
 	worldToCamera_u = getUniformLoc("worldToCamera");
@@ -134,16 +141,20 @@ GLuint Shader::compileShader(const std::string& filename, bool hasGeomShader, bo
 
 GLuint Shader::getAttribLoc(const std::string& name)
 {
-	return glGetAttribLocation(id, name.c_str());
+	GLuint loc = glGetAttribLocation(id, name.c_str());
+	if (loc == -1) throw new NoSuchAttribException(name, this);
+	return loc;
 }
 
 GLuint Shader::getUniformLoc(const std::string& name)
 {
-	return glGetUniformLocation(id, name.c_str());
+	GLuint loc = glGetUniformLocation(id, name.c_str());
+	if (loc == -1) throw new NoSuchUniformException(name, this);
+	return loc;
 }
 
 LightShader::LightShader(bool hasGeometry, const std::string& filename)
-	:Shader(hasGeometry, filename)
+	:Shader(hasGeometry, filename), maxPhongLights(50)
 {
 	init();
 }
@@ -152,6 +163,7 @@ void LightShader::init()
 {
 	use();
 	ambLight_u         = getUniformLoc("ambLight");
+	cameraPos_u        = getUniformLoc("cameraPos");
 	lightPos_u         = getUniformLoc("lightPos");
 	lightDiffuse_u     = getUniformLoc("lightDiffuse");
 	lightSpecular_u    = getUniformLoc("lightSpecular");
@@ -190,6 +202,16 @@ void LightShader::setMaterial(const Material& material)
 	glUniform4fv(material_diffuse_u, 1, &(material.diffuse[0]));
 	glUniform4fv(material_specular_u, 1, &(material.specular[0]));
 	glUniform1fv(material_exponent_u, 1, &(material.exponent));
+	glUseProgram(0);
+}
+
+void LightShader::setWorldToCamera(const glm::mat4& _worldToCamera)
+{
+	Shader::setWorldToCamera(_worldToCamera);
+	use();
+	glm::mat4 inv = glm::inverse(_worldToCamera);
+	glm::vec3 cameraPos = glm::vec3(inv[3][0], inv[3][1], inv[3][2]);
+	glUniform3fv(cameraPos_u, 1, &(cameraPos[0]));
 	glUseProgram(0);
 }
 

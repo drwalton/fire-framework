@@ -47,11 +47,12 @@ void main()
 {
 	decay = VertexIn[0].decay;
 	vec3 pointPos = gl_in[0].gl_Position.xyz;
-	vec3 toCamera = normalize(cameraDir);
+	vec3 toCamera = normalize( cameraDir);
 
 	// Find vectors in plane of billboard.
 	vec3 up = vec3(0.0, 1.0, 0.0);
 	vec3 across = normalize(cross(up, toCamera));
+	up = normalize(cross(toCamera, across));
 	
 
 	float texLeft = VertexIn[0].randTex * 0.7;

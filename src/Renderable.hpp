@@ -51,6 +51,10 @@ public:
 	Shader* getShader() {return (Shader*) shader;};
 	void setMaterial(const Material& _material);
 	Material getMaterial() {return material;};
+	void setAmbient(const glm::vec4& ambient) {material.ambient = ambient;};
+	void setDiffuse(const glm::vec4& diffuse) {material.diffuse = diffuse;};
+	void setSpecular(const glm::vec4& specular) {material.specular = specular;};
+	void setExponent(float exponent) {material.exponent = exponent;};
 
 	static ArrSolid<36>* Cube(LightShader* _shader);
 	static ArrSolid<6>*  Quad(LightShader* _shader);

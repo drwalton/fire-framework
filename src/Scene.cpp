@@ -1,7 +1,7 @@
 #include "Scene.hpp"
 
 Scene::Scene()
-	 :ambLight(0.2f), nPhongLights(0)
+	 :ambLight(0.1f, 0.1f, 0.1f, 1.0f), nPhongLights(0)
 {
 	camera = new Camera();
 	int i;
