@@ -69,7 +69,6 @@ private:
 
 	size_t nBands;
 	size_t nCoeffts;
-	GLuint nBands_u;
 
 	size_t numElems;
 	GLuint v_vbo;

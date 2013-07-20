@@ -44,8 +44,8 @@ std::vector<glm::vec3> SH::shProject(int sqrtNSamples, int nBands,
 		for(int j = 0; j < sqrtNSamples; ++j)
 		{
 			/* Remove comments below for jittered sampling */
-			u = (i * sqrWidth);// + randd(0, sqrWidth);
-			v = (j * sqrWidth);// + randd(0, sqrWidth);
+			u = (i * sqrWidth) + randd(0, sqrWidth);
+			v = (j * sqrWidth) + randd(0, sqrWidth);
 			theta = acos((2 * u) - 1);
 			phi = 2 * SH::PI * v;
 			for(int l = 0; l < nBands; ++l)

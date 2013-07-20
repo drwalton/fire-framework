@@ -266,22 +266,13 @@ SHShader::SHShader(bool hasGeomShader, int _nSHLights, int _nCoeffts, const std:
 	:Shader(hasGeomShader, filename), nSHLights(_nSHLights), nCoeffts(_nCoeffts)
 {
 	use();
-	nCoeffts_u = getUniformLoc("nCoeffts");
-	nSHLights_u = getUniformLoc("nSHLights");
-	SHLights_u = getUniformLoc("SHLights");
-	SHLightOn_u = getUniformLoc("SHLightOn");
-	SHIntensity_u = getUniformLoc("SHIntensity");
-
-	glUniform1i(nSHLights_u, nSHLights);
-	glUniform1i(nCoeffts_u, nCoeffts);
+	SHLights_u = getUniformLoc("lightCoeffts");
 	glUseProgram(0);
 }
 
-void SHShader::setSHLights(GLuint* SHLightOn, float* SHLights, float* SHIntensity, int nSHLights)
+void SHShader::setSHLights(glm::vec3* SHLights)
 {
 	use();
-	glUniform1uiv(SHLightOn_u, nSHLights, SHLightOn);
-	glUniform1fv(SHLights_u, nSHLights * nCoeffts, SHLights);
-	glUniform1fv(SHIntensity_u, nSHLights, SHIntensity);
+	glUniform3fv(SHLights_u, nSHLights * nCoeffts, &(SHLights[0][0]));
 	glUseProgram(0);
 }

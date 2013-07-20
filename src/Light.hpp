@@ -15,7 +15,11 @@ class Scene;
  *			adjusted per-scene by calling Scene::setAmbLight().
  */
 class Light : public Element
-{};
+{
+public:
+	Light() :scene(nullptr) {};
+	Scene* scene;
+};
 
 /* PhongLight
  * A light designed for simple Phong-style local lighting shaders.
@@ -28,12 +32,12 @@ public:
 	PhongLight(glm::vec4 _pos)
 		:pos(_pos), diffuse(glm::vec4(1.0, 1.0, 1.0, 1.0)),
 		 specular(glm::vec4(1.0, 1.0, 1.0, 1.0)), attenuation(2.0f),
-		 scene(nullptr), index(-1) {};
+		 index(-1) {};
 	PhongLight(glm::vec4 _pos, glm::vec4 _diffuse,
 		glm::vec4 _specular, float _attenuation)
 		:pos(_pos), diffuse(_diffuse),
 		 specular(_specular), attenuation(_attenuation),
-		 scene(nullptr), index(-1) {};
+		 index(-1) {};
 	void setPos(glm::vec4 _pos);
 	void setDiffuse(glm::vec4 _diffuse);
 	void setSpecular(glm::vec4 _specular);
@@ -43,7 +47,6 @@ public:
 	glm::vec4 getSpecular() {return specular;};
 	float getAttenuation() {return attenuation;};
 	int index;
-	Scene* scene;
 private:
 	glm::vec4 pos;
 	glm::vec4 diffuse;
@@ -58,19 +61,19 @@ class SHLight : public Light
 {
 public:
 	template <typename Fn>
-	SHLight(Fn func, float _intensity);
+	SHLight(Fn func);
 	template <typename Fn>
 	void setFunc(Fn func);
-	void setCoeffts(std::vector<float>);
-	std::vector<float> getCoeffts() {return coeffts;};
-	void setIntensity(float _intensity);
+	void setCoeffts(std::vector<glm::vec3>);
+	std::vector<glm::vec3> getCoeffts() {return coeffts;};
+	int index;
 private:
-	std::vector<float> coeffts;
+	std::vector<glm::vec3> coeffts;
 };
 
 template <typename Fn>
-SHLight::SHLight(Fn func, float _intensity)
-	:Light(_intensity)
+SHLight::SHLight(Fn func)
+	:index(-1)
 {
 	coeffts = SH::shProject(Scene::sqrtSHSamples, Scene::nSHBands, func);
 };

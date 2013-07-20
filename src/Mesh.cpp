@@ -141,7 +141,7 @@ DiffPRTMesh::DiffPRTMesh(const MeshData& d, int _nBands, SHShader* _shader)
 
 	for(std::vector<glm::vec3>::const_iterator i = d.n.begin(); i != d.n.end(); ++i)
 	{
-		std::vector<glm::vec3> coeffts = SH::shProject(Scene::sqrtSHSamples, Scene::nSHBands, 
+		std::vector<glm::vec3> coeffts = SH::shProject(Scene::sqrtSHSamples, 3, 
 			[&i](double theta, double phi) -> glm::vec3 
 				{
 					glm::vec3 dir
@@ -164,15 +164,15 @@ DiffPRTMesh::DiffPRTMesh(const MeshData& d, int _nBands, SHShader* _shader)
 	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec4) * d.v.size(), d.v.data(), GL_STATIC_DRAW);
 	glGenBuffers(1, &s_vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, s_vbo);
-	glBufferData(GL_ARRAY_BUFFER, s.size(), s.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * s.size(), s.data(), GL_STATIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
     glGenBuffers(1, &e_vbo);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, e_vbo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLushort) * d.e.size(), d.e.data(), GL_STATIC_DRAW);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-	v_attrib = shader->getAttribLoc("vPosition");
-	s_attrib = shader->getAttribLoc("vCoeffts");
+	v_attrib = shader->getAttribLoc("vPos");
+	s_attrib = shader->getAttribLoc("transferCoeffts");
 }
 
 void DiffPRTMesh::render()
@@ -188,7 +188,7 @@ void DiffPRTMesh::render()
 	glBindBuffer(GL_ARRAY_BUFFER, v_vbo);
 	glVertexAttribPointer(v_attrib, 4, GL_FLOAT, GL_FALSE, 0, 0);
 	glBindBuffer(GL_ARRAY_BUFFER, s_vbo);
-	glVertexAttribPointer(s_attrib, nCoeffts, GL_FLOAT, GL_FALSE, 0, 0);
+	glVertexAttribPointer(s_attrib, 3, GL_FLOAT, GL_FALSE, 0, 0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, e_vbo);

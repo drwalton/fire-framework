@@ -82,9 +82,10 @@ int init()
 
 	swirl = new AdvectParticlesRandLights<nSwirls>(10, 2000, pShader, flameTex, decayTex);
 	swirl->translate(glm::vec3(0.0, -1.0, -3.0));
-	//scene->add(swirl);
+	//scene->add(swirl);		
 
 	lShader = new LightShader(false, "Solid");
+	SHShader* shShader = new SHShader(false, scene->maxSHLights, scene->nSHCoeffts, "PRT");
 	/*
 	ArrSolid<36>* cube;
 	for(int i = -k; i <= k; ++i)
@@ -100,16 +101,16 @@ int init()
 	cube->translate(glm::vec3(2.0f, 0.0f, 0.0f));
 	scene->add(cube);
 
-	std::vector<Mesh*> loaded = Mesh::loadFile("teapot.obj", lShader);
+	std::vector<DiffPRTMesh*> loadedPRT = DiffPRTMesh::loadFile("teapot.obj", 2, shShader);
 
-	for(std::vector<Mesh*>::iterator i = loaded.begin();
-		i != loaded.end(); ++i)
+	for(std::vector<DiffPRTMesh*>::iterator i = loadedPRT.begin();
+		i != loadedPRT.end(); ++i)
 	{
 		(*i)->uniformScale(0.08f);
 		scene->add(*i);
 	}
 
-	loaded = Mesh::loadFile("Rabbit.obj", lShader);
+	std::vector<Mesh*> loaded = Mesh::loadFile("Rabbit.obj", lShader);
 
 	for(std::vector<Mesh*>::iterator i = loaded.begin();
 		i != loaded.end(); ++i)
@@ -120,6 +121,14 @@ int init()
 		(*i)->setDiffuse(glm::vec4(1.0, 0.0, 1.0, 1.0));
 		scene->add(*i);
 	}
+
+	SHLight* light = new SHLight(
+		[] (double theta, double phi) -> glm::vec3 
+		{
+			return glm::vec3(theta, phi, 0.0);
+		}
+	);
+	scene->add(light);
 
 	return 1;
 }

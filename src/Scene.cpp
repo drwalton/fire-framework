@@ -1,7 +1,7 @@
 #include "Scene.hpp"
 
 Scene::Scene()
-	 :ambLight(0.1f, 0.1f, 0.1f, 1.0f), nPhongLights(0)
+	 :ambLight(0.1f, 0.1f, 0.1f, 1.0f), nPhongLights(0), nSHLights(0)
 {
 	camera = new Camera();
 	int i;
@@ -13,6 +13,11 @@ Scene::Scene()
 		lightSpecular[i] = glm::vec4(0.0f);
 		lightAttenuation[i] = 0.0f;
 	}
+
+	for(i = 0; i < maxSHLights; ++i)
+		SHLights[i] = nullptr;
+	for(i = 0; i < maxSHLights*nSHCoeffts; ++i)
+		SHLightsCoeffts[i] = glm::vec3(0.0f);
 }
 
 Scene::~Scene()
@@ -156,6 +161,37 @@ PhongLight* Scene::remove(PhongLight* l)
 	return l;
 }
 
+SHLight* Scene::add(SHLight* l)
+{
+	/* Check light to be added is valid, not already in scene */
+	if(nSHLights >= maxSHLights || l == nullptr 
+		|| l->scene != nullptr || l->index != -1) return nullptr;
+	SHLights[nSHLights] = l;
+	/* Add light's data to uniform buffers */
+	for(int c = 0; c < nSHCoeffts; ++c)
+		SHLightsCoeffts[nSHLights*nSHCoeffts + c] = l->getCoeffts()[c];
+	l->index = nSHLights;
+	l->scene = this;
+	++nSHLights;
+	updateSHLights();
+	return l;
+}
+
+SHLight* Scene::updateLight(SHLight* l)
+{
+	/* Check light is actually in scene before updating */
+	if(l->scene != this || l == nullptr) return nullptr;
+	/* Check light's index is valid */
+	if(l != SHLights[l->index] ||
+		l->index < 0 || l->index >= nSHLights)
+		return nullptr; //TODO: throw exception?
+	/* Update values in stored buffers */
+	for(int c = 0; c < nSHCoeffts; ++c)
+		SHLightsCoeffts[nSHLights*nSHCoeffts + c] = l->getCoeffts()[c];
+	updateSHLights();
+	return l;
+}
+
 void Scene::setAmbLight(glm::vec4 _ambLight)
 {
 	ambLight = _ambLight;
@@ -173,6 +209,15 @@ void Scene::updatePhongLights()
 	{
 		(*i)->setPhongLights(lightPos, lightDiffuse,
 			lightSpecular, lightAttenuation);
+	}
+}
+
+void Scene::updateSHLights()
+{
+	for(std::set<Shader*>::iterator i = shaders.begin();
+		i != shaders.end(); ++i)
+	{
+		(*i)->setSHLights(SHLightsCoeffts);
 	}
 }
 

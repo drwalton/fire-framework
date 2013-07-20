@@ -36,6 +36,8 @@ public:
 		glm::vec4* ambient, float* attenuation) {};
 	virtual void setMaterial(const Material& material) {};
 
+	virtual void setSHLights(glm::vec3* SHLights) {};
+
 	const std::string filename;
 protected:
 	GLuint getUniformLoc(const std::string& name);
@@ -126,16 +128,12 @@ class SHShader : public Shader
 {
 public:
 	SHShader(bool hasGeomShader, int _nSHLights, int _nCoeffts, const std::string& filename);
-	void setSHLights(GLuint* SHLightOn, float* SHLights, float* SHIntensity, int nSHLights);
+	void setSHLights(glm::vec3* SHLights);
 private:
 	int nSHLights;
 	int nCoeffts;
-	GLuint nSHLights_u;
-	GLuint nCoeffts_u;
 
 	GLuint SHLights_u;
-	GLuint SHLightOn_u;
-	GLuint SHIntensity_u;
 };
 
 #endif

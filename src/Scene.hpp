@@ -17,6 +17,7 @@
 
 class DirLight;
 class PointLight;
+class SHLight;
 
 const float PI = 3.141592653589793238462f;
 
@@ -48,13 +49,18 @@ public:
 	PhongLight* updateLight(PhongLight* l);
 	PhongLight* remove(PhongLight* l);
 
+	SHLight* add(SHLight* l);
+	SHLight* updateLight(SHLight* l);
+	SHLight* remove(SHLight* l);
+
 	void setAmbLight(glm::vec4 _ambLight);
 	
 	static const int maxPhongLights = 50;
 	
 	static const int maxSHLights = 10;
-	static const int nSHBands = 5;
-	static const int sqrtSHSamples = 100;
+	static const int nSHBands = 3;
+	static const int nSHCoeffts = 9;
+	static const int sqrtSHSamples = 5;
 
 	Camera* camera;
 private:
@@ -67,12 +73,17 @@ private:
 	std::set<Shader*> shaders;
 
 	int nPhongLights;
+	int nSHLights;
 	PhongLight* phongLights[maxPhongLights];
 	glm::vec4 lightPos[maxPhongLights];
 	glm::vec4 lightDiffuse[maxPhongLights];
 	glm::vec4 lightSpecular[maxPhongLights];
 	float lightAttenuation[maxPhongLights];
 	void updatePhongLights();
+	void updateSHLights();
+
+	SHLight* SHLights[maxSHLights];
+	glm::vec3 SHLightsCoeffts[maxSHLights*nSHCoeffts];
 
 	void updateCamera();
 };
