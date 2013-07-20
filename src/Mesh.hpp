@@ -3,6 +3,8 @@
 
 #include "Shader.hpp"
 #include "Renderable.hpp"
+#include "SH.hpp"
+#include "Scene.hpp"
 
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
@@ -11,7 +13,6 @@
 #include <string>
 #include <vector>
 #include <exception>
-
 
 namespace
 {

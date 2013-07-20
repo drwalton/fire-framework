@@ -1,8 +1,7 @@
 #include "Scene.hpp"
 
 Scene::Scene()
-	 :ambLight(0.2f), nDirLights(0), 
-		nPointLights(0) 
+	 :ambLight(0.2f), nPhongLights(0)
 {
 	camera = new Camera();
 	int i;
@@ -78,8 +77,7 @@ Renderable* Scene::add(Renderable* const r)
 	r->onAdd();
 	
 	setAmbLight(ambLight);
-	updateDirLights();
-	updatePointLights();
+	updatePhongLights();
 	return r;
 }
 

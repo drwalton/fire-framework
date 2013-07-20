@@ -27,7 +27,7 @@ class PhongLight : public Light
 public:
 	PhongLight(glm::vec4 _pos)
 		:pos(_pos), diffuse(glm::vec4(1.0, 1.0, 1.0, 1.0)),
-		 specular(glm::vec4(1.0, 1.0, 1.0, 1.0)), attenuation(1.0f)
+		 specular(glm::vec4(1.0, 1.0, 1.0, 1.0)), attenuation(1.0f),
 		 scene(nullptr), index(-1) {};
 	PhongLight(glm::vec4 _pos, glm::vec4 _diffuse,
 		glm::vec4 _specular, float _attenuation)

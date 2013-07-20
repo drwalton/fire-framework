@@ -11,7 +11,7 @@
 
 #include <vector>
 
-class PointLight;
+class PhongLight;
 
 /* ParticleSystem
  * An ADT for a renderable object which is a particle system.

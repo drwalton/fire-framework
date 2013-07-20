@@ -27,21 +27,20 @@ glm::vec4 Renderable::getOrigin()
 }
 
 Solid::Solid(Shader* _shader)
-	:Renderable(false), shader(_shader),
-	material(
-		glm::vec4(0.0f, 0.1f, 0.0f, 1.0f),
-		glm::vec4(0.0f, 1.0f, 0.0f, 1.0f),
-		glm::vec4(1.0f, 1.0f, 1.0f, 1.0f),
-		1.0f
-		)
-{}
+	:Renderable(false), shader(_shader)
+{
+	material.ambient = glm::vec4(0.0f, 0.1f, 0.0f, 1.0f);
+	material.diffuse = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
+	material.specular = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+	material.exponent = 1.0f;
+}
 
 Solid::Solid(Shader* _shader, const Material& _material)
 	:Renderable(false), shader(_shader),
 	 material(_material)
 {}
 
-Solid::setMaterial(const Material& _material)
+void Solid::setMaterial(const Material& _material)
 {
 	material = _material;
 }

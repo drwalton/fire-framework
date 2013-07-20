@@ -143,7 +143,7 @@ GLuint Shader::getUniformLoc(const std::string& name)
 }
 
 LightShader::LightShader(bool hasGeometry, const std::string& filename)
-	:Shader(hasGeometry, filename),
+	:Shader(hasGeometry, filename)
 {
 	init();
 }
@@ -157,10 +157,10 @@ void LightShader::init()
 	lightSpecular_u    = getUniformLoc("lightSpecular");
 	lightAttenuation_u = getUniformLoc("lightAttenuation");
 
-	material_ambient_u  = getUniformLoc("material.ambient");
-	material_diffuse_u  = getUniformLoc("material.diffuse");
-	material_specular_u = getUniformLoc("material.specular");
-	material_exponent_u = getUniformLoc("material.exponent");
+	material_ambient_u  = getUniformLoc("material_ambient");
+	material_diffuse_u  = getUniformLoc("material_diffuse");
+	material_specular_u = getUniformLoc("material_specular");
+	material_exponent_u = getUniformLoc("material_exponent");
 	glUseProgram(0);
 }
 
@@ -168,7 +168,7 @@ void LightShader::init()
 void LightShader::setAmbLight(const glm::vec4& _ambLight)
 {
 	use();
-	glUniform4f(ambLight_u, &(_ambLight[0]);
+	glUniform4fv(ambLight_u, 1, &(_ambLight[0]));
 	glUseProgram(0);
 }
 
@@ -176,9 +176,9 @@ void LightShader::setPhongLights(glm::vec4* pos, glm::vec4* diffuse,
 		glm::vec4* specular, float* attenuation)
 {
 	use();
-	glUniform4fv(lightPos_u, maxPhongLights, &(pos[0]));
-	glUniform4fv(lightDiffuse_u, maxPhongLights, &(diffuse[0]));
-	glUniform4fv(lightSpecular_u, maxPhongLights, &(specular[0]));
+	glUniform4fv(lightPos_u, maxPhongLights, &(pos[0][0]));
+	glUniform4fv(lightDiffuse_u, maxPhongLights, &(diffuse[0][0]));
+	glUniform4fv(lightSpecular_u, maxPhongLights, &(specular[0][0]));
 	glUniform1fv(lightAttenuation_u, maxPhongLights, &(attenuation[0]));
 	glUseProgram(0);
 }
@@ -186,10 +186,10 @@ void LightShader::setPhongLights(glm::vec4* pos, glm::vec4* diffuse,
 void LightShader::setMaterial(const Material& material)
 {
 	use();
-	glUniform4f(material_ambient_u, &(material.ambient[0]));
-	glUniform4f(material_diffuse_u, &(material.diffuse[0]));
-	glUniform4f(material_specular_u, &(material.specular[0]));
-	glUniform1f(material_exponent_u, &(material.exponent));
+	glUniform4fv(material_ambient_u, 1, &(material.ambient)[0]);
+	glUniform4fv(material_diffuse_u, 1, &(material.diffuse[0]));
+	glUniform4fv(material_specular_u, 1, &(material.specular[0]));
+	glUniform1fv(material_exponent_u, 1, &(material.exponent));
 	glUseProgram(0);
 }
 
@@ -250,12 +250,12 @@ SHShader::SHShader(bool hasGeomShader, int _nSHLights, int _nCoeffts, const std:
 	SHLightOn_u = getUniformLoc("SHLightOn");
 	SHIntensity_u = getUniformLoc("SHIntensity");
 
-	glUniform1i(nSHLights_u, &nSHLights);
-	glUniform1i(nCoeffts_u, &nCoeffts);
+	glUniform1i(nSHLights_u, nSHLights);
+	glUniform1i(nCoeffts_u, nCoeffts);
 	glUseProgram(0);
 }
 
-void SHShader::setSHLights(GLuint* SHLightOn, float* SHLights, float* SHIntensity)
+void SHShader::setSHLights(GLuint* SHLightOn, float* SHLights, float* SHIntensity, int nSHLights)
 {
 	use();
 	glUniform1uiv(SHLightOn_u, nSHLights, SHLightOn);

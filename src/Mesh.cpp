@@ -16,7 +16,7 @@ namespace
 
 		std::vector<MeshData> data;
 
-		for(int i = 0; i < scene->mNumMeshes; ++i)
+		for(int i = 0; i < (int) scene->mNumMeshes; ++i)
 		{
 			aiMesh* mesh = scene->mMeshes[i];
 
@@ -25,7 +25,7 @@ namespace
 			std::cout << "Loading mesh of " << mesh->mNumVertices << " vertices, "
 				<< mesh->mNumFaces << " faces.\n";
 
-			for(int j = 0; j < mesh->mNumVertices; ++j)
+			for(int j = 0; j < (int) mesh->mNumVertices; ++j)
 			{
 				//Vertices
 				glm::vec4 vert = glm::vec4(
@@ -42,7 +42,7 @@ namespace
 				d.n.push_back(norm);
 			}
 
-			for(int j = 0; j < mesh->mNumFaces; ++j)
+			for(int j = 0; j < (int) mesh->mNumFaces; ++j)
 			{
 				//Element indices.
 				d.e.push_back((GLushort) mesh->mFaces[j].mIndices[0]);
@@ -139,9 +139,9 @@ DiffPRTMesh::DiffPRTMesh(const MeshData& d, int _nBands, SHShader* _shader)
 
 	std::vector<float> s;
 
-	for(std::vector<glm::vec3>::iterator i = d.n.begin(); i != d.n.end(); ++i)
+	for(std::vector<glm::vec3>::const_iterator i = d.n.begin(); i != d.n.end(); ++i)
 	{
-		std::vector<float> coeffts = shProject(Scene::sqrtSHSamples, Scene::nSHBands, 
+		std::vector<float> coeffts = SH::shProject(Scene::sqrtSHSamples, Scene::nSHBands, 
 			[&i](double theta, double phi) -> double 
 				{
 					glm::vec3 dir
@@ -155,13 +155,13 @@ DiffPRTMesh::DiffPRTMesh(const MeshData& d, int _nBands, SHShader* _shader)
 				}
 			);
 
-		s.insert(s.end, coeffts.begin(), coeffts.end());
+		s.insert(s.end(), coeffts.begin(), coeffts.end());
 	}
 
 	glGenBuffers(1, &v_vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, v_vbo);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec4) * d.v.size(), d.v.data(), GL_STATIC_DRAW);
-	glGenBuffers(1, &n_vbo);
+	glGenBuffers(1, &s_vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, s_vbo);
 	glBufferData(GL_ARRAY_BUFFER, s.size(), s.data(), GL_STATIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -186,7 +186,7 @@ void DiffPRTMesh::render()
 
 	glBindBuffer(GL_ARRAY_BUFFER, v_vbo);
 	glVertexAttribPointer(v_attrib, 4, GL_FLOAT, GL_FALSE, 0, 0);
-	glBindBuffer(GL_ARRAY_BUFFER, n_vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, s_vbo);
 	glVertexAttribPointer(s_attrib, nCoeffts, GL_FLOAT, GL_FALSE, 0, 0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 

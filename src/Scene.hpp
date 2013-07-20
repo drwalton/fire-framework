@@ -48,7 +48,7 @@ public:
 	PhongLight* updateLight(PhongLight* l);
 	PhongLight* remove(PhongLight* l);
 
-	void setAmbLight(float _ambLight);
+	void setAmbLight(glm::vec4 _ambLight);
 	
 	static const int maxPhongLights = 50;
 	
@@ -66,7 +66,7 @@ private:
 
 	std::set<Shader*> shaders;
 
-	int nPhongLights
+	int nPhongLights;
 	PhongLight* phongLights[maxPhongLights];
 	glm::vec4 lightPos[maxPhongLights];
 	glm::vec4 lightDiffuse[maxPhongLights];

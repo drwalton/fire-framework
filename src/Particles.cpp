@@ -225,13 +225,16 @@ AdvectParticlesLights<maxParticles>::AdvectParticlesLights(
 template <int maxParticles>
 void AdvectParticlesLights<maxParticles>::onAdd()
 {
-	PointLight* p;
+	PhongLight* p;
 	// Add lights
 	for(int i = 0; i < nLights; ++i)
 	{
 		p = scene->add(lights[i]);
 		if(p == nullptr) //Light not added correctly (too many lights?).
-			; //TODO throw appropriate exception, break.
+		{
+			std::cout << "Warning: Not all particle lights could be added.\n";
+			break;
+		}
 	}
 }
 

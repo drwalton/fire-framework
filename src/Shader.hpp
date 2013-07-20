@@ -10,6 +10,14 @@
 #include <array>
 #include <iostream>
 
+struct Material
+{
+	glm::vec4 ambient;
+	glm::vec4 diffuse;
+	glm::vec4 specular;
+	float exponent;
+};
+
 /* Shader
  * Handles opening & compiling glsl source from a file, and setting uniforms.
  */
@@ -65,7 +73,6 @@ private:
 class LightShader : public Shader
 {
 public:
-	LightShader(bool hasGeomShader, const std::string& filename);
 	LightShader(bool hasGeomShader, const std::string& filename);
 	void setAmbLight(const glm::vec4& _ambLight);
 	void setPhongLights(glm::vec4* pos, glm::vec4* diffuse, 

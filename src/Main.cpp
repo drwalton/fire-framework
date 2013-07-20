@@ -24,8 +24,6 @@ AdvectParticlesRandLights<nSwirls>* swirl;
 AdvectParticles<nSwirls>* swirl2;
 AdvectParticles<nSwirls>* swirl3;
 AdvectParticles<nSparks>* sparks;
-DirLight* d;
-PointLight* p;
 const int k = 5;
 
 int eTime;
@@ -58,6 +56,7 @@ int main(int argc, char** argv)
 // Called by glutInit().
 int init()
 {
+	/*
 	std::vector<float> c = SH::shProject(10, 3, [] (double x, double y) -> double {return SH::realSH(1,1,x,y) + SH::realSH(1,-1,x,y) + SH::realSH(2,1,x,y) + SH::realSH(2,-1,x,y)+ SH::realSH(2,2,x,y) + SH::realSH(2,-2,x,y) ;});
 	for(std::vector<float>::iterator i = c.begin(); i != c.end(); ++i)
 		std::cout << (*i) << "\n";
@@ -66,6 +65,7 @@ int init()
 	std::cout << "Rotated:\n";
 	for(std::vector<float>::iterator i = c.begin(); i != c.end(); ++i)
 		std::cout << (*i) << "\n";
+	*/
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_BLEND); 
 	glEnable(GL_DEPTH_TEST);
@@ -84,7 +84,7 @@ int init()
 	swirl->translate(glm::vec3(0.0, -1.0, -3.0));
 	scene->add(swirl);
 
-	lShader = new LightShader(false, "Solid", true, true, true);
+	lShader = new LightShader(false, "Solid");
 	/*
 	ArrSolid<36>* cube;
 	for(int i = -k; i <= k; ++i)
@@ -121,7 +121,7 @@ int init()
 		std::cout << "Adding a mesh to scene.\n";
 	}
 
-	scene->setAmbLight(0.1f);
+	scene->setAmbLight(glm::vec4(0.1f, 0.1f, 0.1f, 1.0f));
 	return 1;
 }
 
@@ -152,14 +152,6 @@ void keyboard(unsigned char key, int x, int y)
 
     switch (key)
     {
-		case 't':
-			d->on = !(d->on);
-			scene->updateLight(d);
-			break;
-		case 'y':
-			p->on = !(p->on);
-			scene->updateLight(p);
-			break;
       	case 27:
             exit(0);
             return;
