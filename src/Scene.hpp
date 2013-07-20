@@ -60,7 +60,7 @@ public:
 	static const int maxSHLights = 10;
 	static const int nSHBands = 3;
 	static const int nSHCoeffts = 9;
-	static const int sqrtSHSamples = 5;
+	static const int sqrtSHSamples = 15;
 
 	Camera* camera;
 private:

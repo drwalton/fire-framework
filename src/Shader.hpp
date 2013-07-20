@@ -1,10 +1,10 @@
 #ifndef SHADER_HPP
 #define SHADER_HPP
 
-#include "glsw.h"
-
 #include <glew.h>
 #include <glm.hpp>
+
+#include "glsw.h"
 
 #include <string>
 #include <array>
