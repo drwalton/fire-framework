@@ -4,6 +4,7 @@
 #include <functional>
 #include <vector>
 #include <boost/math/special_functions/spherical_harmonic.hpp>
+#include <glm.hpp>
 
 namespace SH
 {
@@ -13,7 +14,7 @@ namespace SH
 	/* Finds the SH projection of func */
 	/* where func evaluates to function of type: double func(double theta, double phi) */
 	template<typename Fn>
-	std::vector<float> shProject(int sqrtNSamples, int nBands,
+	std::vector<glm::vec3> shProject(int sqrtNSamples, int nBands,
 		Fn func);
 
 	/* Computes the real spherical harmonic SH_l^m(\theta, \phi) */
@@ -26,14 +27,14 @@ namespace SH
 }
 
 template<typename Fn>
-std::vector<float> SH::shProject(int sqrtNSamples, int nBands,
+std::vector<glm::vec3> SH::shProject(int sqrtNSamples, int nBands,
 	Fn func)
 {
 	/* Initialise vector of coeffts with zeros */
-	std::vector<double> coeffts;
+	std::vector<glm::vec3> coeffts;
 	for(int l = 0; l < nBands; ++l)
 		for(int m = -l; m <= l; ++m)
-			coeffts.push_back(0);
+			coeffts.push_back(glm::vec3(0.0f));
 
 	/* Perform stratified random sampling over the sphere */
 	double sqrWidth = 1 / (double) sqrtNSamples;
@@ -50,25 +51,18 @@ std::vector<float> SH::shProject(int sqrtNSamples, int nBands,
 			for(int l = 0; l < nBands; ++l)
 				for(int m = -l; m <= l; ++m)
 				{
-					coeffts[l*(l+1) + m] += func(theta, phi) * realSH(l, m, theta, phi);
+					coeffts[l*(l+1) + m] += func(theta, phi) * float(realSH(l, m, theta, phi));
 				}
 		}
 
 	/* Normalize coefficients */
 	double nSamples = sqrtNSamples * sqrtNSamples;
-	for(std::vector<double>::iterator i = coeffts.begin(); i != coeffts.end(); ++i)
+	for(std::vector<glm::vec3>::iterator i = coeffts.begin(); i != coeffts.end(); ++i)
 	{
 		(*i) *= 4.0 * PI / nSamples;
 	}
 
-	/* Cast coefficients to floats */
-	std::vector<float> coeffts_f;
-	for(std::vector<double>::iterator i = coeffts.begin(); i != coeffts.end(); ++i)
-	{
-		coeffts_f.push_back((float) (*i));
-	}
-
-	return coeffts_f;
+	return coeffts;
 }
 
 double SH::realSH(int l, int m, double theta, double phi)

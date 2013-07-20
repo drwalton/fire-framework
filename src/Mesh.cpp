@@ -137,12 +137,12 @@ DiffPRTMesh::DiffPRTMesh(const MeshData& d, int _nBands, SHShader* _shader)
 
 	numElems = d.e.size();
 
-	std::vector<float> s;
+	std::vector<glm::vec3> s;
 
 	for(std::vector<glm::vec3>::const_iterator i = d.n.begin(); i != d.n.end(); ++i)
 	{
-		std::vector<float> coeffts = SH::shProject(Scene::sqrtSHSamples, Scene::nSHBands, 
-			[&i](double theta, double phi) -> double 
+		std::vector<glm::vec3> coeffts = SH::shProject(Scene::sqrtSHSamples, Scene::nSHBands, 
+			[&i](double theta, double phi) -> glm::vec3 
 				{
 					glm::vec3 dir
 						(
@@ -151,7 +151,8 @@ DiffPRTMesh::DiffPRTMesh(const MeshData& d, int _nBands, SHShader* _shader)
 						cos(phi)
 						);
 					double proj = glm::dot(dir, *i);
-					return proj > 0.0 ? proj : 0.0;
+					proj = proj > 0.0 ? proj : 0.0;
+					return glm::vec3(proj, proj, proj);
 				}
 			);
 
