@@ -18,7 +18,7 @@ Scene::Scene()
 	for(i = 0; i < maxSHLights; ++i)
 		SHLights[i] = nullptr;
 	for(i = 0; i < maxSHLights*nSHCoeffts; ++i)
-		sh.lightCoeffts[i] = glm::vec3(0.0f);
+		sh.lightCoeffts[i] = glm::vec4(0.0f);
 	sh.nLights = 0;
 
 	glGenBuffers(1, &ambBlock_ubo);
@@ -224,7 +224,7 @@ SHLight* Scene::remove(SHLight* l)
 	}
 	SHLights[sh.nLights-1] = nullptr;
 	for(int c = 0; c < nSHCoeffts; ++c)
-		sh.lightCoeffts[(sh.nLights)*nSHCoeffts + c] = glm::vec3(0.0f);
+		sh.lightCoeffts[(sh.nLights)*nSHCoeffts + c] = glm::vec4(0.0f);
 	--sh.nLights;
 	l->index = -1;
 	l->scene = nullptr;

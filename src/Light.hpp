@@ -64,11 +64,11 @@ public:
 	SHLight(Fn func);
 	template <typename Fn>
 	void setFunc(Fn func);
-	void setCoeffts(std::vector<glm::vec3>);
-	std::vector<glm::vec3> getCoeffts() {return coeffts;};
+	void setCoeffts(std::vector<glm::vec4>);
+	std::vector<glm::vec4> getCoeffts() {return coeffts;};
 	int index;
 private:
-	std::vector<glm::vec3> coeffts;
+	std::vector<glm::vec4> coeffts;
 };
 
 template <typename Fn>

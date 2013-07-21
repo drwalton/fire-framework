@@ -18,8 +18,8 @@ enum CameraModes : char { FREELOOK, CENTERED };
 struct cameraBlock
 {
 	glm::mat4 worldToCamera;
-	glm::vec3 cameraPos;
-	glm::vec3 cameraDir;
+	glm::vec4 cameraPos;
+	glm::vec4 cameraDir;
 };
 
 /* Camera

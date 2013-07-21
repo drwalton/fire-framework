@@ -12,8 +12,8 @@ Camera::Camera()
 {
 	projection = glm::perspective(FOV, aspect, zNear, zFar);
 	block.worldToCamera = projection * translation * rotation;
-	block.cameraDir = glm::vec3(0.0, 0.0, -1.0);
-	block.cameraPos = glm::vec3(0.0);
+	block.cameraDir = glm::vec4(0.0, 0.0, -1.0, 1.0);
+	block.cameraPos = glm::vec4(0.0, 0.0, 0.0, 1.0);
 
 	glGenBuffers(1, &cameraBlock_ubo);
 	glBindBufferRange(GL_UNIFORM_BUFFER, 
@@ -173,10 +173,10 @@ void Camera::updateBlock()
 		block.worldToCamera = projection * rotation * translation;
 
 	glm::mat4 inv = glm::inverse(block.worldToCamera);
-	block.cameraPos = glm::vec3(inv[3][0], inv[3][1], inv[3][2]);
+	block.cameraPos = glm::vec4(inv[3][0], inv[3][1], inv[3][2], 1.0);
 
 	glm::vec4 rotDir = glm::inverse(rotation) * glm::vec4(0.0, 0.0, 1.0, 1.0);
-	block.cameraDir = glm::vec3(rotDir);
+	block.cameraDir = rotDir;
 
 	glBindBuffer(GL_UNIFORM_BUFFER, cameraBlock_ubo);
 	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(block), &block);

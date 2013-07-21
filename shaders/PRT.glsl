@@ -2,7 +2,7 @@
 #version 420
 
 in vec4 vPos;
-in vec3 transferCoeffts[9];
+in vec4 transferCoeffts[9];
 
 uniform mat4 modelToWorld;
 
@@ -15,8 +15,8 @@ layout(std140) uniform cameraBlock
 
 layout(std140) uniform SHBlock
 {
-	vec3 lightCoeffts[9 * 10];
-	uint nLights;
+	vec4 lightCoeffts[9 * 10];
+	int nLights;
 };
 
 out vec3 color;
@@ -31,7 +31,7 @@ void main()
 	{
 		for(int c = 0; c < 9; ++c)
 		{
-			color += transferCoeffts[c] * lightCoeffts[c + (l * 9)];
+			color += transferCoeffts[c].xyz * lightCoeffts[c + (l * 9)].xyz;
 		}
 	}
 }

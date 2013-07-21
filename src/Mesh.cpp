@@ -137,11 +137,11 @@ DiffPRTMesh::DiffPRTMesh(const MeshData& d, int _nBands, SHShader* _shader)
 
 	numElems = d.e.size();
 
-	std::vector<glm::vec3> s;
+	std::vector<glm::vec4> s;
 
 	for(std::vector<glm::vec3>::const_iterator i = d.n.begin(); i != d.n.end(); ++i)
 	{
-		std::vector<glm::vec3> coeffts = SH::shProject(Scene::sqrtSHSamples, 3, 
+		std::vector<glm::vec4> coeffts = SH::shProject(Scene::sqrtSHSamples, 3, 
 			[&i](double theta, double phi) -> glm::vec3 
 				{
 					glm::vec3 dir
@@ -164,7 +164,7 @@ DiffPRTMesh::DiffPRTMesh(const MeshData& d, int _nBands, SHShader* _shader)
 	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec4) * d.v.size(), d.v.data(), GL_STATIC_DRAW);
 	glGenBuffers(1, &s_vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, s_vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * s.size(), s.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec4) * s.size(), s.data(), GL_STATIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
     glGenBuffers(1, &e_vbo);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, e_vbo);
@@ -189,9 +189,9 @@ void DiffPRTMesh::render()
 	glVertexAttribPointer(v_attrib, 4, GL_FLOAT, GL_FALSE, 0, 0);
 	glBindBuffer(GL_ARRAY_BUFFER, s_vbo);
 	for(int c = 0; c < Scene::nSHCoeffts; ++c)
-		glVertexAttribPointer(s_attrib + c, 3, GL_FLOAT, GL_FALSE,
-			3 * sizeof(float) * Scene::nSHCoeffts,
-			reinterpret_cast<GLvoid*> (3 * sizeof(float) * c));
+		glVertexAttribPointer(s_attrib + c, 4, GL_FLOAT, GL_FALSE,
+			4 * sizeof(float) * Scene::nSHCoeffts,
+			reinterpret_cast<GLvoid*> (4 * sizeof(float) * c));
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, e_vbo);

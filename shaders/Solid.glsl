@@ -12,8 +12,8 @@ uniform mat4 modelToWorld;
 layout(std140) uniform cameraBlock
 {
 	mat4 worldToCamera;
-	vec3 cameraPos;
-	vec3 cameraDir;
+	vec4 cameraPos;
+	vec4 cameraDir;
 };
 
 void main()
@@ -34,8 +34,8 @@ out vec4 fragColor;
 layout(std140) uniform cameraBlock
 {
 	mat4 worldToCamera;
-	vec3 cameraPos;
-	vec3 cameraDir;
+	vec4 cameraPos;
+	vec4 cameraDir;
 };
 
 layout(std140) uniform phongBlock
@@ -44,7 +44,7 @@ layout(std140) uniform phongBlock
 	vec4 lightDiffuse[50];
 	vec4 lightSpecular[50];
 	float lightAttenuation[50];
-	uint nPhongLights;
+	int nLights;
 };
 
 layout(std140) uniform ambBlock
@@ -63,7 +63,7 @@ void main()
 
 	vec3 norm = normalize(smoothNorm);
 
-	vec3 view = normalize(-cameraPos - vec3(worldPos));
+	vec3 view = normalize(-vec3(cameraPos) - vec3(worldPos));
 
 	for(int i = 0; i < 50; ++i)
 	{

@@ -14,7 +14,7 @@ namespace SH
 	/* Finds the SH projection of func */
 	/* where func evaluates to function of type: double func(double theta, double phi) */
 	template<typename Fn>
-	std::vector<glm::vec3> shProject(int sqrtNSamples, int nBands,
+	std::vector<glm::vec4> shProject(int sqrtNSamples, int nBands,
 		Fn func);
 
 	/* Computes the real spherical harmonic SH_l^m(\theta, \phi) */
@@ -27,7 +27,7 @@ namespace SH
 }
 
 template<typename Fn>
-std::vector<glm::vec3> SH::shProject(int sqrtNSamples, int nBands,
+std::vector<glm::vec4> SH::shProject(int sqrtNSamples, int nBands,
 	Fn func)
 {
 	/* Initialise vector of coeffts with zeros */
@@ -62,7 +62,12 @@ std::vector<glm::vec3> SH::shProject(int sqrtNSamples, int nBands,
 		(*i) *= 4.0 * PI / nSamples;
 	}
 
-	return coeffts;
+	/* Convert coeffts to vec4 */
+	std::vector<glm::vec4> coeffts4;
+	for(std::vector<glm::vec3>::iterator i = coeffts.begin(); i != coeffts.end(); ++i)
+		coeffts4.push_back(glm::vec4((*i), 1.0));
+
+	return coeffts4;
 }
 
 double SH::realSH(int l, int m, double theta, double phi)

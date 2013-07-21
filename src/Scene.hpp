@@ -27,13 +27,13 @@ struct phongBlock
 	glm::vec4 lightDiffuse[50];
 	glm::vec4 lightSpecular[50];
 	float lightAttenuation[50];
-	GLuint nLights;
+	int nLights;
 };
 
 struct SHBlock
 {
-	glm::vec3 lightCoeffts[9 * 10];
-	GLuint nLights;
+	glm::vec4 lightCoeffts[9 * 10];
+	int nLights;
 };
 
 /* Scene
