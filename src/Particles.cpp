@@ -74,8 +74,6 @@ void AdvectParticles<maxParticles>::render()
 	shader->setBBTexUnit(bbTex->getTexUnit());
 	shader->setDecayTexUnit(decayTex->getTexUnit());
 
-	shader->setCameraDir(scene->camera->getCameraDir());
-
 	shader->use();
 
 	glBindBuffer(GL_ARRAY_BUFFER, pos_vbo);
@@ -177,7 +175,6 @@ void AdvectParticles<maxParticles>::init(Texture* bbTex, Texture* decayTex)
 	// Set up uniforms.
 	shader->setBBWidth(bbWidth);
 	shader->setBBHeight(bbHeight);
-	shader->setCameraDir(cameraDir);
 
 	pos_attrib = shader->getAttribLoc("vPos");
 	decay_attrib = shader->getAttribLoc("vDecay");

@@ -9,7 +9,6 @@ layout(location = 2)in float randTex;
 
 out VertexData{
 	float decay;
-	float randTex;
 	} VertexOut;
 
 void main()

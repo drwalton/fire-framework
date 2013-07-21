@@ -76,13 +76,13 @@ int init()
 	pShader = new ParticleShader(true, "ScrollTexFire");
 	Texture* flameTex = new Texture("bigFlame.png");
 	Texture* decayTex = new Texture("decay2.png");
-	AdvectParticlesCentroidLights<nSwirls>* centreParticles = new AdvectParticlesCentroidLights<nSwirls>(10, 10, 1000, pShader, flameTex, decayTex);
+	AdvectParticlesCentroidLights<nSwirls>* centreParticles = new AdvectParticlesCentroidLights<nSwirls>(20, 10, 1000, pShader, flameTex, decayTex);
 	centreParticles->translate(glm::vec3(0.0, -1.0, 3.0));
 	scene->add(centreParticles);
 
 	swirl = new AdvectParticlesRandLights<nSwirls>(10, 2000, pShader, flameTex, decayTex);
 	swirl->translate(glm::vec3(0.0, -1.0, -3.0));
-	//scene->add(swirl);		
+	//scene->add(swirl);
 
 	lShader = new LightShader(false, "Solid");
 	SHShader* shShader = new SHShader(false, scene->maxSHLights, scene->nSHCoeffts, "PRT");

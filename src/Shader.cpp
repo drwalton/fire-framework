@@ -3,27 +3,20 @@
 NoSuchException::NoSuchException(const std::string& name, Shader* const& shader)
 {
 	std::cout << "Could not find name \"" << name 
-		<<"\" in shader source file \"" << shader->filename << "\".";
+		<<"\" in shader source file \"" << shader->filename << "\".\n";
 }
 
 Shader::Shader(bool hasGeomShader, const std::string& filename)
 	:filename(filename)
 {
 	id = compileShader(filename, hasGeomShader, true);
-	worldToCamera_u = getUniformLoc("worldToCamera");
 	modelToWorld_u = getUniformLoc("modelToWorld");
+	setupUniformBlock("cameraBlock");
 }
 
 void Shader::use()
 {
 	glUseProgram(id);
-}
-
-void Shader::setWorldToCamera(const glm::mat4& worldToCamera)
-{
-	use();
-	glUniformMatrix4fv(worldToCamera_u, 1, GL_FALSE, &(worldToCamera[0][0]));
-	glUseProgram(0);
 }
 
 void Shader::setModelToWorld(const glm::mat4& modelToWorld)
@@ -146,11 +139,30 @@ GLuint Shader::getAttribLoc(const std::string& name)
 	return loc;
 }
 
+GLuint Shader::getUBlockBindingIndex(const std::string& name)
+{
+	if (name.compare("cameraBlock") == 0) return 0;
+	if (name.compare("ambBlock")    == 0) return 1;
+	if (name.compare("phongBlock")  == 0) return 2;
+	if (name.compare("SHBlock")     == 0) return 3;
+	
+	return -1;
+}
+
 GLuint Shader::getUniformLoc(const std::string& name)
 {
 	GLuint loc = glGetUniformLocation(id, name.c_str());
 	if (loc == -1) throw new NoSuchUniformException(name, this);
 	return loc;
+}
+
+void Shader::setupUniformBlock(const std::string& name)
+{
+	GLuint unfIndex = glGetUniformBlockIndex(id, name.c_str());
+	GLuint bindIndex = getUBlockBindingIndex(name);
+	if (unfIndex == -1 || bindIndex == -1) 
+		throw new NoSuchUniformException(name, this);
+	glUniformBlockBinding(id, unfIndex, bindIndex);
 }
 
 LightShader::LightShader(bool hasGeometry, const std::string& filename)
@@ -162,36 +174,13 @@ LightShader::LightShader(bool hasGeometry, const std::string& filename)
 void LightShader::init()
 {
 	use();
-	ambLight_u         = getUniformLoc("ambLight");
-	cameraPos_u        = getUniformLoc("cameraPos");
-	lightPos_u         = getUniformLoc("lightPos");
-	lightDiffuse_u     = getUniformLoc("lightDiffuse");
-	lightSpecular_u    = getUniformLoc("lightSpecular");
-	lightAttenuation_u = getUniformLoc("lightAttenuation");
+	setupUniformBlock("ambBlock");
+	setupUniformBlock("phongBlock");
 
 	material_ambient_u  = getUniformLoc("material_ambient");
 	material_diffuse_u  = getUniformLoc("material_diffuse");
 	material_specular_u = getUniformLoc("material_specular");
 	material_exponent_u = getUniformLoc("material_exponent");
-	glUseProgram(0);
-}
-
-
-void LightShader::setAmbLight(const glm::vec4& _ambLight)
-{
-	use();
-	glUniform4fv(ambLight_u, 1, &(_ambLight[0]));
-	glUseProgram(0);
-}
-
-void LightShader::setPhongLights(glm::vec4* pos, glm::vec4* diffuse, 
-		glm::vec4* specular, float* attenuation)
-{
-	use();
-	glUniform4fv(lightPos_u, maxPhongLights, &(pos[0][0]));
-	glUniform4fv(lightDiffuse_u, maxPhongLights, &(diffuse[0][0]));
-	glUniform4fv(lightSpecular_u, maxPhongLights, &(specular[0][0]));
-	glUniform1fv(lightAttenuation_u, maxPhongLights, &(attenuation[0]));
 	glUseProgram(0);
 }
 
@@ -205,23 +194,12 @@ void LightShader::setMaterial(const Material& material)
 	glUseProgram(0);
 }
 
-void LightShader::setWorldToCamera(const glm::mat4& _worldToCamera)
-{
-	Shader::setWorldToCamera(_worldToCamera);
-	use();
-	glm::mat4 inv = glm::inverse(_worldToCamera);
-	glm::vec3 cameraPos = glm::vec3(inv[3][0], inv[3][1], inv[3][2]);
-	glUniform3fv(cameraPos_u, 1, &(cameraPos[0]));
-	glUseProgram(0);
-}
-
 ParticleShader::ParticleShader(bool hasGeomShader, const std::string& filename)
 	:Shader(hasGeomShader, filename)
 {
 	use();
 	bbWidth_u = getUniformLoc("bbWidth");
 	bbHeight_u = getUniformLoc("bbHeight");
-	cameraDir_u = getUniformLoc("cameraDir");
 	bbTex_u = getUniformLoc("bbTexture");
 	decayTex_u = getUniformLoc("decayTexture");
 	glUseProgram(0);
@@ -238,13 +216,6 @@ void ParticleShader::setBBHeight(float _bbHeight)
 {
 	use();
 	glUniform1fv(bbHeight_u, 1, &_bbHeight);
-	glUseProgram(0);
-}
-
-void ParticleShader::setCameraDir(const glm::vec3& _cameraDir)
-{
-	use();
-	glUniform3fv(cameraDir_u, 1, &(_cameraDir.x));
 	glUseProgram(0);
 }
 
@@ -265,14 +236,5 @@ void ParticleShader::setDecayTexUnit(GLuint _decayTexUnit)
 SHShader::SHShader(bool hasGeomShader, int _nSHLights, int _nCoeffts, const std::string& filename)
 	:Shader(hasGeomShader, filename), nSHLights(_nSHLights), nCoeffts(_nCoeffts)
 {
-	use();
-	SHLights_u = getUniformLoc("lightCoeffts");
-	glUseProgram(0);
-}
-
-void SHShader::setSHLights(glm::vec3* SHLights)
-{
-	use();
-	glUniform3fv(SHLights_u, nSHLights * nCoeffts, &(SHLights[0][0]));
-	glUseProgram(0);
+	setupUniformBlock("SHBlock");
 }

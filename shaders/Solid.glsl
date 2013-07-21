@@ -8,7 +8,13 @@ out vec3 smoothNorm;
 out vec4 worldPos;
 
 uniform mat4 modelToWorld;
-uniform mat4 worldToCamera;
+
+layout(std140) uniform cameraBlock
+{
+	mat4 worldToCamera;
+	vec3 cameraPos;
+	vec3 cameraDir;
+};
 
 void main()
 {
@@ -25,21 +31,30 @@ in vec4 worldPos;
 
 out vec4 fragColor;
 
-uniform mat4 worldToCamera;
+layout(std140) uniform cameraBlock
+{
+	mat4 worldToCamera;
+	vec3 cameraPos;
+	vec3 cameraDir;
+};
 
-uniform vec4 lightPos[50];
-uniform vec4 lightDiffuse[50];
-uniform vec4 lightSpecular[50];
-uniform float lightAttenuation[50];
+layout(std140) uniform phongBlock
+{
+	vec4 lightPos[50];
+	vec4 lightDiffuse[50];
+	vec4 lightSpecular[50];
+	float lightAttenuation[50];
+};
 
-uniform vec4 ambLight;
+layout(std140) uniform ambBlock
+{
+	vec4 ambLight;
+};
 
 uniform vec4 material_ambient;
 uniform vec4 material_diffuse;
 uniform vec4 material_specular;
 uniform float material_exponent;
-
-uniform vec3 cameraPos;
 
 void main()
 {

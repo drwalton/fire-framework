@@ -3,14 +3,24 @@
 
 #include <glm.hpp>
 #include <gtc/matrix_transform.hpp>
+#include <glew.h>
 
 #include <iostream>
+
+#include "Shader.hpp"
 
 /* Camera Modes
  * FREELOOK: Camera rotates & moves relative to itself.
  * CENTRED: Camera rotates around (0,0,0).
  */
 enum CameraModes : char { FREELOOK, CENTERED };
+
+struct cameraBlock
+{
+	glm::mat4 worldToCamera;
+	glm::vec3 cameraPos;
+	glm::vec3 cameraDir;
+};
 
 /* Camera
  * Every Scene has a Camera object, which describes how world space is transformed into 
@@ -35,14 +45,16 @@ public:
 	void keyboardInput(unsigned char key, int x, int y);
 	void mouseInput(int mouseX, int mouseY);
 
-	glm::mat4 getMat() {return worldToCamera;};
-	glm::vec3 getCameraDir(); //Get direction camera is facing.
+	cameraBlock& getBlock() {return block;};
 private:
 	CameraModes mode;
-	glm::mat4 worldToCamera;
 	glm::mat4 projection;
 	glm::mat4 translation;
 	glm::mat4 rotation;
+	
+	cameraBlock block;
+	GLuint cameraBlock_ubo;
+
 	float theta;
 	float phi;
 	float FOV; 
@@ -52,7 +64,7 @@ private:
 	int lastMouseX;
 	int lastMouseY;
 	void updateRotation();
-	void updateWorldToCamera();
+	void updateBlock();
 	void reset();
 	static const float moveDelta;
 	static const float rotDelta;

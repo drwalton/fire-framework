@@ -27,26 +27,22 @@ class Shader
 public:
 	Shader(bool hasGeomShader, const std::string& filename);
 	void use();
-	virtual void setWorldToCamera(const glm::mat4& _worldToCamera);
 	void setModelToWorld(const glm::mat4& _modelToWorld);
 	GLuint getAttribLoc(const std::string& name);
 
-	virtual void setAmbLight(const glm::vec4& _ambLight) {};
-	virtual void setPhongLights(glm::vec4* pos, glm::vec4* diffuse, 
-		glm::vec4* ambient, float* attenuation) {};
 	virtual void setMaterial(const Material& material) {};
 
-	virtual void setSHLights(glm::vec3* SHLights) {};
-
 	const std::string filename;
+	static GLuint getUBlockBindingIndex(const std::string& name);
 protected:
 	GLuint getUniformLoc(const std::string& name);
+	void setupUniformBlock(const std::string& name);
 private:
 	GLuint id;
 	GLuint loadShader(const std::string& filename, int shaderType, bool DEBUG);
 	GLuint compileShader(const std::string& filename, bool hasGeomShader, bool DEBUG);
-	GLuint worldToCamera_u;
 	GLuint modelToWorld_u;
+	GLuint cameraBlock_i;
 };
 
 /* Error classes for Shader */
@@ -80,13 +76,11 @@ public:
 	ParticleShader(bool hasGeomShader, const std::string& filename);
 	void setBBWidth(float _bbWidth);
 	void setBBHeight(float _bbHeight);
-	void setCameraDir(const glm::vec3& _cameraDir);
 	void setBBTexUnit(GLuint _bbTexUnit);
 	void setDecayTexUnit(GLuint _decayTexUnit);
 private:
 	GLuint bbWidth_u;
 	GLuint bbHeight_u;
-	GLuint cameraDir_u;
 	GLuint bbTex_u;
 	GLuint decayTex_u;
 };
@@ -99,9 +93,7 @@ class LightShader : public Shader
 {
 public:
 	LightShader(bool hasGeomShader, const std::string& filename);
-	void setAmbLight(const glm::vec4& _ambLight);
-	void setPhongLights(glm::vec4* pos, glm::vec4* diffuse, 
-		glm::vec4* specular, float* attenuation);
+
 	void setMaterial(const Material& material);
 	void setWorldToCamera(const glm::mat4& _worldToCamera);
 private:
@@ -109,14 +101,7 @@ private:
 
 	int maxPhongLights;
 
-	GLuint ambLight_u;
-
-	GLuint cameraPos_u;
-
-	GLuint lightPos_u;
-	GLuint lightDiffuse_u;
-	GLuint lightSpecular_u;
-	GLuint lightAttenuation_u;
+	GLuint ambBlock_i;
 
 	GLuint material_ambient_u;
 	GLuint material_diffuse_u;
@@ -128,12 +113,9 @@ class SHShader : public Shader
 {
 public:
 	SHShader(bool hasGeomShader, int _nSHLights, int _nCoeffts, const std::string& filename);
-	void setSHLights(glm::vec3* SHLights);
 private:
 	int nSHLights;
 	int nCoeffts;
-
-	GLuint SHLights_u;
 };
 
 #endif

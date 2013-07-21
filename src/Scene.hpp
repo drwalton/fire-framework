@@ -21,6 +21,21 @@ class SHLight;
 
 const float PI = 3.141592653589793238462f;
 
+struct phongBlock
+{
+	glm::vec4 lightPos[50];
+	glm::vec4 lightDiffuse[50];
+	glm::vec4 lightSpecular[50];
+	float lightAttenuation[50];
+	GLuint nLights;
+};
+
+struct SHBlock
+{
+	glm::vec3 lightCoeffts[9 * 10];
+	GLuint nLights;
+};
+
 /* Scene
  * The Scene object handles all Element objects added to it, and renders them appropriately.
  * Destroying a Scene also calls the destructors of added objects.
@@ -60,32 +75,27 @@ public:
 	static const int maxSHLights = 10;
 	static const int nSHBands = 3;
 	static const int nSHCoeffts = 9;
-	static const int sqrtSHSamples = 15;
+	static const int sqrtSHSamples = 5;
 
 	Camera* camera;
 private:
 	glm::vec4 ambLight;
-	GLuint ambLight_u;
+	GLuint ambBlock_ubo;
 
 	std::set<Renderable*> opaque;
 	std::set<Renderable*> translucent;
 
 	std::set<Shader*> shaders;
 
-	int nPhongLights;
-	int nSHLights;
+	GLuint phongBlock_ubo;
+	GLuint SHBlock_ubo;
 	PhongLight* phongLights[maxPhongLights];
-	glm::vec4 lightPos[maxPhongLights];
-	glm::vec4 lightDiffuse[maxPhongLights];
-	glm::vec4 lightSpecular[maxPhongLights];
-	float lightAttenuation[maxPhongLights];
+	phongBlock phong;
 	void updatePhongLights();
 	void updateSHLights();
 
 	SHLight* SHLights[maxSHLights];
-	glm::vec3 SHLightsCoeffts[maxSHLights*nSHCoeffts];
-
-	void updateCamera();
+	SHBlock sh;
 };
 
 #endif
