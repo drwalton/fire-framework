@@ -3,17 +3,19 @@
 
 uniform mat4 modelToWorld;
 
-layout(location = 0)in vec4 vPos;
-layout(location = 1)in float vDecay;
-layout(location = 2)in float randTex;
+in vec4 vPos;
+in float vDecay;
+in float randTex;
 
 out VertexData{
 	float decay;
+	float randTex;
 	} VertexOut;
 
 void main()
 {
 	VertexOut.decay = vDecay;
+	VertexOut.randTex = randTex;
 	gl_Position = modelToWorld * vPos;
 }
 
@@ -23,9 +25,12 @@ void main()
 uniform float bbWidth;
 uniform float bbHeight;
 
-uniform mat4 worldToCamera;
-
-uniform vec3 cameraDir;
+layout(std140) uniform cameraBlock
+{
+	mat4 worldToCamera;
+	vec3 cameraPos;
+	vec3 cameraDir;
+};
 
 layout(points) in;
 
@@ -46,7 +51,7 @@ void main()
 {
 	decay = VertexIn[0].decay;
 	vec3 pointPos = gl_in[0].gl_Position.xyz;
-	vec3 toCamera = normalize( cameraDir);
+	vec3 toCamera = normalize(-cameraDir);
 
 	// Find vectors in plane of billboard.
 	vec3 up = vec3(0.0, 1.0, 0.0);

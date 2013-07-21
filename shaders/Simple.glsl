@@ -20,13 +20,15 @@ void main()
 -- Fragment
 #version 420
 
-const int maxDirLights = 10;
-const int maxPointLights = 10;
+const int maxDirLights = 50;
+const int maxPointLights = 50;
 
 in vec3 norm;
 in vec4 worldPos;
 
 out vec4 fragColor;
+
+uniform mat4 worldToCamera;
 
 uniform float ambLight;
 

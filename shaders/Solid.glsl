@@ -44,6 +44,7 @@ layout(std140) uniform phongBlock
 	vec4 lightDiffuse[50];
 	vec4 lightSpecular[50];
 	float lightAttenuation[50];
+	uint nPhongLights;
 };
 
 layout(std140) uniform ambBlock

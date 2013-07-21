@@ -5,19 +5,29 @@ in vec4 vPos;
 in vec3 transferCoeffts[9];
 
 uniform mat4 modelToWorld;
-uniform mat4 worldToCamera;
+
+layout(std140) uniform cameraBlock
+{
+	mat4 worldToCamera;
+	vec3 cameraPos;
+	vec3 cameraDir;
+};
+
+layout(std140) uniform SHBlock
+{
+	vec3 lightCoeffts[9 * 10];
+	uint nLights;
+};
 
 out vec3 color;
-
-uniform vec3 lightCoeffts[9 * 10];
 
 void main()
 {
 	gl_Position = worldToCamera * modelToWorld * vPos;
 
-	color = vec3(0.0, 0.0, 1.0);
+	color = vec3(0.0, 0.0, 0.0);
 
-	for(int l = 0; l < 10; ++l)
+	for(int l = 0; l < nLights; ++l)
 	{
 		for(int c = 0; c < 9; ++c)
 		{
