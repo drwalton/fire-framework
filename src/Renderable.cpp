@@ -6,6 +6,13 @@ Renderable::Renderable(bool _translucent)
 	translucent(_translucent)
 {}
 
+void Renderable::translate(const glm::vec3& t)
+{
+	modelToWorld[3][0] += t.x;
+	modelToWorld[3][1] += t.y;
+	modelToWorld[3][2] += t.z;
+}
+
 void Renderable::uniformScale(float s)
 {
 	modelToWorld = modelToWorld * glm::mat4(

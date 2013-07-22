@@ -102,7 +102,7 @@ int init()
 		i != loaded.end(); ++i)
 	{
 		(*i)->uniformScale(2.0f);
-		(*i)->translate(glm::vec3(-1.0, -0.8, 0.0));
+		(*i)->translate(glm::vec3(-3.0, -1.5, 0.0));
 		(*i)->setAmbient(glm::vec4(1.0, 0.0, 1.0, 1.0));
 		(*i)->setDiffuse(glm::vec4(1.0, 0.0, 1.0, 1.0));
 		scene->add(*i);
@@ -114,7 +114,7 @@ int init()
 		i != loaded.end(); ++i)
 	{
 		(*i)->uniformScale(0.004f);
-		(*i)->translate(glm::vec3(600.0, -200.0, 0.0));
+		(*i)->translate(glm::vec3(3.0, -1.0, 0.0));
 		scene->add(*i);
 	}
 
