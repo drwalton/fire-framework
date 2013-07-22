@@ -76,12 +76,12 @@ int init()
 	pShader = new ParticleShader(true, "ScrollTexFire");
 	Texture* flameTex = new Texture("bigFlame.png");
 	Texture* decayTex = new Texture("decay2.png");
-	AdvectParticlesCentroidLights<nSwirls>* centreParticles = new AdvectParticlesCentroidLights<nSwirls>(20, 10, 1000, pShader, flameTex, decayTex);
+	AdvectParticlesCentroidLights<nSwirls>* centreParticles = new AdvectParticlesCentroidLights<nSwirls>(10, 10, 1000, pShader, flameTex, decayTex);
 	centreParticles->translate(glm::vec3(0.0, -1.0, 3.0));
 	scene->add(centreParticles);
 
-	swirl = new AdvectParticlesRandLights<nSwirls>(10, 2000, pShader, flameTex, decayTex);
-	swirl->translate(glm::vec3(0.0, -1.0, -3.0));
+	//swirl = new AdvectParticlesRandLights<nSwirls>(10, 2000, pShader, flameTex, decayTex);
+	//swirl->translate(glm::vec3(0.0, -1.0, -3.0));
 	//scene->add(swirl);
 
 	lShader = new LightShader(false, "Solid");
@@ -97,9 +97,7 @@ int init()
 		}
 	*/
 
-	ArrSolid<36>* cube = Solid::Cube(lShader);
-	cube->translate(glm::vec3(2.0f, 0.0f, 0.0f));
-	scene->add(cube);
+	
 
 	std::vector<DiffPRTMesh*> loadedPRT = DiffPRTMesh::loadFile("teapot.obj", 2, shShader);
 
@@ -119,6 +117,16 @@ int init()
 		(*i)->translate(glm::vec3(-1.0, -0.8, 0.0));
 		(*i)->setAmbient(glm::vec4(1.0, 0.0, 1.0, 1.0));
 		(*i)->setDiffuse(glm::vec4(1.0, 0.0, 1.0, 1.0));
+		scene->add(*i);
+	}
+
+	loaded = Mesh::loadFile("house plant.obj", lShader);
+
+	for(std::vector<Mesh*>::iterator i = loaded.begin();
+		i != loaded.end(); ++i)
+	{
+		(*i)->uniformScale(0.004f);
+		(*i)->translate(glm::vec3(600.0, -200.0, 0.0));
 		scene->add(*i);
 	}
 

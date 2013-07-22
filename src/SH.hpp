@@ -38,7 +38,7 @@ std::vector<glm::vec4> SH::shProject(int sqrtNSamples, int nBands,
 
 	/* Perform stratified random sampling over the sphere */
 	double sqrWidth = 1 / (double) sqrtNSamples;
-	double u, v, theta, phi;
+	double u, v, theta, phi;	 
 
 	for(int i = 0; i < sqrtNSamples; ++i)
 		for(int j = 0; j < sqrtNSamples; ++j)
@@ -51,7 +51,7 @@ std::vector<glm::vec4> SH::shProject(int sqrtNSamples, int nBands,
 			for(int l = 0; l < nBands; ++l)
 				for(int m = -l; m <= l; ++m)
 				{
-					coeffts[l*(l+1) + m] += func(theta, phi) * float(realSH(l, m, theta, phi));
+					coeffts[l*(l+1) + m] += func(theta, phi) * glm::vec3(realSH(l, m, theta, phi));
 				}
 		}
 

@@ -23,6 +23,19 @@ namespace
 		std::vector<GLushort> e;
 	};
 
+	struct MeshVertex
+	{
+		glm::vec4 v;
+		glm::vec3 n;
+		GLfloat f;
+	};
+
+	struct PRTMeshVertex
+	{
+		glm::vec4 v;
+		glm::vec4 s[9];
+	};
+
 	std::vector<MeshData> loadFileData(const std::string& filename);
 }
 
@@ -48,11 +61,9 @@ private:
 
 	size_t numElems;
 	GLuint v_vbo;
-	GLuint n_vbo;
 	GLuint e_vbo;
 	GLuint v_attrib;
 	GLuint n_attrib;
-	GLuint e_attrib;
 };
 
 class DiffPRTMesh : public Solid
@@ -72,11 +83,9 @@ private:
 
 	size_t numElems;
 	GLuint v_vbo;
-	GLuint s_vbo;
 	GLuint e_vbo;
 	GLuint v_attrib;
 	GLuint s_attrib;
-	GLuint e_attrib;
 };
 
 #endif

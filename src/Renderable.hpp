@@ -55,34 +55,9 @@ public:
 	void setDiffuse(const glm::vec4& diffuse) {material.diffuse = diffuse;};
 	void setSpecular(const glm::vec4& specular) {material.specular = specular;};
 	void setExponent(float exponent) {material.exponent = exponent;};
-
-	static ArrSolid<36>* Cube(LightShader* _shader);
-	static ArrSolid<6>*  Quad(LightShader* _shader);
 protected:
 	Shader* shader;
 	Material material;
-};
-
-/* ArrSolid
- * Solid using array style drawing. 
- */
-template<int nVertices>
-class ArrSolid : public Solid
-{
-public:
-	ArrSolid(LightShader* _shader, 
-		const std::array<glm::vec4, nVertices>& _v, 
-		const std::array<glm::vec3, nVertices>& _n);
-	void setMaterial(const Material& _material);
-	void render();
-	void update(int dTime) {};
-private:
-	std::array<glm::vec4, nVertices> v; //Vertices
-	std::array<glm::vec3, nVertices> n; //Vertex norms
-	GLuint v_vbo;
-	GLuint n_vbo;
-	GLuint v_attrib;
-	GLuint n_attrib;
 };
 
 #endif
