@@ -80,24 +80,12 @@ int init()
 	centreParticles->translate(glm::vec3(0.0, -1.0, 3.0));
 	scene->add(centreParticles);
 
-	//swirl = new AdvectParticlesRandLights<nSwirls>(10, 2000, pShader, flameTex, decayTex);
-	//swirl->translate(glm::vec3(0.0, -1.0, -3.0));
-	//scene->add(swirl);
+	swirl = new AdvectParticlesRandLights<nSwirls>(10, 2000, pShader, flameTex, decayTex);
+	swirl->translate(glm::vec3(0.0, -1.0, -3.0));
+	scene->add(swirl);
 
 	lShader = new LightShader(false, "Solid");
 	SHShader* shShader = new SHShader(false, scene->maxSHLights, scene->nSHCoeffts, "PRT");
-	/*
-	ArrSolid<36>* cube;
-	for(int i = -k; i <= k; ++i)
-		for(int j = -k; j <= k; ++j)
-		{
-			cube = Solid::Cube(lShader);
-			cube->translate(glm::vec3(3.0*i, 3.0*j, 0.0));
-			scene->add(cube);
-		}
-	*/
-
-	
 
 	std::vector<DiffPRTMesh*> loadedPRT = DiffPRTMesh::loadFile("teapot.obj", 2, shShader);
 

@@ -192,13 +192,17 @@ void DiffPRTMesh::render()
 
 	shader->use();
 	glEnableVertexAttribArray(v_attrib);
-	glEnableVertexAttribArray(s_attrib);
+	for(int c = 0; c < Scene::nSHCoeffts; ++c)
+		glEnableVertexAttribArray(s_attrib + c);
 
 	glBindVertexBuffer(0, v_vbo, 0, sizeof(PRTMeshVertex));
 	glVertexAttribFormat(v_attrib, 4, GL_FLOAT, GL_FALSE, 0);
 	glVertexAttribBinding(v_attrib, 0);
-	glVertexAttribFormat(s_attrib, 4, GL_FLOAT, GL_FALSE, offsetof(PRTMeshVertex, s));
-	glVertexAttribBinding(s_attrib, 0);
+	for(int c = 0; c < Scene::nSHCoeffts; ++c)
+	{
+		glVertexAttribFormat(s_attrib + c, 4, GL_FLOAT, GL_FALSE, offsetof(PRTMeshVertex, s[c]));
+		glVertexAttribBinding(s_attrib + c, 0);
+	}
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, e_vbo);
@@ -208,5 +212,6 @@ void DiffPRTMesh::render()
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
 	glDisableVertexAttribArray(v_attrib);
-	glDisableVertexAttribArray(s_attrib);
+	for(int c = 0; c < Scene::nSHCoeffts; ++c)
+		glDisableVertexAttribArray(s_attrib + c);
 }
