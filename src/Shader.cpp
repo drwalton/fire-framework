@@ -145,8 +145,8 @@ GLuint Shader::getUBlockBindingIndex(const std::string& name)
 	if (name.compare("ambBlock")    == 0) return 1;
 	if (name.compare("phongBlock")  == 0) return 2;
 	if (name.compare("SHBlock")     == 0) return 3;
-	
-	return -1;
+
+	return -1; // Name not found
 }
 
 GLuint Shader::getUniformLoc(const std::string& name)
