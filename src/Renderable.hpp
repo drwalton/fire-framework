@@ -27,6 +27,7 @@ public:
 	void prependTransform(const glm::mat4& t) {modelToWorld = t * modelToWorld;};
 	void appendTransform(const glm::mat4& t) {modelToWorld = modelToWorld * t;};
 	void translate(const glm::vec3& t);
+	void moveTo(const glm::vec3& p);
 	void uniformScale(float s);
 	glm::vec4 getOrigin(); //Return pos'n of model space origin in world space.
 	virtual void update(int dTime) = 0;

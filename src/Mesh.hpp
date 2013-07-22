@@ -13,6 +13,7 @@
 #include <string>
 #include <vector>
 #include <exception>
+#include <fstream>
 
 namespace
 {
@@ -76,7 +77,9 @@ public:
 	void render();
 	void update(int dTime) {};
 private:
-	DiffPRTMesh(const MeshData& d, int nBands, SHShader* _shader);
+	DiffPRTMesh(const std::vector<PRTMeshVertex>& vertexBuffer,
+		const std::vector<GLushort>&, SHShader* _shader);
+	static std::vector<PRTMeshVertex> computeVertexBuffer(const MeshData& d);
 
 	size_t nBands;
 	size_t nCoeffts;

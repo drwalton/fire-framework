@@ -13,6 +13,13 @@ void Renderable::translate(const glm::vec3& t)
 	modelToWorld[3][2] += t.z;
 }
 
+void Renderable::moveTo(const glm::vec3& p)
+{
+	modelToWorld[3][0] = p.x;
+	modelToWorld[3][1] = p.y;
+	modelToWorld[3][2] = p.z;
+}
+
 void Renderable::uniformScale(float s)
 {
 	modelToWorld = modelToWorld * glm::mat4(

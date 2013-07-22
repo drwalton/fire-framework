@@ -2,7 +2,7 @@
 
 NoSuchException::NoSuchException(const std::string& name, Shader* const& shader)
 {
-	std::cout << "Could not find name \"" << name 
+	std::cout << "!! Could not find name \"" << name 
 		<<"\" in shader source file \"" << shader->filename << "\".\n";
 }
 
@@ -44,7 +44,7 @@ GLuint Shader::loadShader(const std::string& filename, int shaderType, bool DEBU
 			source = glswGetShader((filename + ".Geometry").c_str());
 			break;
 		default:
-			if(DEBUG) std::cout <<"loadShader error: invalid shader type\n";
+			if(DEBUG) std::cout <<"!! loadShader error: invalid shader type\n";
 			return 0;
 			break;
 	}
@@ -60,7 +60,6 @@ GLuint Shader::loadShader(const std::string& filename, int shaderType, bool DEBU
 		return 0;
 	}
 	GLuint shaderObject = glCreateShader(shaderType);
-	std::cout << shaderObject;
 	glShaderSource(shaderObject, 1, &source, 0);
 	glCompileShader(shaderObject);
 
@@ -69,9 +68,9 @@ GLuint Shader::loadShader(const std::string& filename, int shaderType, bool DEBU
 	if (compiled)
 	{
 	   if(DEBUG) std::cout <<
-			((shaderType == GL_VERTEX_SHADER) ? "Vertex" :
-			(shaderType == GL_FRAGMENT_SHADER) ? "Fragment" :
-			"Geometry") << " shader compiled successfully.\n";
+			((shaderType == GL_VERTEX_SHADER) ? "> Vertex" :
+			(shaderType == GL_FRAGMENT_SHADER) ? "> Fragment" :
+			"> Geometry") << " shader compiled successfully.\n";
 	   return shaderObject;
 	}
 	else
@@ -80,7 +79,7 @@ GLuint Shader::loadShader(const std::string& filename, int shaderType, bool DEBU
 		{
 			GLchar messages[256];
 			glGetShaderInfoLog(shaderObject, sizeof(messages), 0, &messages[0]);
-			std::cout << "Compilation error:\n" << messages;
+			std::cout << "!! Compilation error:\n" << messages;
 			std::cout << "Loaded source:\n" << source;
 		}
 		return 0;
@@ -116,17 +115,17 @@ GLuint Shader::compileShader(const std::string& filename, bool hasGeomShader, bo
 	glGetProgramiv(program, GL_LINK_STATUS, &linked);
 	if (linked)
 	{
-	   if(DEBUG) std::cout << "Program linked successfully.\n";
+	   if(DEBUG) std::cout << "> Program linked successfully.\n";
 	   return program;
 	}
 	else
 	{
 		if(DEBUG) 
 		{
-			std::cout << "Program linking failed.\n";
+			std::cout << "!! Program linking failed.\n";
 			GLchar messages[256];
 			glGetProgramInfoLog(program, sizeof(messages), 0, &messages[0]);
-			std::cout << "Compilation error:\n" << messages;
+			std::cout << "!! Compilation error:\n" << messages;
 		}
 		return 0;
 	}

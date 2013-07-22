@@ -11,8 +11,7 @@ namespace
 
 		if(!scene) throw new MeshFileException;
 
-		std::cout << "Loading from file: " << filename << "\n" 
-			<< scene->mNumMeshes << " meshes found.\n";
+		std::cout << "Loading scene from file: " << filename << "\n";
 
 		std::vector<MeshData> data;
 
@@ -22,7 +21,7 @@ namespace
 
 			MeshData d;
 
-			std::cout << "Loading mesh of " << mesh->mNumVertices << " vertices, "
+			std::cout << "> Mesh " << i << " of " << mesh->mNumVertices << " vertices, "
 				<< mesh->mNumFaces << " faces.\n";
 
 			for(int j = 0; j < (int) mesh->mNumVertices; ++j)
@@ -126,23 +125,130 @@ std::vector<DiffPRTMesh*> DiffPRTMesh::loadFile(
 	int nBands,
 	SHShader* _shader)
 {
-	std::vector<DiffPRTMesh*> meshes;
-	std::vector<MeshData> data = loadFileData(filename);
+	std::cout << "Attempting to load scene file " + filename << std::endl;
 
-	for(std::vector<MeshData>::iterator i = data.begin(); i != data.end(); ++i)
-		meshes.push_back(new DiffPRTMesh(*i, nBands, _shader));
+	std::vector<DiffPRTMesh*> meshes;
+
+	/* Check for file with precomputed coeffts */
+	std::string prtFilename = 
+		filename + 
+		".prt" +
+		std::to_string(static_cast<long long>(Scene::nSHBands)); 
+	/* Sorry, VC2++010 needs this weird cast ^ */
+
+	std::ifstream prtFile(prtFilename); 
+
+	/* File exists, so load data from it */
+	if(prtFile.is_open()) 
+	{
+		std::cout << "Precomputed file found." << std::endl;
+		std::cout << "Loading from precomputed file " + prtFilename << std::endl;
+
+		while(prtFile.good())
+		{
+			std::vector<PRTMeshVertex> vertexBuffer;
+			std::vector<GLushort> elemBuffer;
+
+			char ignore[10]; 
+
+			prtFile.getline(ignore, 10); // Throw the "Mesh N" line.
+			prtFile.getline(ignore, 10); // Throw the "Vertices" line.
+
+			/* Get vertexBuffer */
+			float next;
+			while(prtFile >> next)
+			{
+				PRTMeshVertex vert;
+				vert.v.x = next;
+				prtFile >> vert.v.y;
+				prtFile >> vert.v.z;
+				prtFile >> vert.v.w;
+				for(int c = 0; c < Scene::nSHCoeffts; ++c)
+				{
+					prtFile >> vert.s[c].x;
+					prtFile >> vert.s[c].y;
+					prtFile >> vert.s[c].z;
+					prtFile >> vert.s[c].w;
+				}
+
+				vertexBuffer.push_back(vert);
+			}
+			
+			prtFile.clear();
+
+			/* Get elemBuffer */
+			prtFile.getline(ignore, 10); // Throw the "Elements" line.
+			int elem;
+			while(prtFile >> elem)
+				elemBuffer.push_back(static_cast<GLushort>(elem));
+
+			meshes.push_back(new DiffPRTMesh(vertexBuffer, elemBuffer, _shader));
+			std::cout << "> Mesh " << meshes.size() - 1 
+				<< " of " << vertexBuffer.size() << " vertices, " 
+				<< elemBuffer.size() << " elements." << std::endl;
+		}
+	}
+
+	/* No such file exists, so load from regular file & compute coeffts */
+	else
+	{
+		std::cout << "No precomputed \"*.prtN\" file was found." << std::endl;
+
+		std::vector<MeshData> data = loadFileData(filename);
+
+		std::ofstream outFile(prtFilename);
+
+		std::cout << "Calculating transfer function coefficients (may take some time)..." << std::endl;
+
+		for(int m = 0; m < data.size(); ++m)
+		{
+			std::vector<PRTMeshVertex> vertexBuffer = computeVertexBuffer(data[m]);
+			meshes.push_back(new DiffPRTMesh(vertexBuffer, data[m].e, _shader));
+
+			outFile << "Mesh " << std::to_string(static_cast<long long>(m)) << std::endl;
+			outFile << "Vertices" << std::endl;
+
+			for(std::vector<PRTMeshVertex>::iterator i = vertexBuffer.begin(); i != vertexBuffer.end(); ++i)
+			{
+				outFile << (*i).v.x << " " << (*i).v.y << " " << (*i).v.z << " " << (*i).v.w << std::endl;
+				for(int c = 0; c < Scene::nSHCoeffts; ++c)
+					outFile << (*i).s[c].x << " " << (*i).s[c].y << " " << (*i).s[c].z << " " << (*i).s[c].w << std::endl;
+			}
+
+			outFile << "Elements" << std::endl;
+
+			for(std::vector<GLushort>::iterator i = data[m].e.begin(); i != data[m].e.end(); ++i)
+				outFile << (*i) << std::endl;
+		}
+
+		outFile.close();
+	}
 
 	return meshes;
 }
 
 
-DiffPRTMesh::DiffPRTMesh(const MeshData& d, int _nBands, SHShader* _shader)
-	:Solid(_shader), nBands(_nBands)
+DiffPRTMesh::DiffPRTMesh(const std::vector<PRTMeshVertex>& vertexBuffer,
+	const std::vector<GLushort>& elemBuffer, SHShader* _shader)
+	:Solid(_shader)
 {
-	nCoeffts = (nBands + 1)*(nBands + 1);
+	numElems = elemBuffer.size();
 
-	numElems = d.e.size();
+	glGenBuffers(1, &v_vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, v_vbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(PRTMeshVertex) * vertexBuffer.size(), vertexBuffer.data(), GL_STATIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glGenBuffers(1, &e_vbo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, e_vbo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLushort) * elemBuffer.size(), elemBuffer.data(), GL_STATIC_DRAW);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
+	v_attrib = shader->getAttribLoc("vPos");
+	s_attrib = shader->getAttribLoc("transferCoeffts");
+}
+
+std::vector<PRTMeshVertex> DiffPRTMesh::computeVertexBuffer(const MeshData& d)
+{
 	std::vector<PRTMeshVertex> vertexBuffer;
 
 	for(int i = 0; i < d.v.size(); ++i)
@@ -150,7 +256,7 @@ DiffPRTMesh::DiffPRTMesh(const MeshData& d, int _nBands, SHShader* _shader)
 		PRTMeshVertex vert;
 		vert.v = d.v[i];
 
-		std::vector<glm::vec4> coeffts = SH::shProject(Scene::sqrtSHSamples, 3, 
+		std::vector<glm::vec4> coeffts = SH::shProject(Scene::sqrtSHSamples, Scene::nSHBands, 
 			[&d, &i](double theta, double phi) -> glm::vec3 
 				{
 					glm::vec3 dir
@@ -171,17 +277,7 @@ DiffPRTMesh::DiffPRTMesh(const MeshData& d, int _nBands, SHShader* _shader)
 		vertexBuffer.push_back(vert);
 	}
 
-	glGenBuffers(1, &v_vbo);
-	glBindBuffer(GL_ARRAY_BUFFER, v_vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(PRTMeshVertex) * vertexBuffer.size(), vertexBuffer.data(), GL_STATIC_DRAW);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glGenBuffers(1, &e_vbo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, e_vbo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLushort) * d.e.size(), d.e.data(), GL_STATIC_DRAW);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-	v_attrib = shader->getAttribLoc("vPos");
-	s_attrib = shader->getAttribLoc("transferCoeffts");
+	return vertexBuffer;
 }
 
 void DiffPRTMesh::render()
