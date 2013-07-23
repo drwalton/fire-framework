@@ -5,7 +5,7 @@ Scene::Scene()
 {
 	camera = new Camera();
 	int i;
-	for(i = 0; i < maxPhongLights; ++i)
+	for(i = 0; i < GC::maxPhongLights; ++i)
 	{
 		phongLights[i] = nullptr;
 		phong.lightPos[i] = glm::vec4(0.0f);
@@ -15,9 +15,9 @@ Scene::Scene()
 	}
 	phong.nLights = 0;
 
-	for(i = 0; i < maxSHLights; ++i)
+	for(i = 0; i < GC::maxSHLights; ++i)
 		SHLights[i] = nullptr;
-	for(i = 0; i < maxSHLights*nSHCoeffts; ++i)
+	for(i = 0; i < GC::maxSHLights*GC::nSHCoeffts; ++i)
 		sh.lightCoeffts[i] = glm::vec4(0.0f);
 	sh.nLights = 0;
 
@@ -115,7 +115,7 @@ Renderable* Scene::remove(Renderable* r)
 PhongLight* Scene::add(PhongLight* l)
 {
 	/* Check light to be added is valid, not already in scene */
-	if(phong.nLights >= maxPhongLights || l == nullptr 
+	if(phong.nLights >= GC::maxPhongLights || l == nullptr 
 		|| l->scene != nullptr || l->index != -1) return nullptr;
 	phongLights[phong.nLights]      = l;
 	/* Add light's data to uniform buffers */
@@ -179,12 +179,12 @@ PhongLight* Scene::remove(PhongLight* l)
 SHLight* Scene::add(SHLight* l)
 {
 	/* Check light to be added is valid, not already in scene */
-	if(sh.nLights >= maxSHLights || l == nullptr 
+	if(sh.nLights >= GC::maxSHLights || l == nullptr 
 		|| l->scene != nullptr || l->index != -1) return nullptr;
 	SHLights[sh.nLights] = l;
 	/* Add light's data to uniform buffers */
-	for(int c = 0; c < nSHCoeffts; ++c)
-		sh.lightCoeffts[sh.nLights*nSHCoeffts + c] = l->getCoeffts()[c];
+	for(int c = 0; c < GC::nSHCoeffts; ++c)
+		sh.lightCoeffts[sh.nLights*GC::nSHCoeffts + c] = l->getCoeffts()[c];
 	l->index = sh.nLights;
 	l->scene = this;
 	++sh.nLights;
@@ -201,8 +201,8 @@ SHLight* Scene::updateLight(SHLight* l)
 		l->index < 0 || l->index >= sh.nLights)
 		return nullptr; //TODO: throw exception?
 	/* Update values in stored buffers */
-	for(int c = 0; c < nSHCoeffts; ++c)
-		sh.lightCoeffts[sh.nLights*nSHCoeffts + c] = l->getCoeffts()[c];
+	for(int c = 0; c < GC::nSHCoeffts; ++c)
+		sh.lightCoeffts[sh.nLights*GC::nSHCoeffts + c] = l->getCoeffts()[c];
 	updateSHLights();
 	return l;
 }
@@ -219,12 +219,12 @@ SHLight* Scene::remove(SHLight* l)
 	for(int i = l->index; i < sh.nLights-1; ++i)
 	{
 		SHLights[i] = SHLights[i+1];
-		for(int c = 0; c < nSHCoeffts; ++c)
-			sh.lightCoeffts[i*nSHCoeffts + c] = sh.lightCoeffts[(i+1)*nSHCoeffts + c];
+		for(int c = 0; c < GC::nSHCoeffts; ++c)
+			sh.lightCoeffts[i*GC::nSHCoeffts + c] = sh.lightCoeffts[(i+1)*GC::nSHCoeffts + c];
 	}
 	SHLights[sh.nLights-1] = nullptr;
-	for(int c = 0; c < nSHCoeffts; ++c)
-		sh.lightCoeffts[(sh.nLights)*nSHCoeffts + c] = glm::vec4(0.0f);
+	for(int c = 0; c < GC::nSHCoeffts; ++c)
+		sh.lightCoeffts[(sh.nLights)*GC::nSHCoeffts + c] = glm::vec4(0.0f);
 	--sh.nLights;
 	l->index = -1;
 	l->scene = nullptr;

@@ -73,7 +73,7 @@ Mesh::Mesh(const MeshData& d, LightShader* _shader)
 	numElems = d.e.size();
 
 	std::vector<MeshVertex> vertexBuffer;
-	for(int i = 0; i < d.v.size(); ++i)
+	for(GLuint i = 0; i < d.v.size(); ++i)
 	{
 		MeshVertex vert;
 		vert.v = d.v[i]; vert.n = d.n[i];
@@ -133,7 +133,7 @@ std::vector<DiffPRTMesh*> DiffPRTMesh::loadFile(
 	std::string prtFilename = 
 		filename + 
 		".prt" +
-		std::to_string(static_cast<long long>(Scene::nSHBands)); 
+		std::to_string(static_cast<long long>(GC::nSHBands)); 
 	/* Sorry, VC2++010 needs this weird cast ^ */
 
 	std::ifstream prtFile(prtFilename); 
@@ -163,7 +163,7 @@ std::vector<DiffPRTMesh*> DiffPRTMesh::loadFile(
 				prtFile >> vert.v.y;
 				prtFile >> vert.v.z;
 				prtFile >> vert.v.w;
-				for(int c = 0; c < Scene::nSHCoeffts; ++c)
+				for(int c = 0; c < GC::nSHCoeffts; ++c)
 				{
 					prtFile >> vert.s[c].x;
 					prtFile >> vert.s[c].y;
@@ -198,9 +198,9 @@ std::vector<DiffPRTMesh*> DiffPRTMesh::loadFile(
 
 		std::ofstream outFile(prtFilename);
 
-		std::cout << "Calculating transfer function coefficients (may take some time)..." << std::endl;
+		std::cout << "> Calculating transfer function coefficients (may take some time)..." << std::endl;
 
-		for(int m = 0; m < data.size(); ++m)
+		for(GLuint m = 0; m < data.size(); ++m)
 		{
 			std::vector<PRTMeshVertex> vertexBuffer = computeVertexBuffer(data[m]);
 			meshes.push_back(new DiffPRTMesh(vertexBuffer, data[m].e, _shader));
@@ -211,7 +211,7 @@ std::vector<DiffPRTMesh*> DiffPRTMesh::loadFile(
 			for(std::vector<PRTMeshVertex>::iterator i = vertexBuffer.begin(); i != vertexBuffer.end(); ++i)
 			{
 				outFile << (*i).v.x << " " << (*i).v.y << " " << (*i).v.z << " " << (*i).v.w << std::endl;
-				for(int c = 0; c < Scene::nSHCoeffts; ++c)
+				for(int c = 0; c < GC::nSHCoeffts; ++c)
 					outFile << (*i).s[c].x << " " << (*i).s[c].y << " " << (*i).s[c].z << " " << (*i).s[c].w << std::endl;
 			}
 
@@ -251,12 +251,12 @@ std::vector<PRTMeshVertex> DiffPRTMesh::computeVertexBuffer(const MeshData& d)
 {
 	std::vector<PRTMeshVertex> vertexBuffer;
 
-	for(int i = 0; i < d.v.size(); ++i)
+	for(GLuint i = 0; i < d.v.size(); ++i)
 	{
 		PRTMeshVertex vert;
 		vert.v = d.v[i];
 
-		std::vector<glm::vec4> coeffts = SH::shProject(Scene::sqrtSHSamples, Scene::nSHBands, 
+		std::vector<glm::vec4> coeffts = SH::shProject(GC::sqrtSHSamples, GC::nSHBands, 
 			[&d, &i](double theta, double phi) -> glm::vec3 
 				{
 					glm::vec3 dir
@@ -271,7 +271,7 @@ std::vector<PRTMeshVertex> DiffPRTMesh::computeVertexBuffer(const MeshData& d)
 				}
 			);
 
-		for(int c = 0; c < coeffts.size(); ++c)
+		for(GLuint c = 0; c < coeffts.size(); ++c)
 			vert.s[c] = coeffts[c];
 
 		vertexBuffer.push_back(vert);
@@ -288,15 +288,16 @@ void DiffPRTMesh::render()
 
 	shader->use();
 	glEnableVertexAttribArray(v_attrib);
-	for(int c = 0; c < Scene::nSHCoeffts; ++c)
+	for(int c = 0; c < GC::nSHCoeffts; ++c)
 		glEnableVertexAttribArray(s_attrib + c);
 
 	glBindVertexBuffer(0, v_vbo, 0, sizeof(PRTMeshVertex));
 	glVertexAttribFormat(v_attrib, 4, GL_FLOAT, GL_FALSE, 0);
 	glVertexAttribBinding(v_attrib, 0);
-	for(int c = 0; c < Scene::nSHCoeffts; ++c)
+	for(int c = 0; c < GC::nSHCoeffts; ++c)
 	{
-		glVertexAttribFormat(s_attrib + c, 4, GL_FLOAT, GL_FALSE, offsetof(PRTMeshVertex, s[c]));
+		glVertexAttribFormat(s_attrib + c, 4, GL_FLOAT,
+			GL_FALSE, offsetof(PRTMeshVertex, s[c]));
 		glVertexAttribBinding(s_attrib + c, 0);
 	}
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -308,6 +309,6 @@ void DiffPRTMesh::render()
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
 	glDisableVertexAttribArray(v_attrib);
-	for(int c = 0; c < Scene::nSHCoeffts; ++c)
+	for(int c = 0; c < GC::nSHCoeffts; ++c)
 		glDisableVertexAttribArray(s_attrib + c);
 }

@@ -2,7 +2,7 @@
 #version 420
 
 in vec4 vPos;
-in vec4 transferCoeffts[9];
+in vec4 transferCoeffts[$nSHCoeffts$];
 
 uniform mat4 modelToWorld;
 
@@ -13,7 +13,7 @@ layout(std140) uniform cameraBlock
 	vec3 cameraDir;
 };
 
-out vec4 smoothCoeffts[9];
+out vec4 smoothCoeffts[$nSHCoeffts$];
 
 void main()
 {
@@ -21,18 +21,18 @@ void main()
 
 	
 
-	for(int c = 0; c < 9; ++c)
+	for(int c = 0; c < $nSHCoeffts$; ++c)
 		smoothCoeffts[c] = transferCoeffts[c];
 }
 
 -- Fragment
 #version 420
 
-in vec4 smoothCoeffts[9];
+in vec4 smoothCoeffts[$nSHCoeffts$];
 
 layout(std140) uniform SHBlock
 {
-	vec4 lightCoeffts[9 * 10];	
+	vec4 lightCoeffts[$nSHCoeffts$ * $maxSHLights$];	
 	int nLights;
 };
 
@@ -42,11 +42,11 @@ void main()
 {
 	vec3 color = vec3(0.0, 0.0, 0.0);
 
-	for(int l = 0; l < 10; ++l)
+	for(int l = 0; l < $maxSHLights$; ++l)
 	{
-		for(int c = 0; c < 9; ++c)
+		for(int c = 0; c < $nSHCoeffts$; ++c)
 		{
-			color += smoothCoeffts[c].xyz * lightCoeffts[c + (l * 9)].xyz;
+			color += smoothCoeffts[c].xyz * lightCoeffts[c + (l * $nSHCoeffts$)].xyz;
 		}
 	}
 

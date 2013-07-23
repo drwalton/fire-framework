@@ -85,7 +85,12 @@ int init()
 	scene->add(swirl);
 
 	lShader = new LightShader(false, "Solid");
-	SHShader* shShader = new SHShader(false, scene->maxSHLights, scene->nSHCoeffts, "PRTfrag");
+	std::vector<std::string> subs;
+	subs.push_back("$nSHCoeffts$"); 
+	subs.push_back(std::to_string(static_cast<long long>(GC::nSHCoeffts))); 
+	subs.push_back("$maxSHLights$"); 
+	subs.push_back(std::to_string(static_cast<long long>(GC::maxSHLights))); 
+	SHShader* shShader = new SHShader(false, "PRTfrag", subs);
 
 	std::vector<DiffPRTMesh*> loadedPRT = DiffPRTMesh::loadFile("teapot.obj", 2, shShader);
 
@@ -121,7 +126,7 @@ int init()
 	SHLight* light = new SHLight(
 		[] (double theta, double phi) -> glm::vec3 
 		{
-			float val = (theta + phi) < 1.0 ? 3.0 : 0.0;
+			float val = (theta + phi) > 1.0 ? 0.1f : 0.0f;
 			return glm::vec3(val, val, val);
 		}
 	);

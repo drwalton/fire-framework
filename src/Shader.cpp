@@ -9,7 +9,17 @@ NoSuchException::NoSuchException(const std::string& name, Shader* const& shader)
 Shader::Shader(bool hasGeomShader, const std::string& filename)
 	:filename(filename)
 {
-	id = compileShader(filename, hasGeomShader, true);
+	std::vector<std::string> subs;
+	id = compileShader(filename, hasGeomShader, true, subs);
+	modelToWorld_u = getUniformLoc("modelToWorld");
+	setupUniformBlock("cameraBlock");
+}
+
+Shader::Shader(bool hasGeomShader, const std::string& filename,
+	std::vector<std::string> subs)
+	:filename(filename)
+{
+	id = compileShader(filename, hasGeomShader, true, subs);
 	modelToWorld_u = getUniformLoc("modelToWorld");
 	setupUniformBlock("cameraBlock");
 }
@@ -26,7 +36,8 @@ void Shader::setModelToWorld(const glm::mat4& modelToWorld)
 	glUseProgram(0);
 }
 
-GLuint Shader::loadShader(const std::string& filename, int shaderType, bool DEBUG)
+GLuint Shader::loadShader(const std::string& filename, int shaderType, bool DEBUG,
+	std::vector<std::string> subs)
 {
 	glswInit();
 	glswSetPath("./", ".glsl");
@@ -59,8 +70,20 @@ GLuint Shader::loadShader(const std::string& filename, int shaderType, bool DEBU
 			<< "shader could not be found." << std::endl;
 		return 0;
 	}
+
 	GLuint shaderObject = glCreateShader(shaderType);
-	glShaderSource(shaderObject, 1, &source, 0);
+
+	if(subs.size() > 0)
+	{
+		std::string modSource(source);
+		for(std::vector<std::string>::iterator i = subs.begin(); i != subs.end(); i += 2)
+			boost::replace_all(modSource, *i, *(i + 1));
+		const char* src = modSource.c_str();
+		glShaderSource(shaderObject, 1, &src, 0);
+	}
+	else
+		glShaderSource(shaderObject, 1, &source, 0);
+
 	glCompileShader(shaderObject);
 
 	GLint compiled;
@@ -87,14 +110,15 @@ GLuint Shader::loadShader(const std::string& filename, int shaderType, bool DEBU
 	glswShutdown();
 }
 
-GLuint Shader::compileShader(const std::string& filename, bool hasGeomShader, bool DEBUG)
+GLuint Shader::compileShader(const std::string& filename, bool hasGeomShader, bool DEBUG,
+	std::vector<std::string> subs)
 {
 	if(DEBUG) std::cout << "Attempting to load shaders from ./" << filename << ".glsl" << std::endl;
 
-	GLuint vertexShader = loadShader(filename, GL_VERTEX_SHADER, DEBUG);
-	GLuint fragmentShader = loadShader(filename, GL_FRAGMENT_SHADER, DEBUG);
+	GLuint vertexShader = loadShader(filename, GL_VERTEX_SHADER, DEBUG, subs);
+	GLuint fragmentShader = loadShader(filename, GL_FRAGMENT_SHADER, DEBUG, subs);
 	GLuint geomShader = 1;
-	if(hasGeomShader) geomShader = loadShader(filename, GL_GEOMETRY_SHADER, DEBUG);
+	if(hasGeomShader) geomShader = loadShader(filename, GL_GEOMETRY_SHADER, DEBUG, subs);
 
 	if(!vertexShader || !fragmentShader || !geomShader)
 		return 0;
@@ -232,8 +256,15 @@ void ParticleShader::setDecayTexUnit(GLuint _decayTexUnit)
 	glUseProgram(0);
 }
 
-SHShader::SHShader(bool hasGeomShader, int _nSHLights, int _nCoeffts, const std::string& filename)
-	:Shader(hasGeomShader, filename), nSHLights(_nSHLights), nCoeffts(_nCoeffts)
+SHShader::SHShader(bool hasGeomShader,  const std::string& filename)
+	:Shader(hasGeomShader, filename)
+{
+	setupUniformBlock("SHBlock");
+}
+
+SHShader::SHShader(bool hasGeomShader,  const std::string& filename, 
+	std::vector<std::string> subs)
+	:Shader(hasGeomShader, filename, subs)
 {
 	setupUniformBlock("SHBlock");
 }

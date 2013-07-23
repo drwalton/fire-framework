@@ -3,13 +3,15 @@
 
 #include <glew.h>
 #include <glm.hpp>
+#include <boost\algorithm\string.hpp>
 
 #include "glsw.h"
+#include "GC.hpp"
 
 #include <string>
-#include <array>
 #include <iostream>
 #include <exception>
+#include <vector>
 
 struct Material
 {
@@ -26,6 +28,8 @@ class Shader
 {
 public:
 	Shader(bool hasGeomShader, const std::string& filename);
+	Shader(bool hasGeomShader, const std::string& filename,
+		std::vector<std::string> subs);
 	void use();
 	void setModelToWorld(const glm::mat4& _modelToWorld);
 	GLuint getAttribLoc(const std::string& name);
@@ -39,8 +43,10 @@ protected:
 	void setupUniformBlock(const std::string& name);
 private:
 	GLuint id;
-	GLuint loadShader(const std::string& filename, int shaderType, bool DEBUG);
-	GLuint compileShader(const std::string& filename, bool hasGeomShader, bool DEBUG);
+	GLuint loadShader(const std::string& filename, int shaderType, bool DEBUG,
+		std::vector<std::string> subs);
+	GLuint compileShader(const std::string& filename, bool hasGeomShader, bool DEBUG,
+		std::vector<std::string> subs);
 	GLuint modelToWorld_u;
 	GLuint cameraBlock_i;
 };
@@ -112,10 +118,9 @@ private:
 class SHShader : public Shader
 {
 public:
-	SHShader(bool hasGeomShader, int _nSHLights, int _nCoeffts, const std::string& filename);
-private:
-	int nSHLights;
-	int nCoeffts;
+	SHShader(bool hasGeomShader, const std::string& filename);
+	SHShader(bool hasGeomShader, const std::string& filename,
+		std::vector<std::string> subs);
 };
 
 #endif

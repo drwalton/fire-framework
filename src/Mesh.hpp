@@ -1,19 +1,24 @@
 #ifndef MESH_H
 #define MESH_H
 
-#include "Shader.hpp"
-#include "Renderable.hpp"
+#include "GC.hpp"
 #include "SH.hpp"
-#include "Scene.hpp"
+#include "Renderable.hpp"
 
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
+#include <glew.h>
 
 #include <string>
 #include <vector>
 #include <exception>
 #include <fstream>
+
+class Solid;
+class Shader;
+class LightShader;
+class SHSHader;
 
 namespace
 {
@@ -34,7 +39,7 @@ namespace
 	struct PRTMeshVertex
 	{
 		glm::vec4 v;
-		glm::vec4 s[9];
+		glm::vec4 s[GC::nSHCoeffts];
 	};
 
 	std::vector<MeshData> loadFileData(const std::string& filename);

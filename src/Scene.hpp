@@ -3,10 +3,10 @@
 
 #include "Renderable.hpp"
 #include "Particles.hpp"
-#include "Light.hpp"
 #include "Shader.hpp"
 #include "Camera.hpp"
 #include "Mesh.hpp"
+#include "GC.hpp"
 
 #include <glm.hpp>
 #include <glut.h>
@@ -19,20 +19,18 @@ class DirLight;
 class PointLight;
 class SHLight;
 
-const float PI = 3.141592653589793238462f;
-
 struct phongBlock
 {
-	glm::vec4 lightPos[50];
-	glm::vec4 lightDiffuse[50];
-	glm::vec4 lightSpecular[50];
-	float lightAttenuation[50];
+	glm::vec4 lightPos[GC::maxPhongLights];
+	glm::vec4 lightDiffuse[GC::maxPhongLights];
+	glm::vec4 lightSpecular[GC::maxPhongLights];
+	float lightAttenuation[GC::maxPhongLights];
 	int nLights;
 };
 
 struct SHBlock
 {
-	glm::vec4 lightCoeffts[9 * 10];
+	glm::vec4 lightCoeffts[GC::nSHCoeffts * GC::maxSHLights];
 	int nLights;
 };
 
@@ -69,13 +67,6 @@ public:
 	SHLight* remove(SHLight* l);
 
 	void setAmbLight(glm::vec4 _ambLight);
-	
-	static const int maxPhongLights = 50;
-	
-	static const int maxSHLights = 10;
-	static const int nSHBands = 3;
-	static const int nSHCoeffts = 9;
-	static const int sqrtSHSamples = 50;
 
 	Camera* camera;
 private:
@@ -89,12 +80,12 @@ private:
 
 	GLuint phongBlock_ubo;
 	GLuint SHBlock_ubo;
-	PhongLight* phongLights[maxPhongLights];
+	PhongLight* phongLights[GC::maxPhongLights];
 	phongBlock phong;
 	void updatePhongLights();
 	void updateSHLights();
 
-	SHLight* SHLights[maxSHLights];
+	SHLight* SHLights[GC::maxSHLights];
 	SHBlock sh;
 };
 

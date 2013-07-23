@@ -75,7 +75,7 @@ template <typename Fn>
 SHLight::SHLight(Fn func)
 	:index(-1)
 {
-	coeffts = SH::shProject(Scene::sqrtSHSamples, Scene::nSHBands, func);
+	coeffts = SH::shProject(GC::sqrtSHSamples, GC::nSHBands, func);
 };
 
 
