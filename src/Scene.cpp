@@ -38,18 +38,17 @@ Scene::Scene()
 
 Scene::~Scene()
 {
-	for(std::set<Renderable*>::iterator i = opaque.begin(); i != opaque.end(); ++i)
+	for(auto i = opaque.begin(); i != opaque.end(); ++i)
 	{
 		delete (*i);
 	}
 
-	for(std::set<Renderable*>::iterator i = translucent.begin(); i != translucent.end(); ++i)
+	for(auto i = translucent.begin(); i != translucent.end(); ++i)
 	{
 		delete (*i);
 	}
 
-	for(std::set<Shader*>::iterator i = shaders.begin();
-		i != shaders.end(); ++i)
+	for(auto i = shaders.begin(); i != shaders.end(); ++i)
 	{
 		delete (*i);
 	}
@@ -61,12 +60,12 @@ Scene::~Scene()
 void Scene::render()
 {
 	//Render opaque renderables first.
-	for(std::set<Renderable*>::iterator i = opaque.begin(); i != opaque.end(); ++i)
+	for(auto i = opaque.begin(); i != opaque.end(); ++i)
 	{
 		(*i)->render();
 	}
 	//Render translucent ones second.
-	for(std::set<Renderable*>::iterator i = translucent.begin(); i != translucent.end(); ++i)
+	for(auto i = translucent.begin(); i != translucent.end(); ++i)
 	{
 		(*i)->render();
 	}
@@ -74,11 +73,11 @@ void Scene::render()
 
 void Scene::update(int dTime)
 {
-	for(std::set<Renderable*>::iterator i = opaque.begin(); i != opaque.end(); ++i)
+	for(auto i = opaque.begin(); i != opaque.end(); ++i)
 	{
 		(*i)->update(dTime);
 	}
-	for(std::set<Renderable*>::iterator i = translucent.begin(); i != translucent.end(); ++i)
+	for(auto i = translucent.begin(); i != translucent.end(); ++i)
 	{
 		(*i)->update(dTime);
 	}

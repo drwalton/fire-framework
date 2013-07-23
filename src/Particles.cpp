@@ -252,30 +252,32 @@ void AdvectParticlesLights<maxParticles>::update(int dTime)
 }
 
 template <int maxParticles>
-AdvectParticlesRandLights<maxParticles>::AdvectParticlesRandLights(int _nLights, int _interval, ParticleShader* _shader, 
-		Texture* _bbTex, Texture* _decayTex)
-		:AdvectParticlesLights(_nLights, _shader, 
-		 _bbTex, _decayTex),
-		 interval(_interval), counter(0), particles(std::vector<int>(nLights)) {init();}
+AdvectParticlesRandLights<maxParticles>::AdvectParticlesRandLights(int _nLights,
+	int _interval, ParticleShader* _shader, 
+	Texture* _bbTex, Texture* _decayTex)
+	:AdvectParticlesLights(_nLights, _shader, 
+		_bbTex, _decayTex),
+		interval(_interval), counter(0), particles(std::vector<int>(nLights)) {init();}
 
 template <int maxParticles>
-AdvectParticlesRandLights<maxParticles>::AdvectParticlesRandLights(int _nLights, int _interval, ParticleShader* _shader, 
-		Texture* _bbTex, Texture* _decayTex,
-		int avgLifetime, int varLifetime, 
-		glm::vec4 initAcn, glm::vec4 initVel,
-		int perturbChance, float perturbRadius,
-		float baseRadius, float centerForce,
-		float bbHeight, float bbWidth,
-		bool perturb_on, bool _init_perturb)
-		:AdvectParticlesLights(nLights, _shader, 
-		_bbTex, _decayTex,
-		avgLifetime, varLifetime, 
-		initAcn, initVel,
-		perturbChance, perturbRadius,
-		baseRadius, centerForce,
-		bbHeight, bbWidth,
-		perturb_on, _init_perturb),
-		interval(_interval), counter(0), particles(std::vector<int>(nLights)) {init();}
+AdvectParticlesRandLights<maxParticles>::AdvectParticlesRandLights(int _nLights,
+	int _interval, ParticleShader* _shader, 
+	Texture* _bbTex, Texture* _decayTex,
+	int avgLifetime, int varLifetime, 
+	glm::vec4 initAcn, glm::vec4 initVel,
+	int perturbChance, float perturbRadius,
+	float baseRadius, float centerForce,
+	float bbHeight, float bbWidth,
+	bool perturb_on, bool _init_perturb)
+	:AdvectParticlesLights(nLights, _shader, 
+	_bbTex, _decayTex,
+	avgLifetime, varLifetime, 
+	initAcn, initVel,
+	perturbChance, perturbRadius,
+	baseRadius, centerForce,
+	bbHeight, bbWidth,
+	perturb_on, _init_perturb),
+	interval(_interval), counter(0), particles(std::vector<int>(nLights)) {init();}
 
 template <int maxParticles>
 void AdvectParticlesRandLights<maxParticles>::init()
@@ -320,36 +322,36 @@ void AdvectParticlesRandLights<maxParticles>::randomizeLights()
 
 template <int maxParticles>
 AdvectParticlesCentroidLights<maxParticles>::AdvectParticlesCentroidLights(
-		int _nLights, int _clumpSize,
-		int _interval, ParticleShader* _shader, 
-		Texture* _bbTex, Texture* _decayTex)
-		:AdvectParticlesLights(_nLights, _shader, 
-		 _bbTex, _decayTex),
-		 interval(_interval), counter(0),
-		 clumpSize(_clumpSize)
+	int _nLights, int _clumpSize,
+	int _interval, ParticleShader* _shader, 
+	Texture* _bbTex, Texture* _decayTex)
+	:AdvectParticlesLights(_nLights, _shader, 
+		_bbTex, _decayTex),
+		interval(_interval), counter(0),
+		clumpSize(_clumpSize)
 {init();}
 
 template <int maxParticles>
 AdvectParticlesCentroidLights<maxParticles>::AdvectParticlesCentroidLights(
-		int _nLights, int _clumpSize,
-		int _interval, ParticleShader* _shader, 
-		Texture* _bbTex, Texture* _decayTex,
-		int avgLifetime, int varLifetime, 
-		glm::vec4 initAcn, glm::vec4 initVel,
-		int perturbChance, float perturbRadius,
-		float baseRadius, float centerForce,
-		float bbHeight, float bbWidth,
-		bool perturb_on, bool _init_perturb)
-		:AdvectParticlesLights(nLights, _shader, 
-		_bbTex, _decayTex,
-		avgLifetime, varLifetime, 
-		initAcn, initVel,
-		perturbChance, perturbRadius,
-		baseRadius, centerForce,
-		bbHeight, bbWidth,
-		perturb_on, _init_perturb),
-		interval(_interval), counter(0),
-		clumpSize(_clumpSize)
+	int _nLights, int _clumpSize,
+	int _interval, ParticleShader* _shader, 
+	Texture* _bbTex, Texture* _decayTex,
+	int avgLifetime, int varLifetime, 
+	glm::vec4 initAcn, glm::vec4 initVel,
+	int perturbChance, float perturbRadius,
+	float baseRadius, float centerForce,
+	float bbHeight, float bbWidth,
+	bool perturb_on, bool _init_perturb)
+	:AdvectParticlesLights(nLights, _shader, 
+	_bbTex, _decayTex,
+	avgLifetime, varLifetime, 
+	initAcn, initVel,
+	perturbChance, perturbRadius,
+	baseRadius, centerForce,
+	bbHeight, bbWidth,
+	perturb_on, _init_perturb),
+	interval(_interval), counter(0),
+	clumpSize(_clumpSize)
 {init();}
 
 template <int maxParticles>
@@ -367,8 +369,8 @@ void AdvectParticlesCentroidLights<maxParticles>::init()
 template <int maxParticles>
 void AdvectParticlesCentroidLights<maxParticles>::randomizeClumps()
 {
-	for(std::vector<std::vector<int>>::iterator i = clumps.begin(); i != clumps.end(); ++i)
-		for(std::vector<int>::iterator j = i->begin(); j != i->end(); ++j)
+	for(auto i = clumps.begin(); i != clumps.end(); ++i)
+		for(auto j = i->begin(); j != i->end(); ++j)
 			(*j) = randi(0, maxParticles);
 }
 
@@ -397,7 +399,7 @@ template <int maxParticles>
 glm::vec4 AdvectParticlesCentroidLights<maxParticles>::getParticleCentroid(const std::vector<int>& clump)
 {
 	glm::vec4 sum;
-	for(std::vector<int>::const_iterator i = clump.begin(); i != clump.end(); ++i)
+	for(auto i = clump.begin(); i != clump.end(); ++i)
 		sum += pos[(*i)];
 	return sum / (float) clump.size();
 }

@@ -61,7 +61,7 @@ std::vector<Mesh*> Mesh::loadFile(const std::string& filename,
 	std::vector<Mesh*> meshes;
 	std::vector<MeshData> data = loadFileData(filename);
 
-	for(std::vector<MeshData>::iterator i = data.begin(); i != data.end(); ++i)
+	for(auto i = data.begin(); i != data.end(); ++i)
 		meshes.push_back(new Mesh(*i, _shader));
 
 	return meshes;

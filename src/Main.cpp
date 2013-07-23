@@ -58,12 +58,12 @@ int init()
 {
 	/*
 	std::vector<float> c = SH::shProject(10, 3, [] (double x, double y) -> double {return SH::realSH(1,1,x,y) + SH::realSH(1,-1,x,y) + SH::realSH(2,1,x,y) + SH::realSH(2,-1,x,y)+ SH::realSH(2,2,x,y) + SH::realSH(2,-2,x,y) ;});
-	for(std::vector<float>::iterator i = c.begin(); i != c.end(); ++i)
+	for(auto i = c.begin(); i != c.end(); ++i)
 		std::cout << (*i) << "\n";
 	SHMat rot(glm::rotate(glm::mat4(1.0f), 0.0f, glm::vec3(1.0f, 0.0f, 0.0f)), 3);
 	c = rot * c;
 	std::cout << "Rotated:\n";
-	for(std::vector<float>::iterator i = c.begin(); i != c.end(); ++i)
+	for(auto i = c.begin(); i != c.end(); ++i)
 		std::cout << (*i) << "\n";
 	*/
 	glEnable(GL_CULL_FACE);
@@ -76,7 +76,8 @@ int init()
 	pShader = new ParticleShader(true, "ScrollTexFire");
 	Texture* flameTex = new Texture("bigFlame.png");
 	Texture* decayTex = new Texture("decay2.png");
-	AdvectParticlesCentroidLights<nSwirls>* centreParticles = new AdvectParticlesCentroidLights<nSwirls>(10, 10, 1000, pShader, flameTex, decayTex);
+	AdvectParticlesCentroidLights<nSwirls>* centreParticles =
+		new AdvectParticlesCentroidLights<nSwirls>(10, 10, 1000, pShader, flameTex, decayTex);
 	centreParticles->translate(glm::vec3(0.0, -1.0, 3.0));
 	scene->add(centreParticles);
 
@@ -94,7 +95,7 @@ int init()
 
 	std::vector<DiffPRTMesh*> loadedPRT = DiffPRTMesh::loadFile("teapot.obj", 2, shShader);
 
-	for(std::vector<DiffPRTMesh*>::iterator i = loadedPRT.begin();
+	for(auto i = loadedPRT.begin();
 		i != loadedPRT.end(); ++i)
 	{
 		(*i)->uniformScale(0.08f);
@@ -103,7 +104,7 @@ int init()
 
 	std::vector<Mesh*> loaded = Mesh::loadFile("Rabbit.obj", lShader);
 
-	for(std::vector<Mesh*>::iterator i = loaded.begin();
+	for(auto i = loaded.begin();
 		i != loaded.end(); ++i)
 	{
 		(*i)->uniformScale(2.0f);
@@ -115,7 +116,7 @@ int init()
 
 	loaded = Mesh::loadFile("house plant.obj", lShader);
 
-	for(std::vector<Mesh*>::iterator i = loaded.begin();
+	for(auto i = loaded.begin();
 		i != loaded.end(); ++i)
 	{
 		(*i)->uniformScale(0.004f);

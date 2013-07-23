@@ -76,8 +76,10 @@ GLuint Shader::loadShader(const std::string& filename, int shaderType, bool DEBU
 	if(subs.size() > 0)
 	{
 		std::string modSource(source);
-		for(std::vector<std::string>::iterator i = subs.begin(); i != subs.end(); i += 2)
+
+		for(auto i = subs.begin(); i != subs.end(); i += 2)
 			boost::replace_all(modSource, *i, *(i + 1));
+
 		const char* src = modSource.c_str();
 		glShaderSource(shaderObject, 1, &src, 0);
 	}

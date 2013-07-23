@@ -57,14 +57,14 @@ std::vector<glm::vec4> SH::shProject(int sqrtNSamples, int nBands,
 
 	/* Normalize coefficients */
 	double nSamples = sqrtNSamples * sqrtNSamples;
-	for(std::vector<glm::vec3>::iterator i = coeffts.begin(); i != coeffts.end(); ++i)
+	for(auto i = coeffts.begin(); i != coeffts.end(); ++i)
 	{
 		(*i) *= 4.0 * PI / nSamples;
 	}
 
 	/* Convert coeffts to vec4 */
 	std::vector<glm::vec4> coeffts4;
-	for(std::vector<glm::vec3>::iterator i = coeffts.begin(); i != coeffts.end(); ++i)
+	for(auto i = coeffts.begin(); i != coeffts.end(); ++i)
 		coeffts4.push_back(glm::vec4((*i), 1.0));
 
 	return coeffts4;
