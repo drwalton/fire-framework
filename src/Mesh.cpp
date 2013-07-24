@@ -121,6 +121,7 @@ void Mesh::render()
 }
 
 std::vector<DiffPRTMesh*> DiffPRTMesh::loadFile(
+	bool shadowed,
 	const std::string& filename,
 	int nBands,
 	SHShader* _shader)
@@ -130,11 +131,21 @@ std::vector<DiffPRTMesh*> DiffPRTMesh::loadFile(
 	std::vector<DiffPRTMesh*> meshes;
 
 	/* Check for file with precomputed coeffts */
-	std::string prtFilename = 
-		filename + 
-		".prt" +
-		std::to_string(static_cast<long long>(GC::nSHBands)); 
-	/* Sorry, VC2++010 needs this weird cast ^ */
+	/* Precomputed filenames are of the format:
+	 * originalname.extension.prt[ds][usi][0-9]+
+	 * Where d is diffuse, s specular
+	 *		 u is unshadowed, s shadowed, i interreflected
+	 *       The terminating number indicates the no. of SH
+	 *       bands used in the approximation.
+	 */
+	std::string prtFilename;
+
+	if(!shadowed)
+		prtFilename = filename + ".prtdu" +
+			std::to_string(static_cast<long long>(GC::nSHBands)); 
+	else
+		prtFilename = filename + ".prtds" +
+			std::to_string(static_cast<long long>(GC::nSHBands)); 
 
 	std::ifstream prtFile(prtFilename); 
 
@@ -192,7 +203,7 @@ std::vector<DiffPRTMesh*> DiffPRTMesh::loadFile(
 	/* No such file exists, so load from regular file & compute coeffts */
 	else
 	{
-		std::cout << "No precomputed \"*.prtN\" file was found." << std::endl;
+		std::cout << "No precomputed file \"" << prtFilename << "\" was found." << std::endl;
 
 		std::vector<MeshData> data = loadFileData(filename);
 
@@ -202,7 +213,7 @@ std::vector<DiffPRTMesh*> DiffPRTMesh::loadFile(
 
 		for(GLuint m = 0; m < data.size(); ++m)
 		{
-			std::vector<PRTMeshVertex> vertexBuffer = computeVertexBuffer(data[m]);
+			std::vector<PRTMeshVertex> vertexBuffer = computeVertexBuffer(data[m], shadowed);
 			meshes.push_back(new DiffPRTMesh(vertexBuffer, data[m].e, _shader));
 
 			outFile << "Mesh " << std::to_string(static_cast<long long>(m)) << std::endl;
@@ -247,7 +258,7 @@ DiffPRTMesh::DiffPRTMesh(const std::vector<PRTMeshVertex>& vertexBuffer,
 	s_attrib = shader->getAttribLoc("transferCoeffts");
 }
 
-std::vector<PRTMeshVertex> DiffPRTMesh::computeVertexBuffer(const MeshData& d)
+std::vector<PRTMeshVertex> DiffPRTMesh::computeVertexBuffer(const MeshData& d, bool shadowed)
 {
 	std::vector<PRTMeshVertex> vertexBuffer;
 
@@ -256,20 +267,39 @@ std::vector<PRTMeshVertex> DiffPRTMesh::computeVertexBuffer(const MeshData& d)
 		PRTMeshVertex vert;
 		vert.v = d.v[i];
 
-		std::vector<glm::vec4> coeffts = SH::shProject(GC::sqrtSHSamples, GC::nSHBands, 
-			[&d, &i](double theta, double phi) -> glm::vec3 
-				{
-					glm::vec3 dir
-						(
-						sin(theta) * cos(phi),
-						sin(theta) * sin(phi),
-						cos(phi)
-						);
-					double proj = glm::dot(dir, d.n[i]);
-					proj = (proj > 0.0 ? proj : 0.0);
-					return glm::vec3(proj, proj, proj);
-				}
-			);
+		std::vector<glm::vec4> coeffts;
+
+		if(!shadowed)
+			coeffts = SH::shProject(GC::sqrtSHSamples, GC::nSHBands, 
+				[&d, &i](double theta, double phi) -> glm::vec3 
+					{
+						glm::vec3 dir
+							(
+							sin(theta) * cos(phi),
+							sin(theta) * sin(phi),
+							cos(phi)
+							);
+						double proj = glm::dot(dir, d.n[i]);
+						proj = (proj > 0.0 ? proj : 0.0);
+						return glm::vec3(proj, proj, proj);
+					}
+				);
+		else
+			coeffts = SH::shProject(GC::sqrtSHSamples, GC::nSHBands, 
+				[&d, &i](double theta, double phi) -> glm::vec3 
+					{
+						glm::vec3 dir
+							(
+							sin(theta) * cos(phi),
+							sin(theta) * sin(phi),
+							cos(phi)
+							);
+						// TODO: Check for intersection
+						double proj = glm::dot(dir, d.n[i]);
+						proj = (proj > 0.0 ? proj : 0.0);
+						return glm::vec3(proj, proj, proj);
+					}
+				);
 
 		for(GLuint c = 0; c < coeffts.size(); ++c)
 			vert.s[c] = coeffts[c];

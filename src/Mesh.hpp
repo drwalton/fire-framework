@@ -76,6 +76,7 @@ class DiffPRTMesh : public Solid
 {
 public:
 	static std::vector<DiffPRTMesh*> loadFile(
+		bool shadowed,
 		const std::string& filename,
 		int nBands,
 		SHShader* _shader);
@@ -84,7 +85,8 @@ public:
 private:
 	DiffPRTMesh(const std::vector<PRTMeshVertex>& vertexBuffer,
 		const std::vector<GLushort>&, SHShader* _shader);
-	static std::vector<PRTMeshVertex> computeVertexBuffer(const MeshData& d);
+	static std::vector<PRTMeshVertex> computeVertexBuffer(
+		const MeshData& d, bool shadowed);
 
 	size_t nBands;
 	size_t nCoeffts;

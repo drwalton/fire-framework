@@ -6,6 +6,7 @@ namespace
 }
 
 /* M\"{o}ller-Trumbore triangle-ray intersection test. */
+/* Code copied from paper, ported to C++ */
 bool triangleRayIntersect(const glm::vec3& ta, const glm::vec3& tb, const glm::vec3& tc,
 	const glm::vec3& ro, const glm::vec3& rd)
 {
@@ -18,7 +19,7 @@ bool triangleRayIntersect(const glm::vec3& ta, const glm::vec3& tb, const glm::v
 
 	if(abs(det) < EPS) return false; //Ray lies in plane of triangle.
 
-	oneOverDet = 1.0f / det;
+	float oneOverDet = 1.0f / det;
 
 	glm::vec3 T = ro - ta;
 	// Find barycentric co-ordinates u,v.

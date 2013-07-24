@@ -89,7 +89,7 @@ int init()
 	subs.push_back(std::to_string(static_cast<long long>(GC::maxSHLights))); 
 	SHShader* shShader = new SHShader(false, "PRTfrag", subs);
 
-	std::vector<DiffPRTMesh*> loadedPRT = DiffPRTMesh::loadFile("teapot.obj", 2, shShader);
+	std::vector<DiffPRTMesh*> loadedPRT = DiffPRTMesh::loadFile(false, "teapot.obj", 2, shShader);
 
 	for(auto i = loadedPRT.begin();
 		i != loadedPRT.end(); ++i)
