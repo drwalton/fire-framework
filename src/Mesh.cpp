@@ -288,13 +288,31 @@ std::vector<PRTMeshVertex> DiffPRTMesh::computeVertexBuffer(const MeshData& d, b
 			coeffts = SH::shProject(GC::sqrtSHSamples, GC::nSHBands, 
 				[&d, &i](double theta, double phi) -> glm::vec3 
 					{
+						bool intersect = false;
 						glm::vec3 dir
 							(
 							sin(theta) * cos(phi),
 							sin(theta) * sin(phi),
 							cos(phi)
 							);
-						// TODO: Check for intersection
+						// For each triangle in mesh
+						for(auto t = d.e.begin(); t != d.e.end; t += 3)
+						{
+							// Find triangle vertices
+							glm::vec3 ta = glm::vec3(d.v[*t]);
+							glm::vec3 tb = glm::vec3(d.v[*(t+1)]);
+							glm::vec3 tc = glm::vec3(d.v[*(t+2)]);
+
+							// Check for intersection
+							if(triangleRayIntersect(ta, tb, tc, d.v[i], dir))
+							{
+								intersect = true;
+								break;
+							}
+						}
+						// Light is blocked, return 0.
+						if(intersect) return glm::vec3(0.0, 0.0, 0.0);
+						// Light not occluded.
 						double proj = glm::dot(dir, d.n[i]);
 						proj = (proj > 0.0 ? proj : 0.0);
 						return glm::vec3(proj, proj, proj);

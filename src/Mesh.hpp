@@ -4,6 +4,7 @@
 #include "GC.hpp"
 #include "SH.hpp"
 #include "Renderable.hpp"
+#include "Intersect.hpp"
 
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
