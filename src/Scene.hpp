@@ -1,12 +1,11 @@
-#ifndef SCENE_H
-#define SCENE_H
+#ifndef SCENE_HPP
+#define SCENE_HPP
 
 #include "Renderable.hpp"
-#include "Particles.hpp"
 #include "Shader.hpp"
 #include "Camera.hpp"
-#include "Mesh.hpp"
 #include "GC.hpp"
+#include "LightManager.hpp"
 
 #include <glm.hpp>
 #include <glut.h>
@@ -15,24 +14,8 @@
 #include <vector>
 #include <set>
 
-class DirLight;
-class PointLight;
+class PhongLight;
 class SHLight;
-
-struct phongBlock
-{
-	glm::vec4 lightPos[GC::maxPhongLights];
-	glm::vec4 lightDiffuse[GC::maxPhongLights];
-	glm::vec4 lightSpecular[GC::maxPhongLights];
-	float lightAttenuation[GC::maxPhongLights];
-	int nLights;
-};
-
-struct SHBlock
-{
-	glm::vec4 lightCoeffts[GC::nSHCoeffts * GC::maxSHLights];
-	int nLights;
-};
 
 /* Scene
  * The Scene object handles all Element objects added to it, and renders them appropriately.
@@ -59,11 +42,9 @@ public:
 	Renderable* remove(Renderable* r);
 
 	PhongLight* add(PhongLight* l);
-	PhongLight* updateLight(PhongLight* l);
 	PhongLight* remove(PhongLight* l);
 
 	SHLight* add(SHLight* l);
-	SHLight* updateLight(SHLight* l);
 	SHLight* remove(SHLight* l);
 
 	void setAmbLight(glm::vec4 _ambLight);
@@ -78,15 +59,8 @@ private:
 
 	std::set<Shader*> shaders;
 
-	GLuint phongBlock_ubo;
-	GLuint SHBlock_ubo;
-	PhongLight* phongLights[GC::maxPhongLights];
-	phongBlock phong;
-	void updatePhongLights();
-	void updateSHLights();
-
-	SHLight* SHLights[GC::maxSHLights];
-	SHBlock sh;
+	PhongLightManager phongManager;
+	SHLightManager shManager;
 };
 
 #endif

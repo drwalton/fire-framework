@@ -2,12 +2,19 @@
 #define LIGHT_HPP
 
 #include "SH.hpp"
-#include "Scene.hpp"
+#include "LightManager.hpp"
+#include "Element.hpp"
+#include "GC.hpp"
 
 #include <glm.hpp>
 #include <glew.h>
 
+class PhongLight;
+class SHLight;
+class Element;
 class Scene;
+class PhongLightManager;
+class SHLightManager;
 
 /* Light
  * An Element which is a light source (ADT).
@@ -16,9 +23,7 @@ class Scene;
  */
 class Light : public Element
 {
-public:
-	Light() :scene(nullptr) {};
-	Scene* scene;
+	
 };
 
 /* PhongLight
@@ -32,12 +37,12 @@ public:
 	PhongLight(glm::vec4 _pos)
 		:pos(_pos), diffuse(glm::vec4(0.001, 0.001, 0.001, 1.0)),
 		 specular(glm::vec4(0.001, 0.001, 0.001, 1.0)), attenuation(3.0f),
-		 index(-1) {};
+		 index(-1), manager(nullptr) {};
 	PhongLight(glm::vec4 _pos, glm::vec4 _diffuse,
 		glm::vec4 _specular, float _attenuation)
 		:pos(_pos), diffuse(_diffuse),
 		 specular(_specular), attenuation(_attenuation),
-		 index(-1) {};
+		 index(-1), manager(nullptr) {};
 	void setPos(glm::vec4 _pos);
 	void setDiffuse(glm::vec4 _diffuse);
 	void setSpecular(glm::vec4 _specular);
@@ -47,6 +52,7 @@ public:
 	glm::vec4 getSpecular() {return specular;};
 	float getAttenuation() {return attenuation;};
 	int index;
+	PhongLightManager* manager;
 private:
 	glm::vec4 pos;
 	glm::vec4 diffuse;
@@ -67,13 +73,14 @@ public:
 	void setCoeffts(std::vector<glm::vec4>);
 	std::vector<glm::vec4> getCoeffts() {return coeffts;};
 	int index;
+	SHLightManager* manager;
 private:
 	std::vector<glm::vec4> coeffts;
 };
 
 template <typename Fn>
 SHLight::SHLight(Fn func)
-	:index(-1)
+	:index(-1), manager(nullptr)
 {
 	coeffts = SH::shProject(GC::sqrtSHSamples, GC::nSHBands, func);
 };

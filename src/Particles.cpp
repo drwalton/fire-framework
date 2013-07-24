@@ -1,7 +1,9 @@
-template<int maxParticles>
-AdvectParticles<maxParticles>::AdvectParticles(ParticleShader* _shader, 
+#include "Particles.hpp"
+
+AdvectParticles::AdvectParticles(int _maxParticles,
+	ParticleShader* _shader, 
 	Texture* _bbTex, Texture* _decayTex)
-	:ParticleSystem(_shader),
+	:ParticleSystem(_maxParticles, _shader),
 	 bbTex(_bbTex), decayTex(_decayTex),
 	 avgLifetime(1500), varLifetime(200),
 	 perturbChance(10),
@@ -12,7 +14,13 @@ AdvectParticles<maxParticles>::AdvectParticles(ParticleShader* _shader,
 	 baseRadius(0.2f),
 	 bbHeight(0.2f), bbWidth(0.2f),
 	 perturb_on(true), init_perturb(false),
-	 cameraDir(glm::vec3(0.0, 0.0, -1.0))
+	 cameraDir(glm::vec3(0.0, 0.0, -1.0)),
+	 pos(std::vector<glm::vec4>(maxParticles, glm::vec4(0.0f))),
+	 vel(std::vector<glm::vec4>(maxParticles, glm::vec4(0.0f))),
+	 acn(std::vector<glm::vec4>(maxParticles, glm::vec4(0.0f))),
+	 time(std::vector<int>(maxParticles, 0)),
+	 lifeTime(std::vector<int>(maxParticles, 0)),
+	 decay(std::vector<float>(maxParticles, 0.0f))
 {
 	shader->use();
 
@@ -27,8 +35,8 @@ AdvectParticles<maxParticles>::AdvectParticles(ParticleShader* _shader,
 	glUseProgram(0);
 }
 
-template<int maxParticles>
-AdvectParticles<maxParticles>::AdvectParticles(ParticleShader* _shader, 
+AdvectParticles::AdvectParticles(int _maxParticles,
+	ParticleShader* _shader, 
 	Texture* _bbTex, Texture* _decayTex,
 	int _avgLifetime, int _varLifetime, 
 	glm::vec4 _initAcn, glm::vec4 _initVel,
@@ -36,7 +44,7 @@ AdvectParticles<maxParticles>::AdvectParticles(ParticleShader* _shader,
 	float _baseRadius, float _centerForce,
 	float _bbHeight, float _bbWidth,
 	bool _perturb_on, bool _init_perturb)
-	:ParticleSystem(_shader),
+	:ParticleSystem(_maxParticles, _shader),
      bbTex(_bbTex), decayTex(_decayTex),
 	 avgLifetime(_avgLifetime), varLifetime(_varLifetime),
 	 perturbChance(_perturbChance),
@@ -46,9 +54,15 @@ AdvectParticles<maxParticles>::AdvectParticles(ParticleShader* _shader,
 	 centerForce(_centerForce),
 	 baseRadius(_baseRadius),
 	 bbHeight(_bbHeight), bbWidth(_bbWidth),
-	 perturb_on(_perturb_on), init_perturb(_init_perturb)
+	 perturb_on(_perturb_on), init_perturb(_init_perturb),
+	 cameraDir(glm::vec3(0.0, 0.0, -1.0)),
+	 pos(std::vector<glm::vec4>(maxParticles, glm::vec4(0.0f))),
+	 vel(std::vector<glm::vec4>(maxParticles, glm::vec4(0.0f))),
+	 acn(std::vector<glm::vec4>(maxParticles, glm::vec4(0.0f))),
+	 time(std::vector<int>(maxParticles, 0)),
+	 lifeTime(std::vector<int>(maxParticles, 0)),
+	 decay(std::vector<float>(maxParticles, 0.0f))
 {
-	cameraPos = glm::vec3(0.0, 0.0, -1.0);
 	shader->use();
 
 	// Set up particles.
@@ -63,8 +77,7 @@ AdvectParticles<maxParticles>::AdvectParticles(ParticleShader* _shader,
 	glUseProgram(0);
 }
 
-template <int maxParticles>
-void AdvectParticles<maxParticles>::render()
+void AdvectParticles::render()
 {
 	glDepthMask(GL_FALSE);
 	if(!scene) return;
@@ -76,26 +89,30 @@ void AdvectParticles<maxParticles>::render()
 
 	shader->use();
 
+	glEnableVertexAttribArray(pos_attrib);
+	glEnableVertexAttribArray(decay_attrib);
+
 	glBindBuffer(GL_ARRAY_BUFFER, pos_vbo);
-	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(pos), &(pos));
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, pos.size()*sizeof(glm::vec4), pos.data());
+	glVertexAttribPointer(pos_attrib, 4, GL_FLOAT, GL_FALSE, 0, 0);
 	
 	glBindBuffer(GL_ARRAY_BUFFER, decay_vbo);
-	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(decay), &(decay));
+	glBufferSubData(GL_ARRAY_BUFFER, 0, decay.size()*sizeof(GLfloat), decay.data());
 	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, 0, 0);
+	glVertexAttribPointer(decay_attrib, 1, GL_FLOAT, GL_FALSE, 0, 0);
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	
 	glDrawArrays(GL_POINTS, 0, maxParticles);
 
+	glDisableVertexAttribArray(pos_attrib);
+	glDisableVertexAttribArray(decay_attrib);
+
 	glUseProgram(0);
 	glDepthMask(GL_TRUE);
 }
 
-template <int maxParticles>
-void AdvectParticles<maxParticles>::update(int dTime)
+void AdvectParticles::update(int dTime)
 {
 	for(int i = 0; i < maxParticles; ++i)
 	{
@@ -103,8 +120,7 @@ void AdvectParticles<maxParticles>::update(int dTime)
 	}
 }
 
-template <int maxParticles>
-void AdvectParticles<maxParticles>::updateParticle(int index, int dTime)
+void AdvectParticles::updateParticle(int index, int dTime)
 {
 	time[index] += dTime;
 	if(time[index] > lifeTime[index]) spawnParticle(index);
@@ -116,8 +132,7 @@ void AdvectParticles<maxParticles>::updateParticle(int index, int dTime)
 	pos[index] += (float) dTime * vel[index];
 }
 
-template <int maxParticles>
-void AdvectParticles<maxParticles>::spawnParticle(int index)
+void AdvectParticles::spawnParticle(int index)
 {
 	time[index] = 0;
 	lifeTime[index] = avgLifetime + randi(-varLifetime, +varLifetime);
@@ -127,38 +142,33 @@ void AdvectParticles<maxParticles>::spawnParticle(int index)
 	pos[index] = randInitPos();
 }
 
-template <int maxParticles>
-glm::vec4 AdvectParticles<maxParticles>::randInitPos()
+glm::vec4 AdvectParticles::randInitPos()
 {
 	float theta = randf(0.0f, 2.0f * PI);
 	float radius = randf(0.0f, baseRadius);
 	return glm::vec4(radius*cos(theta), 0.0, radius*sin(theta), 1.0);
 }
 
-template <int maxParticles>
-glm::vec4 AdvectParticles<maxParticles>::perturb(glm::vec4 input)
+glm::vec4 AdvectParticles::perturb(glm::vec4 input)
 {
 	float theta = randf(0.0f, 2.0f * PI);
 	float radius = randf(0.0f, perturbRadius);
 	return input + glm::vec4(radius * cos(theta), 0.0, radius * sin(theta), 0.0);
 }
 
-template <int maxParticles>
-float AdvectParticles<maxParticles>::randf(float low, float high)
+float AdvectParticles::randf(float low, float high)
 {
 	float r = (float) rand() / (float) RAND_MAX;
 	return low + ((high - low) * r);
 }
 
-template <int maxParticles>
-int AdvectParticles<maxParticles>::randi(int low, int high)
+int AdvectParticles::randi(int low, int high)
 {
 	int r = rand() % (high - low);
 	return r + low;
 }
 
-template <int maxParticles>
-void AdvectParticles<maxParticles>::init(Texture* bbTex, Texture* decayTex)
+void AdvectParticles::init(Texture* bbTex, Texture* decayTex)
 {
 	shader->setBBTexUnit(bbTex->getTexUnit());
 	shader->setDecayTexUnit(decayTex->getTexUnit());
@@ -166,11 +176,11 @@ void AdvectParticles<maxParticles>::init(Texture* bbTex, Texture* decayTex)
 	// Set up vertex buffer objects.
 	glGenBuffers(1, &pos_vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, pos_vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(pos), &(pos), GL_DYNAMIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, pos.size()*sizeof(glm::vec4), pos.data(), GL_DYNAMIC_DRAW);
 
 	glGenBuffers(1, &decay_vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, decay_vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(decay), &decay, GL_DYNAMIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, decay.size()*sizeof(GLfloat), decay.data(), GL_DYNAMIC_DRAW);
 
 	// Set up uniforms.
 	shader->setBBWidth(bbWidth);
@@ -180,10 +190,9 @@ void AdvectParticles<maxParticles>::init(Texture* bbTex, Texture* decayTex)
 	decay_attrib = shader->getAttribLoc("vDecay");
 }
 
-template <int maxParticles>
-AdvectParticlesLights<maxParticles>::AdvectParticlesLights(int _nLights, 
+AdvectParticlesLights::AdvectParticlesLights(int _maxParticles, int _nLights, 
 	ParticleShader* _shader, Texture* _bbTex, Texture* _decayTex)
-	:AdvectParticles<maxParticles>(_shader, _bbTex, _decayTex),
+	:AdvectParticles(_maxParticles, _shader, _bbTex, _decayTex),
 	 nLights(_nLights)
 {
 	// Set up vector of lights.
@@ -193,9 +202,9 @@ AdvectParticlesLights<maxParticles>::AdvectParticlesLights(int _nLights,
 	}
 }
 
-template <int maxParticles>
-AdvectParticlesLights<maxParticles>::AdvectParticlesLights(
-	int nLights, ParticleShader* _shader, 
+AdvectParticlesLights::AdvectParticlesLights(
+	int _maxParticles,
+	int _nLights, ParticleShader* _shader, 
 	Texture* _bbTex, Texture* _decayTex,
 	int avgLifetime, int varLifetime, 
 	glm::vec4 initAcn, glm::vec4 initVel,
@@ -203,7 +212,8 @@ AdvectParticlesLights<maxParticles>::AdvectParticlesLights(
 	float baseRadius, float centerForce,
 	float bbHeight, float bbWidth,
 	bool perturb_on, bool _init_perturb)
-	:AdvectParticles<maxParticles>(_shader, _bbTex, _decayTex,
+	:AdvectParticles(_maxParticles, 
+	 _shader, _bbTex, _decayTex,
 	 avgLifetime, varLifetime, 
 	 initAcn, initVel,
 	 perturbChance, perturbRadius,
@@ -219,14 +229,13 @@ AdvectParticlesLights<maxParticles>::AdvectParticlesLights(
 	}
 }
 
-template <int maxParticles>
-void AdvectParticlesLights<maxParticles>::onAdd()
+void AdvectParticlesLights::onAdd()
 {
 	PhongLight* p;
 	// Add lights
-	for(int i = 0; i < nLights; ++i)
+	for(auto l = lights.begin(); l != lights.end(); ++l)
 	{
-		p = scene->add(lights[i]);
+		p = scene->add(*l);
 		if(p == nullptr) //Light not added correctly (too many lights?).
 		{
 			std::cout << "Warning: Not all particle lights could be added.\n";
@@ -235,32 +244,31 @@ void AdvectParticlesLights<maxParticles>::onAdd()
 	}
 }
 
-template <int maxParticles>
-void AdvectParticlesLights<maxParticles>::onRemove()
+void AdvectParticlesLights::onRemove()
 {
-	for (int i = 0; i < nLights; ++i)
-	{
-		scene->remove(lights[i]);
-	}
+	for(auto l = lights.begin(); l != lights.end(); ++l)
+		scene->remove(*l);
 }
 
-template <int maxParticles>
-void AdvectParticlesLights<maxParticles>::update(int dTime)
+void AdvectParticlesLights::update(int dTime)
 {
-	AdvectParticles<maxParticles>::update(dTime);
+	AdvectParticles::update(dTime);
 	updateLights();
 }
 
-template <int maxParticles>
-AdvectParticlesRandLights<maxParticles>::AdvectParticlesRandLights(int _nLights,
+AdvectParticlesRandLights::AdvectParticlesRandLights(
+	int _maxParticles, int _nLights,
 	int _interval, ParticleShader* _shader, 
 	Texture* _bbTex, Texture* _decayTex)
-	:AdvectParticlesLights(_nLights, _shader, 
+	:AdvectParticlesLights(_maxParticles,
+		_nLights, _shader, 
 		_bbTex, _decayTex),
-		interval(_interval), counter(0), particles(std::vector<int>(nLights)) {init();}
+	interval(_interval), counter(0), 
+	particles(std::vector<int>(nLights, 0)) 
+{randomizeLights();}
 
-template <int maxParticles>
-AdvectParticlesRandLights<maxParticles>::AdvectParticlesRandLights(int _nLights,
+AdvectParticlesRandLights::AdvectParticlesRandLights(
+	int _maxParticles, int _nLights,
 	int _interval, ParticleShader* _shader, 
 	Texture* _bbTex, Texture* _decayTex,
 	int avgLifetime, int varLifetime, 
@@ -269,7 +277,8 @@ AdvectParticlesRandLights<maxParticles>::AdvectParticlesRandLights(int _nLights,
 	float baseRadius, float centerForce,
 	float bbHeight, float bbWidth,
 	bool perturb_on, bool _init_perturb)
-	:AdvectParticlesLights(nLights, _shader, 
+	:AdvectParticlesLights(_maxParticles,
+	_nLights, _shader, 
 	_bbTex, _decayTex,
 	avgLifetime, varLifetime, 
 	initAcn, initVel,
@@ -277,18 +286,11 @@ AdvectParticlesRandLights<maxParticles>::AdvectParticlesRandLights(int _nLights,
 	baseRadius, centerForce,
 	bbHeight, bbWidth,
 	perturb_on, _init_perturb),
-	interval(_interval), counter(0), particles(std::vector<int>(nLights)) {init();}
+	interval(_interval), counter(0), 
+	particles(std::vector<int>(nLights, 0))
+{randomizeLights();}
 
-template <int maxParticles>
-void AdvectParticlesRandLights<maxParticles>::init()
-{
-	for(int i = 0; i < nLights; ++i)
-		particles[i] = 0;
-	randomizeLights();
-}
-
-template <int maxParticles>
-void AdvectParticlesRandLights<maxParticles>::updateLights()
+void AdvectParticlesRandLights::updateLights()
 {
 	if(interval == 0)
 		randomizeLights();
@@ -308,31 +310,33 @@ void AdvectParticlesRandLights<maxParticles>::updateLights()
 	}
 }
 
-template <int maxParticles>
-void AdvectParticlesRandLights<maxParticles>::randomizeLights()
+void AdvectParticlesRandLights::randomizeLights()
 {
 	//Move each light to the location of a randomly selected particle.
-	int randIndex;
+	int randParticle;
 	for(int i = 0; i < nLights; ++i)
 	{
-		randIndex = randi(0, maxParticles);
-		particles[i] = randIndex;
+		randParticle = randi(0, maxParticles);
+		particles[i] = randParticle;
 	}
 }
 
-template <int maxParticles>
-AdvectParticlesCentroidLights<maxParticles>::AdvectParticlesCentroidLights(
+AdvectParticlesCentroidLights::AdvectParticlesCentroidLights(
+	int _maxParticles,
 	int _nLights, int _clumpSize,
 	int _interval, ParticleShader* _shader, 
 	Texture* _bbTex, Texture* _decayTex)
-	:AdvectParticlesLights(_nLights, _shader, 
+	:AdvectParticlesLights(_maxParticles, 
+		_nLights, _shader, 
 		_bbTex, _decayTex),
-		interval(_interval), counter(0),
-		clumpSize(_clumpSize)
-{init();}
+	 interval(_interval), counter(0),
+	 clumpSize(_clumpSize)
+{
+	init();
+}
 
-template <int maxParticles>
-AdvectParticlesCentroidLights<maxParticles>::AdvectParticlesCentroidLights(
+AdvectParticlesCentroidLights::AdvectParticlesCentroidLights(
+	int _maxParticles,
 	int _nLights, int _clumpSize,
 	int _interval, ParticleShader* _shader, 
 	Texture* _bbTex, Texture* _decayTex,
@@ -342,20 +346,22 @@ AdvectParticlesCentroidLights<maxParticles>::AdvectParticlesCentroidLights(
 	float baseRadius, float centerForce,
 	float bbHeight, float bbWidth,
 	bool perturb_on, bool _init_perturb)
-	:AdvectParticlesLights(nLights, _shader, 
-	_bbTex, _decayTex,
-	avgLifetime, varLifetime, 
-	initAcn, initVel,
-	perturbChance, perturbRadius,
-	baseRadius, centerForce,
-	bbHeight, bbWidth,
-	perturb_on, _init_perturb),
-	interval(_interval), counter(0),
-	clumpSize(_clumpSize)
-{init();}
+	:AdvectParticlesLights(_maxParticles,
+		_nLights, _shader, 
+		_bbTex, _decayTex,
+		avgLifetime, varLifetime, 
+		initAcn, initVel,
+		perturbChance, perturbRadius,
+		baseRadius, centerForce,
+		bbHeight, bbWidth,
+		perturb_on, _init_perturb),
+	 interval(_interval), counter(0),
+	 clumpSize(_clumpSize)
+{
+	init();
+}
 
-template <int maxParticles>
-void AdvectParticlesCentroidLights<maxParticles>::init()
+void AdvectParticlesCentroidLights::init()
 {
 	for(int i = 0; i < nLights; ++i)
 	{
@@ -366,16 +372,14 @@ void AdvectParticlesCentroidLights<maxParticles>::init()
 	}
 }
 
-template <int maxParticles>
-void AdvectParticlesCentroidLights<maxParticles>::randomizeClumps()
+void AdvectParticlesCentroidLights::randomizeClumps()
 {
 	for(auto i = clumps.begin(); i != clumps.end(); ++i)
 		for(auto j = i->begin(); j != i->end(); ++j)
 			(*j) = randi(0, maxParticles);
 }
 
-template <int maxParticles>
-void AdvectParticlesCentroidLights<maxParticles>::updateLights()
+void AdvectParticlesCentroidLights::updateLights()
 {
 	if(interval == 0)
 		randomizeClumps();
@@ -395,8 +399,7 @@ void AdvectParticlesCentroidLights<maxParticles>::updateLights()
 	}
 }
 
-template <int maxParticles>
-glm::vec4 AdvectParticlesCentroidLights<maxParticles>::getParticleCentroid(const std::vector<int>& clump)
+glm::vec4 AdvectParticlesCentroidLights::getParticleCentroid(const std::vector<int>& clump)
 {
 	glm::vec4 sum;
 	for(auto i = clump.begin(); i != clump.end(); ++i)

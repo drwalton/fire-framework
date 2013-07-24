@@ -1,28 +1,28 @@
 #ifndef PARTICLES_HPP
 #define PARTICLES_HPP
 
+#include <glew.h>
 #include <SOIL.h>
 #include <glut.h>
-#include "glm.hpp"
+#include <glm.hpp>
 
 #include "Texture.hpp"
 #include "Shader.hpp"
-#include "Light.hpp"
+#include "Scene.hpp"
 
 #include <vector>
-
-class PhongLight;
 
 /* ParticleSystem
  * An ADT for a renderable object which is a particle system.
  */
-template <int maxParticles>
 class ParticleSystem : public Renderable
 {
 public:
-	ParticleSystem(ParticleShader* _shader) :Renderable(true), shader(_shader) {};
+	ParticleSystem(int _maxParticles, ParticleShader* _shader) 
+		:Renderable(true), maxParticles(_maxParticles), shader(_shader) {};
 	Shader* getShader() {return (Shader*) shader;};
 protected:
+	int maxParticles;
 	ParticleShader* shader;
 };
 
@@ -40,12 +40,13 @@ protected:
  *  decayTex determined by the particle's remaining lifetime.
  * **Note** that scrollTexParticles.glsl uses bbTex in a different way. See the shader source for more details.
  */
-template <int maxParticles>
-class AdvectParticles : public ParticleSystem<maxParticles>
+class AdvectParticles : public ParticleSystem
 {
 public:
-	AdvectParticles(ParticleShader* _shader, Texture* _bbTex, Texture* _decayTex);
-	AdvectParticles(ParticleShader* _shader, Texture* _bbTex, Texture* _decayTex,
+	AdvectParticles(int _maxParticles, ParticleShader* _shader,
+		Texture* _bbTex, Texture* _decayTex);
+	AdvectParticles(int _maxParticles, ParticleShader* _shader,
+		Texture* _bbTex, Texture* _decayTex,
 		int avgLifetime, int varLifetime, 
 		glm::vec4 initAcn, glm::vec4 initVel,
 		int perturbChance, float perturbRadius,
@@ -56,7 +57,7 @@ public:
 	void render();
 	virtual void update(int dTime);
 protected:
-	std::array<glm::vec4, maxParticles> pos;
+	std::vector<glm::vec4> pos;
 	int randi(int low, int high);
 	float randf(float low, float high);
 private:
@@ -71,15 +72,18 @@ private:
 	const float bbHeight; //Particle billboard width.
 	const float bbWidth;  //Particle billboard height.
 	glm::vec3 cameraDir;
-	std::array<glm::vec4, maxParticles> vel;
-	std::array<glm::vec4, maxParticles> acn;
-	std::array<int,       maxParticles> time;
-	std::array<int,       maxParticles> lifeTime;
-	std::array<float,     maxParticles> decay;
+
+	std::vector<glm::vec4> vel;
+	std::vector<glm::vec4> acn;
+	std::vector<int> time;
+	std::vector<int> lifeTime;
+	std::vector<float> decay;
+
 	GLuint pos_vbo;
 	GLuint decay_vbo;
 	GLuint pos_attrib;
 	GLuint decay_attrib;
+
 	bool perturb_on;
 	bool init_perturb;
 
@@ -89,6 +93,7 @@ private:
 	void updateParticle(int index, int dTime);
 	void spawnParticle(int index);
 	void init(Texture* bbTex, Texture* decayTex);
+
 	glm::vec4 perturb(glm::vec4 input);
 	glm::vec4 randInitPos();
 };
@@ -97,13 +102,14 @@ private:
  * ADT for a derived class of AdvectParticles owning a number of light
  * sources
  */
-template <int maxParticles>
-class AdvectParticlesLights : public AdvectParticles<maxParticles>
+class AdvectParticlesLights : public AdvectParticles
 {
 public:
-	AdvectParticlesLights(int _nLights, ParticleShader* _shader, 
+	AdvectParticlesLights(int _maxParticles,
+		int _nLights, ParticleShader* _shader, 
 		Texture* _bbTex, Texture* _decayTex);
-	AdvectParticlesLights(int nLights, ParticleShader* _shader, 
+	AdvectParticlesLights(int _maxParticles, 
+		int nLights, ParticleShader* _shader, 
 		Texture* _bbTex, Texture* _decayTex,
 		int avgLifetime, int varLifetime, 
 		glm::vec4 initAcn, glm::vec4 initVel,
@@ -129,14 +135,15 @@ protected:
  *     * interval == 0 : Lights hop every frame.
  *     * interval == -1: Lights never hop.
  */
-template <int maxParticles>
-class AdvectParticlesRandLights : public AdvectParticlesLights<maxParticles>
+class AdvectParticlesRandLights : public AdvectParticlesLights
 {
 public:
-	AdvectParticlesRandLights(int _nLights,
+	AdvectParticlesRandLights(
+		int _maxParticles, int _nLights,
 		int _interval, ParticleShader* _shader, 
 		Texture* _bbTex, Texture* _decayTex);
-	AdvectParticlesRandLights(int _nLights,
+	AdvectParticlesRandLights(
+		int _maxParticles, int _nLights,
 		int _interval, ParticleShader* _shader, 
 		Texture* _bbTex, Texture* _decayTex,
 		int avgLifetime, int varLifetime, 
@@ -159,14 +166,15 @@ private:
  * Similar approach to AdvectParticlesRandLights, but each light is placed at the 
  * centroid of "clumpSize" particles.
  */
-template <int maxParticles>
-class AdvectParticlesCentroidLights : public AdvectParticlesLights<maxParticles>
+class AdvectParticlesCentroidLights : public AdvectParticlesLights
 {
 public:
-	AdvectParticlesCentroidLights(int _nLights, int _clumpSize,
+	AdvectParticlesCentroidLights(
+		int _maxParticles, int _nLights, int _clumpSize,
 		int _interval, ParticleShader* _shader, 
 		Texture* _bbTex, Texture* _decayTex);
-	AdvectParticlesCentroidLights(int _nLights, int _clumpSize,
+	AdvectParticlesCentroidLights(
+		int _maxParticles, int _nLights, int _clumpSize,
 		int _interval, ParticleShader* _shader, 
 		Texture* _bbTex, Texture* _decayTex,
 		int avgLifetime, int varLifetime, 
@@ -186,7 +194,5 @@ private:
 	std::vector<std::vector<int>> clumps;
 	glm::vec4 getParticleCentroid(const std::vector<int>& clump);
 };
-
-#include "Particles.cpp"
 
 #endif
