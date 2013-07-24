@@ -26,6 +26,15 @@ protected:
 	ParticleShader* shader;
 };
 
+namespace
+{
+	struct AdvectParticle
+	{
+		glm::vec4 pos;
+		GLfloat decay;
+	};
+}
+
 /* AdvectParticles
  * A ParticleSystem consisting of MaxParticles particles, which behave as follows:
  * #1: Particles spawn at a random point in a disk of radius baseRadius, around (0,0,0) in model space.
@@ -57,7 +66,7 @@ public:
 	void render();
 	virtual void update(int dTime);
 protected:
-	std::vector<glm::vec4> pos;
+	std::vector<AdvectParticle> particles;
 	int randi(int low, int high);
 	float randf(float low, float high);
 private:
@@ -77,10 +86,8 @@ private:
 	std::vector<glm::vec4> acn;
 	std::vector<int> time;
 	std::vector<int> lifeTime;
-	std::vector<float> decay;
 
-	GLuint pos_vbo;
-	GLuint decay_vbo;
+	GLuint particles_vbo;
 	GLuint pos_attrib;
 	GLuint decay_attrib;
 
@@ -159,7 +166,7 @@ private:
 	const int interval;
 	void init();
 	void randomizeLights();
-	std::vector<int> particles;
+	std::vector<int> lightIndices;
 };
 
 /* AdvectParticlesCentroidLights

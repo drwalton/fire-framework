@@ -19,8 +19,6 @@ void main()
 {
 	gl_Position = worldToCamera * modelToWorld * vPos;
 
-	
-
 	for(int c = 0; c < $nSHCoeffts$; ++c)
 		smoothCoeffts[c] = transferCoeffts[c];
 }

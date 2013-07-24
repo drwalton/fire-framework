@@ -10,20 +10,23 @@
 class PhongLight;
 class SHLight;
 
-struct phongBlock
+namespace
 {
-	glm::vec4 lightPos[GC::maxPhongLights];
-	glm::vec4 lightDiffuse[GC::maxPhongLights];
-	glm::vec4 lightSpecular[GC::maxPhongLights];
-	float lightAttenuation[GC::maxPhongLights];
-	int nLights;
-};
+	struct phongBlock
+	{
+		glm::vec4 lightPos[GC::maxPhongLights];
+		glm::vec4 lightDiffuse[GC::maxPhongLights];
+		glm::vec4 lightSpecular[GC::maxPhongLights];
+		float lightAttenuation[GC::maxPhongLights];
+		int nLights;
+	};
 
-struct SHBlock
-{
-	glm::vec4 lightCoeffts[GC::nSHCoeffts * GC::maxSHLights];
-	int nLights;
-};
+	struct SHBlock
+	{
+		glm::vec4 lightCoeffts[GC::nSHCoeffts * GC::maxSHLights];
+		int nLights;
+	};
+}
 
 class PhongLightManager
 {

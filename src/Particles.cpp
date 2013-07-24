@@ -15,25 +15,11 @@ AdvectParticles::AdvectParticles(int _maxParticles,
 	 bbHeight(0.2f), bbWidth(0.2f),
 	 perturb_on(true), init_perturb(false),
 	 cameraDir(glm::vec3(0.0, 0.0, -1.0)),
-	 pos(std::vector<glm::vec4>(maxParticles, glm::vec4(0.0f))),
 	 vel(std::vector<glm::vec4>(maxParticles, glm::vec4(0.0f))),
 	 acn(std::vector<glm::vec4>(maxParticles, glm::vec4(0.0f))),
 	 time(std::vector<int>(maxParticles, 0)),
-	 lifeTime(std::vector<int>(maxParticles, 0)),
-	 decay(std::vector<float>(maxParticles, 0.0f))
-{
-	shader->use();
-
-	// Set up particles.
-	for(int i = 0; i < maxParticles; ++i)
-	{
-		spawnParticle(i);
-	}
-
-	init(bbTex, decayTex);
-
-	glUseProgram(0);
-}
+	 lifeTime(std::vector<int>(maxParticles, 0))
+{init(bbTex, decayTex);}
 
 AdvectParticles::AdvectParticles(int _maxParticles,
 	ParticleShader* _shader, 
@@ -56,25 +42,49 @@ AdvectParticles::AdvectParticles(int _maxParticles,
 	 bbHeight(_bbHeight), bbWidth(_bbWidth),
 	 perturb_on(_perturb_on), init_perturb(_init_perturb),
 	 cameraDir(glm::vec3(0.0, 0.0, -1.0)),
-	 pos(std::vector<glm::vec4>(maxParticles, glm::vec4(0.0f))),
 	 vel(std::vector<glm::vec4>(maxParticles, glm::vec4(0.0f))),
 	 acn(std::vector<glm::vec4>(maxParticles, glm::vec4(0.0f))),
 	 time(std::vector<int>(maxParticles, 0)),
-	 lifeTime(std::vector<int>(maxParticles, 0)),
-	 decay(std::vector<float>(maxParticles, 0.0f))
+	 lifeTime(std::vector<int>(maxParticles, 0))
+{init(bbTex, decayTex);}
+
+void AdvectParticles::init(Texture* bbTex, Texture* decayTex)
 {
+
 	shader->use();
 
 	// Set up particles.
 	for(int i = 0; i < maxParticles; ++i)
 	{
-		spawnParticle(i);
-		if(init_perturb) vel[i] = perturb(vel[i]);
+		AdvectParticle p;
+		p.pos = randInitPos();
+		p.decay = 0.0f;
+		particles.push_back(p);
+
+		time.push_back(0);
+		lifeTime.push_back(avgLifetime + randi(-varLifetime, +varLifetime));
+		acn.push_back(initAcn);
+		
+		if(init_perturb) vel.push_back(perturb(vel[i]));
+		else vel.push_back(initVel);
 	}
 
-	init(bbTex, decayTex);
-
 	glUseProgram(0);
+
+	shader->setBBTexUnit(bbTex->getTexUnit());
+	shader->setDecayTexUnit(decayTex->getTexUnit());
+
+	// Set up vertex buffer objects.
+	glGenBuffers(1, &particles_vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, particles_vbo);
+	glBufferData(GL_ARRAY_BUFFER, particles.size()*sizeof(AdvectParticle), particles.data(), GL_DYNAMIC_DRAW);
+
+	// Set up uniforms.
+	shader->setBBWidth(bbWidth);
+	shader->setBBHeight(bbHeight);
+
+	pos_attrib = shader->getAttribLoc("vPos");
+	decay_attrib = shader->getAttribLoc("vDecay");
 }
 
 void AdvectParticles::render()
@@ -89,21 +99,21 @@ void AdvectParticles::render()
 
 	shader->use();
 
+	glBindBuffer(GL_ARRAY_BUFFER, particles_vbo);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, particles.size()*sizeof(AdvectParticle), particles.data());
+
 	glEnableVertexAttribArray(pos_attrib);
 	glEnableVertexAttribArray(decay_attrib);
 
-	glBindBuffer(GL_ARRAY_BUFFER, pos_vbo);
-	glBufferSubData(GL_ARRAY_BUFFER, 0, pos.size()*sizeof(glm::vec4), pos.data());
-	glVertexAttribPointer(pos_attrib, 4, GL_FLOAT, GL_FALSE, 0, 0);
-	
-	glBindBuffer(GL_ARRAY_BUFFER, decay_vbo);
-	glBufferSubData(GL_ARRAY_BUFFER, 0, decay.size()*sizeof(GLfloat), decay.data());
-	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(decay_attrib, 1, GL_FLOAT, GL_FALSE, 0, 0);
+	glBindVertexBuffer(0, particles_vbo, 0, sizeof(AdvectParticle));
+	glVertexAttribFormat(pos_attrib, 4, GL_FLOAT, GL_FALSE, offsetof(AdvectParticle, pos));
+	glVertexAttribBinding(pos_attrib, 0);
+	glVertexAttribFormat(decay_attrib, 1, GL_FLOAT, GL_FALSE, offsetof(AdvectParticle, decay));
+	glVertexAttribBinding(decay_attrib, 0);
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	
-	glDrawArrays(GL_POINTS, 0, maxParticles);
+	glDrawArrays(GL_POINTS, 0, particles.size());
 
 	glDisableVertexAttribArray(pos_attrib);
 	glDisableVertexAttribArray(decay_attrib);
@@ -115,31 +125,29 @@ void AdvectParticles::render()
 void AdvectParticles::update(int dTime)
 {
 	for(int i = 0; i < maxParticles; ++i)
-	{
 		updateParticle(i, dTime);
-	}
 }
 
 void AdvectParticles::updateParticle(int index, int dTime)
 {
 	time[index] += dTime;
 	if(time[index] > lifeTime[index]) spawnParticle(index);
-	decay[index] = ((float) time[index]) / ((float) lifeTime[index]);
+	particles[index].decay = ((float) time[index]) / ((float) lifeTime[index]);
 
 	if(time[index] % perturbChance == 1 && perturb_on) vel[index] = perturb(vel[index]);
 
-	vel[index] += (float) dTime * (acn[index] + (glm::vec4(-pos[index].x, 0.0, -pos[index].z, 0.0) * centerForce));
-	pos[index] += (float) dTime * vel[index];
+	vel[index] += (float) dTime * (acn[index] + (glm::vec4(-particles[index].pos.x, 0.0, -particles[index].pos.z, 0.0) * centerForce));
+	particles[index].pos += (float) dTime * vel[index];
 }
 
 void AdvectParticles::spawnParticle(int index)
 {
 	time[index] = 0;
 	lifeTime[index] = avgLifetime + randi(-varLifetime, +varLifetime);
-	decay[index] = 0.0;
+	particles[index].decay = 0.0;
 	acn[index] = initAcn;
 	vel[index] = initVel;
-	pos[index] = randInitPos();
+	particles[index].pos = randInitPos();
 }
 
 glm::vec4 AdvectParticles::randInitPos()
@@ -166,28 +174,6 @@ int AdvectParticles::randi(int low, int high)
 {
 	int r = rand() % (high - low);
 	return r + low;
-}
-
-void AdvectParticles::init(Texture* bbTex, Texture* decayTex)
-{
-	shader->setBBTexUnit(bbTex->getTexUnit());
-	shader->setDecayTexUnit(decayTex->getTexUnit());
-
-	// Set up vertex buffer objects.
-	glGenBuffers(1, &pos_vbo);
-	glBindBuffer(GL_ARRAY_BUFFER, pos_vbo);
-	glBufferData(GL_ARRAY_BUFFER, pos.size()*sizeof(glm::vec4), pos.data(), GL_DYNAMIC_DRAW);
-
-	glGenBuffers(1, &decay_vbo);
-	glBindBuffer(GL_ARRAY_BUFFER, decay_vbo);
-	glBufferData(GL_ARRAY_BUFFER, decay.size()*sizeof(GLfloat), decay.data(), GL_DYNAMIC_DRAW);
-
-	// Set up uniforms.
-	shader->setBBWidth(bbWidth);
-	shader->setBBHeight(bbHeight);
-
-	pos_attrib = shader->getAttribLoc("vPos");
-	decay_attrib = shader->getAttribLoc("vDecay");
 }
 
 AdvectParticlesLights::AdvectParticlesLights(int _maxParticles, int _nLights, 
@@ -264,7 +250,7 @@ AdvectParticlesRandLights::AdvectParticlesRandLights(
 		_nLights, _shader, 
 		_bbTex, _decayTex),
 	interval(_interval), counter(0), 
-	particles(std::vector<int>(nLights, 0)) 
+	lightIndices(std::vector<int>(nLights, 0)) 
 {randomizeLights();}
 
 AdvectParticlesRandLights::AdvectParticlesRandLights(
@@ -287,7 +273,7 @@ AdvectParticlesRandLights::AdvectParticlesRandLights(
 	bbHeight, bbWidth,
 	perturb_on, _init_perturb),
 	interval(_interval), counter(0), 
-	particles(std::vector<int>(nLights, 0))
+	lightIndices(std::vector<int>(nLights, 0))
 {randomizeLights();}
 
 void AdvectParticlesRandLights::updateLights()
@@ -306,18 +292,17 @@ void AdvectParticlesRandLights::updateLights()
 
 	for(int i = 0; i < nLights; ++i)
 	{
-		lights[i]->setPos(modelToWorld * pos[particles[i]]);
+		lights[i]->setPos(modelToWorld * particles[i].pos);
 	}
 }
 
 void AdvectParticlesRandLights::randomizeLights()
 {
 	//Move each light to the location of a randomly selected particle.
-	int randParticle;
-	for(int i = 0; i < nLights; ++i)
+	for(auto i = lightIndices.begin(); i != lightIndices.end(); ++i)
 	{
-		randParticle = randi(0, maxParticles);
-		particles[i] = randParticle;
+		int randParticleIndex = randi(0, maxParticles);
+		*i = randParticleIndex;
 	}
 }
 
@@ -403,6 +388,6 @@ glm::vec4 AdvectParticlesCentroidLights::getParticleCentroid(const std::vector<i
 {
 	glm::vec4 sum;
 	for(auto i = clump.begin(); i != clump.end(); ++i)
-		sum += pos[(*i)];
+		sum += particles[*i].pos;
 	return sum / (float) clump.size();
 }
