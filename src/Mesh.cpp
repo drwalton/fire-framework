@@ -260,9 +260,11 @@ DiffPRTMesh::DiffPRTMesh(const std::vector<PRTMeshVertex>& vertexBuffer,
 
 std::vector<PRTMeshVertex> DiffPRTMesh::computeVertexBuffer(const MeshData& d, bool shadowed)
 {
-	std::vector<PRTMeshVertex> vertexBuffer;
+	std::vector<PRTMeshVertex> vertexBuffer(d.v.size());
+	int currPercent = 0;
 
-	for(GLuint i = 0; i < d.v.size(); ++i)
+	#pragma omp parallel for
+	for(int i = 0; i < d.v.size(); ++i)
 	{
 		PRTMeshVertex vert;
 		vert.v = d.v[i];
@@ -295,16 +297,24 @@ std::vector<PRTMeshVertex> DiffPRTMesh::computeVertexBuffer(const MeshData& d, b
 							sin(theta) * sin(phi),
 							cos(phi)
 							);
+
+						double proj = glm::dot(dir, d.n[i]);
+						if(proj <= 0.0f) return glm::vec3(0.0, 0.0, 0.0);
+
 						// For each triangle in mesh
-						for(auto t = d.e.begin(); t != d.e.end; t += 3)
+						for(int e = 0; e < d.e.size(); e += 3)
 						{
 							// Find triangle vertices
-							glm::vec3 ta = glm::vec3(d.v[*t]);
-							glm::vec3 tb = glm::vec3(d.v[*(t+1)]);
-							glm::vec3 tc = glm::vec3(d.v[*(t+2)]);
+							glm::vec3 ta = glm::vec3(d.v[d.e[e]]);
+							glm::vec3 tb = glm::vec3(d.v[d.e[e+1]]);
+							glm::vec3 tc = glm::vec3(d.v[d.e[e+2]]);
+
+							// Push ray away from surface a little
+							// to avoid colliding with own triangle.
+							glm::vec3 ro = glm::vec3(d.v[i]) + (1e-5f * dir);
 
 							// Check for intersection
-							if(triangleRayIntersect(ta, tb, tc, d.v[i], dir))
+							if(triangleRayIntersect(ta, tb, tc, ro, dir))
 							{
 								intersect = true;
 								break;
@@ -313,8 +323,7 @@ std::vector<PRTMeshVertex> DiffPRTMesh::computeVertexBuffer(const MeshData& d, b
 						// Light is blocked, return 0.
 						if(intersect) return glm::vec3(0.0, 0.0, 0.0);
 						// Light not occluded.
-						double proj = glm::dot(dir, d.n[i]);
-						proj = (proj > 0.0 ? proj : 0.0);
+
 						return glm::vec3(proj, proj, proj);
 					}
 				);
@@ -322,7 +331,20 @@ std::vector<PRTMeshVertex> DiffPRTMesh::computeVertexBuffer(const MeshData& d, b
 		for(GLuint c = 0; c < coeffts.size(); ++c)
 			vert.s[c] = coeffts[c];
 
-		vertexBuffer.push_back(vert);
+		vertexBuffer[i] = vert;
+
+		/*
+		int percent = (int) (i * 100 / d.v.size());
+
+		if(percent > currPercent)
+		{
+			currPercent = percent;
+			if(percent % 10 == 0) 
+				std::cout << percent << "% complete\n";
+			else
+				std::cout << "*";
+		}
+		*/
 	}
 
 	return vertexBuffer;

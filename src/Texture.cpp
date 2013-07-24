@@ -7,7 +7,6 @@ GLuint Texture::nextTexUnit = 0;
 Texture::Texture(const std::string& filename)
 {
 	texUnit = nextTexUnit;
-	std::cout << "Texture unit " << texUnit << " created\n";
 	++nextTexUnit;
 
 	glActiveTexture(GL_TEXTURE0 + texUnit);
