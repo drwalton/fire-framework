@@ -281,7 +281,9 @@ std::vector<PRTMeshVertex> DiffPRTMesh::computeVertexBuffer(const MeshData& d, b
 							sin(theta) * sin(phi),
 							cos(theta)
 							);
-						double proj = glm::dot(dir, d.n[i]);
+						dir = glm::normalize(dir);
+						glm::vec3 norm = glm::normalize(d.n[i]);
+						double proj = glm::dot(dir, norm);
 						proj = (proj > 0.0 ? proj : 0.0);
 						return glm::vec3(proj, proj, proj);
 					}

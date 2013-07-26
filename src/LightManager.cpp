@@ -33,6 +33,7 @@ PhongLight* PhongLightManager::add(PhongLight* l)
 	l->manager = this;
 	++block.nLights;
 	updateBlock();
+	return l;
 }
 
 PhongLight* PhongLightManager::update(PhongLight* l)

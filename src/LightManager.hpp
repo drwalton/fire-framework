@@ -2,6 +2,7 @@
 #define LIGHTMANAGER_HPP
 
 #include <glew.h>
+#include <array>
 
 #include "Light.hpp"
 #include "GC.hpp"
