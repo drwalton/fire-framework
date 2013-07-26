@@ -196,6 +196,13 @@ LightShader::LightShader(bool hasGeometry, const std::string& filename)
 	init();
 }
 
+LightShader::LightShader(bool hasGeometry, const std::string& filename,
+	std::vector<std::string> subs)
+	:Shader(hasGeometry, filename, subs), maxPhongLights(50)
+{
+	init();
+}
+
 void LightShader::init()
 {
 	use();
@@ -269,4 +276,19 @@ SHShader::SHShader(bool hasGeomShader,  const std::string& filename,
 	:Shader(hasGeomShader, filename, subs)
 {
 	setupUniformBlock("SHBlock");
+}
+
+AOShader::AOShader(bool hasGeomShader,  const std::string& filename)
+	:LightShader(hasGeomShader, filename)
+{
+	setupUniformBlock("ambBlock");
+	setupUniformBlock("phongBlock");
+}
+
+AOShader::AOShader(bool hasGeomShader,  const std::string& filename, 
+	std::vector<std::string> subs)
+	:LightShader(hasGeomShader, filename, subs)
+{
+	setupUniformBlock("ambBlock");
+	setupUniformBlock("PhongBlock");
 }

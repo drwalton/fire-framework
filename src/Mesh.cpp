@@ -53,6 +53,20 @@ namespace
 		}
 		return data;
 	}
+
+	bool isNAN(float f)
+	{
+		return (f != f); //Note that NAN != NAN.
+	}
+
+	bool isNAN(glm::vec3 v)
+	{
+		return (
+			isNAN(v.x) ||
+			isNAN(v.y) ||
+			isNAN(v.z) 
+			);
+	}
 }
 
 std::vector<Mesh*> Mesh::loadFile(const std::string& filename,
@@ -123,7 +137,6 @@ void Mesh::render()
 std::vector<DiffPRTMesh*> DiffPRTMesh::loadFile(
 	bool shadowed,
 	const std::string& filename,
-	int nBands,
 	SHShader* _shader)
 {
 	std::cout << "Attempting to load scene file " + filename << std::endl;
@@ -198,6 +211,8 @@ std::vector<DiffPRTMesh*> DiffPRTMesh::loadFile(
 				<< " of " << vertexBuffer.size() << " vertices, " 
 				<< elemBuffer.size() << " elements." << std::endl;
 		}
+
+		prtFile.close();
 	}
 
 	/* No such file exists, so load from regular file & compute coeffts */
@@ -261,7 +276,6 @@ DiffPRTMesh::DiffPRTMesh(const std::vector<PRTMeshVertex>& vertexBuffer,
 std::vector<PRTMeshVertex> DiffPRTMesh::computeVertexBuffer(const MeshData& d, bool shadowed)
 {
 	std::vector<PRTMeshVertex> vertexBuffer(d.v.size());
-	int currPercent = 0;
 
 	#pragma omp parallel for
 	for(int i = 0; i < d.v.size(); ++i)
@@ -367,4 +381,232 @@ void DiffPRTMesh::render()
 	glDisableVertexAttribArray(v_attrib);
 	for(int c = 0; c < GC::nSHCoeffts; ++c)
 		glDisableVertexAttribArray(s_attrib + c);
+}
+
+std::vector<AOMesh*> AOMesh::loadFile(
+		const std::string& filename,
+		AOShader* _shader)
+{
+	std::cout << "Attempting to load scene file " + filename << std::endl;
+
+	std::vector<AOMesh*> meshes;
+
+	/* Check for file with precomputed coeffts */
+	/* Precomputed filenames are of the format:
+	 * originalname.extension.ao
+	 */
+	std::string aoFilename = filename + ".ao";
+
+	std::ifstream aoFile(aoFilename); 
+
+	/* File exists, so load data from it */
+	if(aoFile.is_open()) 
+	{
+		std::cout << "Precomputed file found." << std::endl;
+		std::cout << "Loading from precomputed file " + aoFilename << std::endl;
+
+		/* Load each mesh in turn */
+		while(aoFile.good())
+		{
+			std::vector<AOMeshVertex> vertBuffer;
+			std::vector<GLushort> elemBuffer;
+
+			char ignore[10];
+			aoFile.getline(ignore, 10); //Throw the "Mesh N" line.
+			aoFile.getline(ignore, 10); //Throw the "Vertices" line.
+
+			float next;
+
+			while(aoFile >> next)
+			{
+				AOMeshVertex vert;
+				vert.v.x = next;
+				aoFile >> vert.v.y;
+				aoFile >> vert.v.z;
+				aoFile >> vert.v.w;
+				aoFile >> vert.bentN.x;
+				aoFile >> vert.bentN.y;
+				aoFile >> vert.bentN.z;
+				aoFile >> vert.occl;
+
+				vertBuffer.push_back(vert);
+			}
+
+			aoFile.clear();
+
+			aoFile.getline(ignore, 10); //Throw the "Elements" line.
+
+			int elem;
+			while(aoFile >> elem)
+				elemBuffer.push_back(static_cast<GLushort>(elem));
+
+			meshes.push_back(new AOMesh(vertBuffer, elemBuffer, _shader));
+
+			std::cout << "> Mesh " << meshes.size() - 1 
+				<< " of " << vertBuffer.size() << " vertices, " 
+				<< elemBuffer.size() << " elements." << std::endl;
+		}
+
+		aoFile.close();
+	}
+
+	/* No precomputed file found. */
+	else
+	{
+		std::cout << "No precomputed file \"" << aoFilename << "\" was found." << std::endl;
+
+		std::vector<MeshData> data = loadFileData(filename);
+
+		std::ofstream outFile(aoFilename);
+
+		std::cout << "> Calculating AO coefficients & bent normals (may take some time)..." << std::endl;
+
+		for(GLuint m = 0; m < data.size(); ++m)
+		{
+			std::vector<AOMeshVertex> vertBuffer = computeVertBuffer(data[m]);
+			meshes.push_back(new AOMesh(vertBuffer, data[m].e, _shader));
+
+			outFile << "Mesh " << std::to_string(static_cast<long long>(m)) << std::endl;
+			outFile << "Vertices" << std::endl;
+
+			for(auto i = vertBuffer.begin(); i != vertBuffer.end(); ++i)
+			{
+				outFile << (*i).v.x << " " << (*i).v.y << " " << (*i).v.z << " " << (*i).v.w << std::endl;
+				outFile << (*i).bentN.x << " " << (*i).bentN.y << " " << (*i).bentN.z << std::endl;
+				outFile << (*i).occl << std::endl;
+			}
+
+			outFile << "Elements" << std::endl;
+
+			for(auto i = data[m].e.begin(); i != data[m].e.end(); ++i)
+				outFile << (*i) << std::endl;
+		}
+
+		outFile.close();
+
+		std::cout << "> Done!" << std::endl;
+	}
+
+	return meshes;
+}
+
+std::vector<AOMeshVertex> AOMesh::computeVertBuffer(const MeshData& d)
+{
+	std::vector<AOMeshVertex> vertBuffer(d.v.size());
+
+	#pragma omp parallel for
+	for(int i = 0; i < d.v.size(); ++i)
+	{
+		vertBuffer[i].v = d.v[i];
+		vertBuffer[i].bentN = glm::vec3(0.0f);
+		vertBuffer[i].occl = 0.0f;
+
+		double sqrSize = 1.0 / GC::sqrtAOSamples;
+
+		for(int x = 0; x < GC::sqrtAOSamples; ++x)
+			for(int y = 0; y < GC::sqrtAOSamples; ++y)
+			{
+				double u = (x * sqrSize);
+				double v = (y * sqrSize);
+				double theta = acos((2 * u) - 1);
+				double phi = 2 * SH::PI * v;
+
+				glm::vec3 dir
+					(
+					sin(theta) * cos(phi),
+					sin(theta) * sin(phi),
+					cos(theta)
+					);
+
+				/* Continue if dir is into surface */
+				if(glm::dot(dir, d.n[i]) < 0.0f) continue;
+
+				/* Check for intersection */
+				bool intersect = false;
+
+				for(int t = 0; t < d.e.size(); t += 3)
+				{
+					// Find triangle vertices
+					glm::vec3 ta = glm::vec3(d.v[d.e[t]]);
+					glm::vec3 tb = glm::vec3(d.v[d.e[t+1]]);
+					glm::vec3 tc = glm::vec3(d.v[d.e[t+2]]);
+
+					if(triangleRayIntersect(ta, tb, tc, glm::vec3(d.v[i]), dir))
+					{
+						intersect = true;
+						break; // No need to check other triangles.
+					}
+				}
+
+				if(!intersect)
+				{
+					vertBuffer[i].bentN += dir;
+					vertBuffer[i].occl += 1.0f;
+				}
+			}
+
+		/* Normalize bent norm and occlusion coefft */
+		vertBuffer[i].bentN = glm::normalize(vertBuffer[i].bentN);
+		if(isNAN(vertBuffer[i].bentN))
+			vertBuffer[i].bentN = d.n[i]; // Give original vector as fallback.
+
+		vertBuffer[i].occl /= (GC::nAOSamples);
+	}
+
+	return vertBuffer;
+}
+
+AOMesh::AOMesh(const std::vector<AOMeshVertex>& vertexBuffer,
+	const std::vector<GLushort>& elemBuffer, AOShader* _shader)
+	:Solid(_shader)
+{
+	numElems = elemBuffer.size();
+
+	glGenBuffers(1, &v_vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, v_vbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(AOMeshVertex) * vertexBuffer.size(), vertexBuffer.data(), GL_STATIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glGenBuffers(1, &e_vbo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, e_vbo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLushort) * elemBuffer.size(), elemBuffer.data(), GL_STATIC_DRAW);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+	v_attrib = shader->getAttribLoc("vPos");
+	bentN_attrib = shader->getAttribLoc("bentN");
+	occl_attrib = shader->getAttribLoc("occl");
+}
+
+void AOMesh::render()
+{
+	if(!scene) return;
+	
+	shader->setModelToWorld(modelToWorld);
+	shader->setMaterial(material);
+
+	shader->use();
+	glEnableVertexAttribArray(v_attrib);
+	glEnableVertexAttribArray(bentN_attrib);
+	glEnableVertexAttribArray(occl_attrib);
+
+	glBindVertexBuffer(0, v_vbo, 0, sizeof(AOMeshVertex));
+	glVertexAttribFormat(v_attrib, 4, GL_FLOAT, GL_FALSE, 0);
+	glVertexAttribBinding(v_attrib, 0);
+	glVertexAttribFormat(bentN_attrib, 3, GL_FLOAT, GL_FALSE, 
+		offsetof(AOMeshVertex, bentN));
+	glVertexAttribBinding(bentN_attrib, 0);
+	glVertexAttribFormat(occl_attrib, 1, GL_FLOAT, GL_FALSE, 
+		offsetof(AOMeshVertex, occl));
+	glVertexAttribBinding(occl_attrib, 0);
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, e_vbo);
+
+	glDrawElements(GL_TRIANGLES, (GLsizei) numElems, GL_UNSIGNED_SHORT, 0);
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+	glDisableVertexAttribArray(v_attrib);
+	glDisableVertexAttribArray(bentN_attrib);
+	glDisableVertexAttribArray(occl_attrib);
 }

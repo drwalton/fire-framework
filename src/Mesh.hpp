@@ -43,7 +43,17 @@ namespace
 		glm::vec4 s[GC::nSHCoeffts];
 	};
 
+	struct AOMeshVertex
+	{
+		glm::vec4 v;
+		glm::vec3 bentN;
+		GLfloat occl;
+	};
+
 	std::vector<MeshData> loadFileData(const std::string& filename);
+
+	bool isNAN(float f);
+	bool isNAN(glm::vec3 v);
 }
 
 class MeshFileException : public std::exception {};
@@ -79,24 +89,44 @@ public:
 	static std::vector<DiffPRTMesh*> loadFile(
 		bool shadowed,
 		const std::string& filename,
-		int nBands,
 		SHShader* _shader);
 	void render();
 	void update(int dTime) {};
 private:
 	DiffPRTMesh(const std::vector<PRTMeshVertex>& vertexBuffer,
-		const std::vector<GLushort>&, SHShader* _shader);
+		const std::vector<GLushort>& elemBuffer, SHShader* _shader);
 	static std::vector<PRTMeshVertex> computeVertexBuffer(
 		const MeshData& d, bool shadowed);
-
-	size_t nBands;
-	size_t nCoeffts;
 
 	size_t numElems;
 	GLuint v_vbo;
 	GLuint e_vbo;
 	GLuint v_attrib;
 	GLuint s_attrib;
+};
+
+class AOMesh : public Solid
+{
+public:
+	static std::vector<AOMesh*> loadFile(
+		const std::string& filename,
+		AOShader* _shader);
+	void render();
+	void update(int dTime) {};
+private:
+	AOMesh(const std::vector<AOMeshVertex>& vertBuffer,
+		const std::vector<GLushort>& elemBuffer,
+		AOShader* _shader);
+	static std::vector<AOMeshVertex> computeVertBuffer(
+		const MeshData& d);
+
+	size_t numElems;
+
+	GLuint v_vbo;
+	GLuint e_vbo;
+	GLuint v_attrib;
+	GLuint bentN_attrib;
+	GLuint occl_attrib;
 };
 
 #endif

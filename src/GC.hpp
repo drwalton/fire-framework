@@ -15,6 +15,10 @@ namespace GC
 	const int nSHCoeffts = nSHBands * nSHBands;
 	const int sqrtSHSamples = 10;
 	const int maxSHLights = 10;
+
+	/* AO */
+	const int sqrtAOSamples = 10;
+	const int nAOSamples = sqrtAOSamples * sqrtAOSamples;
 }
 
 /* Useful mathematical constants */
