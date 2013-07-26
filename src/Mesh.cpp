@@ -279,7 +279,7 @@ std::vector<PRTMeshVertex> DiffPRTMesh::computeVertexBuffer(const MeshData& d, b
 							(
 							sin(theta) * cos(phi),
 							sin(theta) * sin(phi),
-							cos(phi)
+							cos(theta)
 							);
 						double proj = glm::dot(dir, d.n[i]);
 						proj = (proj > 0.0 ? proj : 0.0);
@@ -295,7 +295,7 @@ std::vector<PRTMeshVertex> DiffPRTMesh::computeVertexBuffer(const MeshData& d, b
 							(
 							sin(theta) * cos(phi),
 							sin(theta) * sin(phi),
-							cos(phi)
+							cos(theta)
 							);
 
 						double proj = glm::dot(dir, d.n[i]);
@@ -332,19 +332,6 @@ std::vector<PRTMeshVertex> DiffPRTMesh::computeVertexBuffer(const MeshData& d, b
 			vert.s[c] = coeffts[c];
 
 		vertexBuffer[i] = vert;
-
-		/*
-		int percent = (int) (i * 100 / d.v.size());
-
-		if(percent > currPercent)
-		{
-			currPercent = percent;
-			if(percent % 10 == 0) 
-				std::cout << percent << "% complete\n";
-			else
-				std::cout << "*";
-		}
-		*/
 	}
 
 	return vertexBuffer;
