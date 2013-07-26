@@ -89,7 +89,7 @@ int init()
 	subs.push_back(std::to_string(static_cast<long long>(GC::maxSHLights))); 
 	SHShader* shShader = new SHShader(false, "PRTfrag", subs);
 
-	std::vector<DiffPRTMesh*> loadedPRT = DiffPRTMesh::loadFile(false, "teapot.obj", 2, shShader);
+	std::vector<DiffPRTMesh*> loadedPRT = DiffPRTMesh::loadFile(true, "teapot.obj", 2, shShader);
 
 	for(auto i = loadedPRT.begin();
 		i != loadedPRT.end(); ++i)
@@ -121,8 +121,8 @@ int init()
 	SHLight* light = new SHLight(
 		[] (double theta, double phi) -> glm::vec3 
 		{
-			float val = 0.2f;
-			//float val = (theta + phi) > 1.0 ? 1.0f : 0.0f;
+			//float val = 0.2f;
+			float val = theta > 2.0 ? 0.6f : 0.0f;
 			return glm::vec3(val, val, val);
 		}
 	);
