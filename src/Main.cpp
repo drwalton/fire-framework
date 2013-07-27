@@ -80,24 +80,42 @@ int init()
 	randParticles->translate(glm::vec3(0.0, -1.0, -3.0));
 	scene->add(randParticles);
 
-	LightShader* lShader = new LightShader(false, "Solid");
+	AOShader* aoShader = new AOShader(false, "AOSolid");
 
+	auto loadedAO = AOMesh::loadFile("Rabbit.obj", aoShader);
+
+	for(auto i = loadedAO.begin();
+		i != loadedAO.end(); ++i)
+	{
+		(*i)->uniformScale(2.0f);
+		(*i)->translate(glm::vec3(0.0, -1.5, 0.0));
+		scene->add(*i);
+	}
+
+	/*
+	LightShader* lShader = new LightShader(false, "Solid");
+	*/
+
+	/*
 	std::vector<std::string> subs;
 	subs.push_back("$nSHCoeffts$"); 
 	subs.push_back(std::to_string(static_cast<long long>(GC::nSHCoeffts))); 
 	subs.push_back("$maxSHLights$"); 
 	subs.push_back(std::to_string(static_cast<long long>(GC::maxSHLights))); 
 	SHShader* shShader = new SHShader(false, "PRTfrag", subs);
-
-	std::vector<DiffPRTMesh*> loadedPRT = DiffPRTMesh::loadFile(false, "teapot.obj", 2, shShader);
+	
+	std::vector<DiffPRTMesh*> loadedPRT = DiffPRTMesh::loadFile(true, "Rabbit.obj", shShader);
 
 	for(auto i = loadedPRT.begin();
 		i != loadedPRT.end(); ++i)
 	{
-		(*i)->uniformScale(0.08f);
+		(*i)->uniformScale(2.0f);
+		(*i)->translate(glm::vec3(0.0, -1.5, 0.0));
 		scene->add(*i);
 	}
+	*/
 
+	/*
 	std::vector<Mesh*> loaded = Mesh::loadFile("Rabbit.obj", lShader);
 
 	for(auto i = loaded.begin(); i != loaded.end(); ++i)
@@ -108,7 +126,9 @@ int init()
 		(*i)->setDiffuse(glm::vec4(1.0, 0.0, 1.0, 1.0));
 		scene->add(*i);
 	}
+	*/
 
+	/*
 	loaded = Mesh::loadFile("house plant.obj", lShader);
 
 	for(auto i = loaded.begin(); i != loaded.end(); ++i)
@@ -121,12 +141,13 @@ int init()
 	SHLight* light = new SHLight(
 		[] (double theta, double phi) -> glm::vec3 
 		{
-			float val = 0.2f;
-			//float val = (theta + phi) > 1.0 ? 1.0f : 0.0f;
+			//float val = 0.2f;
+			float val = theta > 2.0 ? 0.6f : 0.0f;
 			return glm::vec3(val, val, val);
 		}
 	);
 	scene->add(light);
+	*/
 
 	return 1;
 }

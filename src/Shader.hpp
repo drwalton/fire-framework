@@ -99,6 +99,8 @@ class LightShader : public Shader
 {
 public:
 	LightShader(bool hasGeomShader, const std::string& filename);
+	LightShader(bool hasGeomShader, const std::string& filename,
+		std::vector<std::string> subs);
 
 	void setMaterial(const Material& material);
 	void setWorldToCamera(const glm::mat4& _worldToCamera);
@@ -120,6 +122,14 @@ class SHShader : public Shader
 public:
 	SHShader(bool hasGeomShader, const std::string& filename);
 	SHShader(bool hasGeomShader, const std::string& filename,
+		std::vector<std::string> subs);
+};
+
+class AOShader : public LightShader
+{
+public:
+	AOShader(bool hasGeomShader, const std::string& filename);
+	AOShader(bool hasGeomShader, const std::string& filename,
 		std::vector<std::string> subs);
 };
 
