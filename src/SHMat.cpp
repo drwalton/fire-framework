@@ -2,6 +2,15 @@
 
 #include <iostream>
 
+SHMat::SHMat(int nBands)
+{
+	// Push nBands identity matrices into blocks.
+	for(int b = 0; b < nBands; ++b)
+	{
+		blocks.push_back(Matrix<float>(2*b + 1));
+	}
+}
+
 SHMat::SHMat(const glm::mat4& rotation, int nBands)
 {
 	glm::mat3 subMat
@@ -32,6 +41,31 @@ std::vector<float> SHMat::operator * (const std::vector<float>& p)
 	return ans;
 }
 
+std::vector<glm::vec4> SHMat::operator * (const std::vector<glm::vec4>& p)
+{
+	if(p.size() != blocks.size()*blocks.size()) 
+		throw new MatDimException;
+
+	std::vector<glm::vec4> ans;
+
+	for(int i = 0; i < blocks.size(); ++i)
+	{
+		std::vector<glm::vec4> subVec(p.begin() + (i*i), p.begin() + (i+1)*(i+1));
+		std::vector<glm::vec4> subProd = blocks[i] * subVec;
+
+		for(auto i = subProd.begin(); i != subProd.end(); ++i)
+			ans.push_back(*i);
+	}
+
+	return ans;
+}
+
+void SHMat::print()
+{
+	for(auto i = blocks.begin(); i != blocks.end(); ++i)
+		i->print();
+}
+
 void SHMat::init(const glm::mat3& rotation, int nBands)
 {
 	Matrix<float> R_o(rotation);
@@ -49,7 +83,10 @@ void SHMat::init(const glm::mat3& rotation, int nBands)
 
 	blocks.reserve(nBands);
 
-	for(int l = 0; l < nBands; ++l)
+	blocks.push_back(Matrix<float>(1, 1.0f));
+	blocks.push_back(R);
+
+	for(int l = 2; l < nBands; ++l)
 	{
 		Matrix<float> mat((unsigned)2*l + 1, (unsigned)2*l + 1);
 
@@ -64,11 +101,16 @@ void SHMat::init(const glm::mat3& rotation, int nBands)
 float SHMat::M(int l, int m, int n, const Matrix<float>& R)
 {
 	if(l == 0) return 1.0f;
-	std::cout << "l, m, n are: " << l << " " << m << " " << n << "\n";
-	std::cout << "u, v, w are: " << u(l,m,n) << " " << v(l,m,n) << " " << w(1,m,n) << "\n";
-	return u(l,m,n) * U(l,m,n,R)
-		 + v(l,m,n) * V(l,m,n,R)
-		 + w(l,m,n) * W(l,m,n,R);
+
+	float _u = u(l,m,n);
+	float _v = v(l,m,n);
+	float _w = w(l,m,n);
+
+	if(_u) _u *= U(l,m,n,R);
+	if(_v) _v *= V(l,m,n,R);
+	if(_w) _w *= W(l,m,n,R);
+
+	return _u + _v + _w;
 }
 
 float SHMat::P(int i, int l, int m, int n, const Matrix<float>& R)
@@ -84,10 +126,7 @@ float SHMat::P(int i, int l, int m, int n, const Matrix<float>& R)
 float SHMat::u(int l, int m, int n)
 {
 	if(n == l || n == -l)
-	{
-		std::cout << ((l + m) * (l - m)) / ((2*l) * (2*l - 1)) << "\n";
 		return sqrt((float) ((l + m) * (l - m)) / ((2*l) * (2*l - 1)));
-	}
 	else 
 		return sqrt((float)( ((l + m) * (l - m)) / ((l + n) * (l - n))));
 }
@@ -126,9 +165,11 @@ float SHMat::V(int l, int m, int n, const Matrix<float>& R)
 	if(m == 0)
 		return P(1, l, 1, n, R) * P(-1, l, -1, n, R);
 	else if(m > 0)
-		return P(1, l, m-1, n, R) * sqrt(1 + del(m,1)) - P(-1, l, -m+1, n, R) * (1 - del(m,1));
+		return P(1, l, m-1, n, R) * 
+			sqrt(1 + del(m,1)) - P(-1, l, -m+1, n, R) * (1 - del(m,1));
 	else //m < 0
-		return P(1, l, m+1, n, R) * (1 + del(m,-1)) + P(-1, 1, -m-1, n, R) * sqrt(1 - del(m,-1)); 
+		return P(1, l, m+1, n, R) * (1 + del(m,-1)) + 
+			P(-1, 1, -m-1, n, R) * sqrt(1 - del(m,-1)); 
 }
 
 float SHMat::W(int l, int m, int n, const Matrix<float>& R)

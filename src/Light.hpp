@@ -5,6 +5,7 @@
 #include "LightManager.hpp"
 #include "Element.hpp"
 #include "GC.hpp"
+#include "SHMat.hpp"
 
 #include <glm.hpp>
 #include <glew.h>
@@ -70,20 +71,28 @@ public:
 	SHLight(Fn func);
 	template <typename Fn>
 	void setFunc(Fn func);
-	void setCoeffts(std::vector<glm::vec4>);
-	std::vector<glm::vec4> getCoeffts() {return coeffts;};
+	void setCoeffts(std::vector<glm::vec4> _coeffts);
+	std::vector<glm::vec4> getCoeffts() {return rotation * coeffts;};
+	void rotateCoeffts(glm::mat4 rotation);
 	int index;
 	SHLightManager* manager;
 private:
 	std::vector<glm::vec4> coeffts;
+	SHMat rotation;
 };
 
 template <typename Fn>
 SHLight::SHLight(Fn func)
-	:index(-1), manager(nullptr)
+	:index(-1), manager(nullptr), rotation(SHMat(GC::nSHBands))
 {
 	coeffts = SH::shProject(GC::sqrtSHSamples, GC::nSHBands, func);
 };
 
+template <typename Fn>
+void SHLight::setFunc(Fn func)
+{
+	coeffts = SH::shProject(GC::sqrtSHSamples, GC::nSHBands, func);
+	if(manager) manager->update(this);
+}
 
 #endif

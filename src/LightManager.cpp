@@ -131,7 +131,7 @@ SHLight* SHLightManager::update(SHLight* l)
 		return nullptr; //TODO: throw exception?
 	/* Update values in stored buffers */
 	for(int c = 0; c < GC::nSHCoeffts; ++c)
-		block.lightCoeffts[block.nLights*GC::nSHCoeffts + c] = l->getCoeffts()[c];
+		block.lightCoeffts[l->index*GC::nSHCoeffts + c] = l->getCoeffts()[c];
 	updateBlock();
 	return l;
 }

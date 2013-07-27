@@ -28,6 +28,8 @@ public:
 
 	Matrix(const Matrix& other);
 
+	Matrix& operator = (const Matrix& other);
+
 	~Matrix();
 
 	const T& operator () (unsigned i, unsigned j) const;
@@ -40,6 +42,9 @@ public:
 	Matrix<T> operator + (const Matrix<T>& m);
 	Matrix<T> operator * (const Matrix<T>& m);
 	std::vector<T> operator * (const std::vector<T>& v);
+	std::vector<glm::vec4> operator * (const std::vector<glm::vec4>& v);
+
+	void print();
 
 	const unsigned r, c;
 private:
@@ -113,6 +118,18 @@ Matrix<T>::~Matrix()
 	for(unsigned i = 0; i < r; ++i)
 		delete [] data[i];
 	delete data;
+}
+
+template <typename T>
+Matrix<T>& Matrix<T>::operator = (const Matrix<T>& other)
+{
+	if(this->r != other.r || this->c != other.c)
+		throw new MatDimException;
+	for(int i = 0; i < r; ++i)
+		for(int j = 0; j < c; ++j)
+		{
+			data[i][j] = other(i,j);
+		}
 }
 
 template <typename T>
@@ -190,6 +207,23 @@ std::vector<T> Matrix<T>::operator * (const std::vector<T>& v)
 }
 
 template <typename T>
+std::vector<glm::vec4> Matrix<T>::operator * (const std::vector<glm::vec4>& v)
+{
+	if(v.size() != c) throw new MatDimException;
+	std::vector<glm::vec4> ans(r, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+
+	for(unsigned i = 0; i < r; ++i)
+		for(unsigned j = 0; j < c; ++j)
+		{
+			ans[j].x += data[i][j] * v[j].x;
+			ans[j].y += data[i][j] * v[j].y;
+			ans[j].z += data[i][j] * v[j].z;
+		}
+
+	return ans;
+}
+
+template <typename T>
 std::vector<T> operator * (const std::vector<T>& v, const Matrix<T>& m)
 {
 	if(v.size() != r) throw new MatDimException;
@@ -237,6 +271,17 @@ void Matrix<T>::zeroData()
 	for(unsigned i = 0; i < r; ++i)
 		for(unsigned j = 0; j < c; ++j)
 			data[i][j] = 0;
+}
+
+template <typename T>
+void Matrix<T>::print()
+{
+	for(unsigned i = 0; i < r; ++i)
+	{
+		for(unsigned j = 0; j < c - 1; ++j)
+			std::cout << data[i][j] << " ";
+		std::cout << data[i][c-1] << std::endl;
+	}
 }
 
 #endif

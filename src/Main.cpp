@@ -19,7 +19,10 @@ void keyboard(unsigned char, int, int);
 const int nSwirls = 400;
 const int nSparks = 5;
 
+float angle = 0.0f;
+
 Scene* scene;
+SHLight* light;
 
 const int k = 5;
 
@@ -51,16 +54,26 @@ int main(int argc, char** argv)
 // Called by glutInit().
 int init()
 {
-	/*
-	std::vector<float> c = SH::shProject(10, 3, [] (double x, double y) -> double {return SH::realSH(1,1,x,y) + SH::realSH(1,-1,x,y) + SH::realSH(2,1,x,y) + SH::realSH(2,-1,x,y)+ SH::realSH(2,2,x,y) + SH::realSH(2,-2,x,y) ;});
+
+	std::vector<glm::vec4> c = SH::shProject(10, 3, 
+		[] (double x, double y) -> glm::vec3 
+		{
+			return glm::vec3(1.0f);
+		}
+	);
+
 	for(auto i = c.begin(); i != c.end(); ++i)
-		std::cout << (*i) << "\n";
-	SHMat rot(glm::rotate(glm::mat4(1.0f), 0.0f, glm::vec3(1.0f, 0.0f, 0.0f)), 3);
+		std::cout << (*i).x << "\n";
+
+	SHMat rot(glm::rotate(glm::mat4(1.0f), 2.0f, glm::vec3(1.0f, 0.0f, 0.0f)), 3);
+	rot.print();
+
 	c = rot * c;
 	std::cout << "Rotated:\n";
 	for(auto i = c.begin(); i != c.end(); ++i)
-		std::cout << (*i) << "\n";
-	*/
+		std::cout << (*i).x << "\n";
+
+
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_BLEND); 
 	glEnable(GL_DEPTH_TEST);
@@ -136,7 +149,7 @@ int init()
 		scene->add(*i);
 	}
 	*/
-	SHLight* light = new SHLight(
+	light = new SHLight(
 		[] (double theta, double phi) -> glm::vec3 
 		{
 			//float val = 0.2f;
@@ -157,6 +170,9 @@ void display()
 	eTime = glutGet(GLUT_ELAPSED_TIME);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	scene->update(deTime);
+	light->rotateCoeffts(glm::rotate(glm::mat4(1.0f), angle, glm::vec3(1.0f, 1.0f, 0.0f)));
+	angle += 1.0f;
+	angle = angle > 360.0f ? angle - 360.0f : angle;
 	scene->render();
 	glutSwapBuffers();
 	glutPostRedisplay();

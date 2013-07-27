@@ -23,3 +23,15 @@ void PhongLight::setAttenuation(float _attenuation)
 	attenuation = _attenuation;
 	if(manager) manager->update(this);
 }
+
+void SHLight::setCoeffts(std::vector<glm::vec4> _coeffts)
+{
+	coeffts = _coeffts;
+	if(manager) manager->update(this);
+}
+
+void SHLight::rotateCoeffts(glm::mat4 _rotation)
+{
+	rotation = SHMat(_rotation, GC::nSHBands);
+	if(manager) manager->update(this);
+}
