@@ -67,7 +67,7 @@ int init()
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	scene = new Scene();
-
+	/*
 	ParticleShader* pShader = new ParticleShader(true, "ScrollTexFire");
 	Texture* flameTex = new Texture("bigFlame.png");
 	Texture* decayTex = new Texture("decay2.png");
@@ -137,17 +137,17 @@ int init()
 		(*i)->translate(glm::vec3(3.0, -1.0, 0.0));
 		scene->add(*i);
 	}
-
+	*/
 	SHLight* light = new SHLight(
 		[] (double theta, double phi) -> glm::vec3 
 		{
 			//float val = 0.2f;
 			float val = theta > 2.0 ? 0.6f : 0.0f;
+
 			return glm::vec3(val, val, val);
 		}
 	);
 	scene->add(light);
-	*/
 
 	return 1;
 }
