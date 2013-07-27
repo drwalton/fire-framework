@@ -13,7 +13,8 @@ PhongLightManager::PhongLightManager()
 	block.nLights = 0;
 
 	glGenBuffers(1, &block_ubo);
-	glBindBufferRange(GL_UNIFORM_BUFFER, Shader::getUBlockBindingIndex("phongBlock"), block_ubo, 0, sizeof(block));
+	glBindBufferRange(GL_UNIFORM_BUFFER, Shader::getUBlockBindingIndex("phongBlock"),
+		block_ubo, 0, sizeof(block));
 	glBufferData(GL_UNIFORM_BUFFER, sizeof(block), &(block), GL_STREAM_DRAW);
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
@@ -97,7 +98,8 @@ SHLightManager::SHLightManager()
 	block.nLights = 0;
 
 	glGenBuffers(1, &block_ubo);
-	glBindBufferRange(GL_UNIFORM_BUFFER, Shader::getUBlockBindingIndex("SHBlock"), block_ubo, 0, sizeof(block));
+	glBindBufferRange(GL_UNIFORM_BUFFER, Shader::getUBlockBindingIndex("SHBlock"),
+		block_ubo, 0, sizeof(block));
 	glBufferData(GL_UNIFORM_BUFFER, sizeof(block), &(block), GL_STREAM_DRAW);
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
@@ -147,11 +149,13 @@ SHLight* SHLightManager::remove(SHLight* l)
 	{
 		lights[i] = lights[i+1];
 		for(int c = 0; c < GC::nSHCoeffts; ++c)
-			block.lightCoeffts[i*GC::nSHCoeffts + c] = block.lightCoeffts[(i+1)*GC::nSHCoeffts + c];
+			block.lightCoeffts[i*GC::nSHCoeffts + c] =
+				block.lightCoeffts[(i+1)*GC::nSHCoeffts + c];
 	}
 	lights[block.nLights-1] = nullptr;
 	for(int c = 0; c < GC::nSHCoeffts; ++c)
-		block.lightCoeffts[(block.nLights)*GC::nSHCoeffts + c] = glm::vec4(0.0f);
+		block.lightCoeffts[(block.nLights)*GC::nSHCoeffts + c] =
+			glm::vec4(0.0f);
 	--block.nLights;
 	l->index = -1;
 	l->manager = nullptr;

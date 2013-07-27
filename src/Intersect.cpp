@@ -1,6 +1,7 @@
 #include "Intersect.hpp"
 
-bool triangleRayIntersect(const glm::vec3& ta, const glm::vec3& tb, const glm::vec3& tc,
+bool triangleRayIntersect(
+	const glm::vec3& ta, const glm::vec3& tb, const glm::vec3& tc,
 	const glm::vec3& ro, const glm::vec3& rd)
 {
 	// Get two edges of the triangle.

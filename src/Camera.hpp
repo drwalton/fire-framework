@@ -15,7 +15,7 @@
  */
 enum CameraModes : char { FREELOOK, CENTERED };
 
-struct cameraBlock
+struct CameraBlock
 {
 	glm::mat4 worldToCamera;
 	glm::vec4 cameraPos;
@@ -23,9 +23,10 @@ struct cameraBlock
 };
 
 /* Camera
- * Every Scene has a Camera object, which describes how world space is transformed into 
- * camera space. 
- * This consists of a rotation, translation and projection (applied in that order).
+ * Every Scene has a Camera object, which describes how
+ * world space is transformed into camera space. 
+ * This consists of a rotation, translation and projection
+ * (applied in that order).
  */
 class Camera
 {
@@ -45,14 +46,14 @@ public:
 	void keyboardInput(unsigned char key, int x, int y);
 	void mouseInput(int mouseX, int mouseY);
 
-	cameraBlock& getBlock() {return block;};
+	CameraBlock& getBlock() {return block;};
 private:
 	CameraModes mode;
 	glm::mat4 projection;
 	glm::mat4 translation;
 	glm::mat4 rotation;
 	
-	cameraBlock block;
+	CameraBlock block;
 	GLuint cameraBlock_ubo;
 
 	float theta;

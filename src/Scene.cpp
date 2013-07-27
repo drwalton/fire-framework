@@ -6,7 +6,8 @@ Scene::Scene()
 	camera = new Camera();
 
 	glGenBuffers(1, &ambBlock_ubo);
-	glBindBufferRange(GL_UNIFORM_BUFFER, Shader::getUBlockBindingIndex("ambBlock"), ambBlock_ubo, 0, sizeof(ambLight));
+	glBindBufferRange(GL_UNIFORM_BUFFER, Shader::getUBlockBindingIndex("ambBlock"),
+		ambBlock_ubo, 0, sizeof(ambLight));
 	glBufferData(GL_UNIFORM_BUFFER, sizeof(ambLight), &(ambLight[0]), GL_STREAM_DRAW);
 }
 

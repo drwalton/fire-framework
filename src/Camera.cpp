@@ -7,7 +7,7 @@ Camera::Camera()
 	:FOV(45.0f), aspect(1.0f), zNear(0.01f), zFar(50.0f),
 	 theta(0.0f), phi(0.0f),
 	 rotation(glm::mat4(1.0f)), translation(glm::mat4(1.0f)),
-	 mode(CameraModes::CENTERED)
+	 mode(CENTERED)
 
 {
 	projection = glm::perspective(FOV, aspect, zNear, zFar);
@@ -32,7 +32,8 @@ void Camera::translate(const glm::vec3& t)
 void Camera::fly(const glm::vec3& t)
 {
 	glm::vec4 translateBy = glm::vec4(glm::inverse(rotation) * glm::vec4(t, 1.0));
-	translation = glm::translate(translation, glm::vec3(translateBy.x, translateBy.y, translateBy.z));
+	translation = glm::translate(translation, 
+		glm::vec3(translateBy.x, translateBy.y, translateBy.z));
 	updateBlock();
 }
 
@@ -85,7 +86,7 @@ void Camera::setZFar(const float& newZFar)
 
 void Camera::keyboardInput(unsigned char key, int x, int y)
 {
-	if(mode == CameraModes::CENTERED)
+	if(mode == CENTERED)
 	{
 		switch(key)
 		{
@@ -108,13 +109,13 @@ void Camera::keyboardInput(unsigned char key, int x, int y)
 			rotate(0.0f, -rotDelta);
 			break;
 		case 'c':
-			mode = CameraModes::FREELOOK;
+			mode = FREELOOK;
 			reset();
 			break;
 		}
 	}
 
-	else if(mode == CameraModes::FREELOOK)
+	else if(mode == FREELOOK)
 	{
 		switch(key)
 		{
@@ -143,7 +144,7 @@ void Camera::keyboardInput(unsigned char key, int x, int y)
 			rotate(0.0f,  rotDelta);
 			break;
 		case 'c':
-			mode = CameraModes::CENTERED;
+			mode = CENTERED;
 			reset();
 			break;
 		}
@@ -167,9 +168,9 @@ void Camera::updateRotation()
 
 void Camera::updateBlock()
 {
-	if(mode == CameraModes::CENTERED)
+	if(mode == CENTERED)
 		block.worldToCamera = projection * translation * rotation;
-	else if(mode == CameraModes::FREELOOK)
+	else if(mode == FREELOOK)
 		block.worldToCamera = projection * rotation * translation;
 
 	glm::mat4 inv = glm::inverse(block.worldToCamera);

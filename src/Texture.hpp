@@ -7,7 +7,8 @@
 #include <string>
 
 /* Texture
- * Wraps the loading of an image from a file, and importing it as an OpenGL texture.
+ * Wraps the loading of an image from a file,
+ * and importing it as an OpenGL texture.
  */
 class Texture
 {

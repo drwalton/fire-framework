@@ -77,7 +77,8 @@ void AdvectParticles::init(Texture* bbTex, Texture* decayTex)
 	// Set up vertex buffer objects.
 	glGenBuffers(1, &particles_vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, particles_vbo);
-	glBufferData(GL_ARRAY_BUFFER, particles.size()*sizeof(AdvectParticle), particles.data(), GL_DYNAMIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, particles.size()*sizeof(AdvectParticle),
+		particles.data(), GL_DYNAMIC_DRAW);
 
 	// Set up uniforms.
 	shader->setBBWidth(bbWidth);
@@ -100,15 +101,18 @@ void AdvectParticles::render()
 	shader->use();
 
 	glBindBuffer(GL_ARRAY_BUFFER, particles_vbo);
-	glBufferSubData(GL_ARRAY_BUFFER, 0, particles.size()*sizeof(AdvectParticle), particles.data());
+	glBufferSubData(GL_ARRAY_BUFFER, 0, particles.size()*sizeof(AdvectParticle),
+		particles.data());
 
 	glEnableVertexAttribArray(pos_attrib);
 	glEnableVertexAttribArray(decay_attrib);
 
 	glBindVertexBuffer(0, particles_vbo, 0, sizeof(AdvectParticle));
-	glVertexAttribFormat(pos_attrib, 4, GL_FLOAT, GL_FALSE, offsetof(AdvectParticle, pos));
+	glVertexAttribFormat(pos_attrib, 4, GL_FLOAT, GL_FALSE,
+		offsetof(AdvectParticle, pos));
 	glVertexAttribBinding(pos_attrib, 0);
-	glVertexAttribFormat(decay_attrib, 1, GL_FLOAT, GL_FALSE, offsetof(AdvectParticle, decay));
+	glVertexAttribFormat(decay_attrib, 1, GL_FLOAT, GL_FALSE,
+		offsetof(AdvectParticle, decay));
 	glVertexAttribBinding(decay_attrib, 0);
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -134,9 +138,16 @@ void AdvectParticles::updateParticle(int index, int dTime)
 	if(time[index] > lifeTime[index]) spawnParticle(index);
 	particles[index].decay = ((float) time[index]) / ((float) lifeTime[index]);
 
-	if(time[index] % perturbChance == 1 && perturb_on) vel[index] = perturb(vel[index]);
+	if(time[index] % perturbChance == 1 && perturb_on)
+		vel[index] = perturb(vel[index]);
 
-	vel[index] += (float) dTime * (acn[index] + (glm::vec4(-particles[index].pos.x, 0.0, -particles[index].pos.z, 0.0) * centerForce));
+	vel[index] += (float) dTime *
+		(acn[index] + (glm::vec4(
+			-particles[index].pos.x,
+			0.0,
+			-particles[index].pos.z,
+			0.0)
+			* centerForce));
 	particles[index].pos += (float) dTime * vel[index];
 }
 
@@ -384,7 +395,8 @@ void AdvectParticlesCentroidLights::updateLights()
 	}
 }
 
-glm::vec4 AdvectParticlesCentroidLights::getParticleCentroid(const std::vector<int>& clump)
+glm::vec4 AdvectParticlesCentroidLights::getParticleCentroid(
+	const std::vector<int>& clump)
 {
 	glm::vec4 sum;
 	for(auto i = clump.begin(); i != clump.end(); ++i)

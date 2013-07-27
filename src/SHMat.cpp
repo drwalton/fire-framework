@@ -25,7 +25,7 @@ std::vector<float> SHMat::operator * (const std::vector<float>& p)
 		std::vector<float> subVec(p.begin() + (i*i), p.begin() + (i+1)*(i+1));
 		std::vector<float> subProd = blocks[i] * subVec;
 
-		for(std::vector<float>::iterator i = subProd.begin(); i != subProd.end(); ++i)
+		for(auto i = subProd.begin(); i != subProd.end(); ++i)
 			ans.push_back(*i);
 	}
 
