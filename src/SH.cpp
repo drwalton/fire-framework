@@ -47,6 +47,7 @@ double SH::P(int l, int m, double x)
 
 int SH::fact(int i)
 {
+	if(i == 0) return 1;
 	int ans = 1;
 	while(i > 0)
 	{
@@ -58,6 +59,7 @@ int SH::fact(int i)
 
 int SH::dblFact(int i)
 {
+	if(i == 0) return 1;
 	int ans = 1;
 	while(i > 0)
 	{

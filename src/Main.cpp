@@ -96,7 +96,6 @@ int init()
 	LightShader* lShader = new LightShader(false, "Solid");
 	*/
 
-	/*
 	std::vector<std::string> subs;
 	subs.push_back("$nSHCoeffts$"); 
 	subs.push_back(std::to_string(static_cast<long long>(GC::nSHCoeffts))); 
@@ -113,7 +112,6 @@ int init()
 		(*i)->translate(glm::vec3(0.0, -1.5, 0.0));
 		scene->add(*i);
 	}
-	*/
 
 	/*
 	std::vector<Mesh*> loaded = Mesh::loadFile("Rabbit.obj", lShader);

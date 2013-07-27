@@ -531,7 +531,7 @@ std::vector<AOMeshVertex> AOMesh::computeVertBuffer(const MeshData& d)
 				double u = (x * sqrSize);
 				double v = (y * sqrSize);
 				double theta = acos((2 * u) - 1);
-				double phi = 2 * SH::PI * v;
+				double phi = 2 * PI_d * v;
 
 				glm::vec3 dir
 					(
