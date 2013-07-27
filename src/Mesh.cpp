@@ -21,7 +21,8 @@ namespace
 
 			MeshData d;
 
-			std::cout << "> Mesh " << i << " of " << mesh->mNumVertices << " vertices, "
+			std::cout << "> Mesh " << i << " of "
+				<< mesh->mNumVertices << " vertices, "
 				<< mesh->mNumFaces << " faces.\n";
 
 			for(int j = 0; j < (int) mesh->mNumVertices; ++j)
@@ -96,11 +97,13 @@ Mesh::Mesh(const MeshData& d, LightShader* _shader)
 
 	glGenBuffers(1, &v_vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, v_vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(MeshVertex) * vertexBuffer.size(), vertexBuffer.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(MeshVertex) * vertexBuffer.size(),
+		vertexBuffer.data(), GL_STATIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
     glGenBuffers(1, &e_vbo);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, e_vbo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLushort) * d.e.size(), d.e.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLushort) * d.e.size(),
+		d.e.data(), GL_STATIC_DRAW);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	v_attrib = shader->getAttribLoc("vPosition");
 	n_attrib = shader->getAttribLoc("vNorm");
@@ -228,22 +231,30 @@ std::vector<DiffPRTMesh*> DiffPRTMesh::loadFile(
 
 		for(GLuint m = 0; m < data.size(); ++m)
 		{
-			std::vector<PRTMeshVertex> vertexBuffer = computeVertexBuffer(data[m], shadowed);
-			meshes.push_back(new DiffPRTMesh(vertexBuffer, data[m].e, _shader));
+			std::vector<PRTMeshVertex> vertBuffer = 
+				computeVertBuffer(data[m], shadowed);
+			meshes.push_back(new DiffPRTMesh(vertBuffer, data[m].e, _shader));
 
 			outFile << "Mesh " << std::to_string(static_cast<long long>(m)) << std::endl;
 			outFile << "Vertices" << std::endl;
 
-			for(std::vector<PRTMeshVertex>::iterator i = vertexBuffer.begin(); i != vertexBuffer.end(); ++i)
+			for(auto i = vertBuffer.begin(); i != vertBuffer.end(); ++i)
 			{
-				outFile << (*i).v.x << " " << (*i).v.y << " " << (*i).v.z << " " << (*i).v.w << std::endl;
+				outFile << (*i).v.x << " " 
+					<< (*i).v.y << " "
+					<< (*i).v.z << " " 
+					<< (*i).v.w << std::endl;
+
 				for(int c = 0; c < GC::nSHCoeffts; ++c)
-					outFile << (*i).s[c].x << " " << (*i).s[c].y << " " << (*i).s[c].z << " " << (*i).s[c].w << std::endl;
+					outFile << (*i).s[c].x << " " 
+					<< (*i).s[c].y << " " 
+					<< (*i).s[c].z << " " 
+					<< (*i).s[c].w << std::endl;
 			}
 
 			outFile << "Elements" << std::endl;
 
-			for(std::vector<GLushort>::iterator i = data[m].e.begin(); i != data[m].e.end(); ++i)
+			for(auto i = data[m].e.begin(); i != data[m].e.end(); ++i)
 				outFile << (*i) << std::endl;
 		}
 
@@ -254,7 +265,7 @@ std::vector<DiffPRTMesh*> DiffPRTMesh::loadFile(
 }
 
 
-DiffPRTMesh::DiffPRTMesh(const std::vector<PRTMeshVertex>& vertexBuffer,
+DiffPRTMesh::DiffPRTMesh(const std::vector<PRTMeshVertex>& vertBuffer,
 	const std::vector<GLushort>& elemBuffer, SHShader* _shader)
 	:Solid(_shader)
 {
@@ -262,20 +273,23 @@ DiffPRTMesh::DiffPRTMesh(const std::vector<PRTMeshVertex>& vertexBuffer,
 
 	glGenBuffers(1, &v_vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, v_vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(PRTMeshVertex) * vertexBuffer.size(), vertexBuffer.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(PRTMeshVertex) * vertBuffer.size(),
+		vertBuffer.data(), GL_STATIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
     glGenBuffers(1, &e_vbo);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, e_vbo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLushort) * elemBuffer.size(), elemBuffer.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLushort) * elemBuffer.size(),
+		elemBuffer.data(), GL_STATIC_DRAW);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
 	v_attrib = shader->getAttribLoc("vPos");
 	s_attrib = shader->getAttribLoc("transferCoeffts");
 }
 
-std::vector<PRTMeshVertex> DiffPRTMesh::computeVertexBuffer(const MeshData& d, bool shadowed)
+std::vector<PRTMeshVertex> DiffPRTMesh::computeVertBuffer(
+	const MeshData& d, bool shadowed)
 {
-	std::vector<PRTMeshVertex> vertexBuffer(d.v.size());
+	std::vector<PRTMeshVertex> vertBuffer(d.v.size());
 
 	#pragma omp parallel for
 	for(int i = 0; i < d.v.size(); ++i)
@@ -327,7 +341,8 @@ std::vector<PRTMeshVertex> DiffPRTMesh::computeVertexBuffer(const MeshData& d, b
 							glm::vec3 tc = glm::vec3(d.v[d.e[e+2]]);
 
 							// Check for intersection
-							if(triangleRayIntersect(ta, tb, tc, glm::vec3(d.v[i]), dir))
+							if(triangleRayIntersect(
+								ta, tb, tc, glm::vec3(d.v[i]), dir))
 							{
 								intersect = true;
 								break;
@@ -344,10 +359,10 @@ std::vector<PRTMeshVertex> DiffPRTMesh::computeVertexBuffer(const MeshData& d, b
 		for(GLuint c = 0; c < coeffts.size(); ++c)
 			vert.s[c] = coeffts[c];
 
-		vertexBuffer[i] = vert;
+		vertBuffer[i] = vert;
 	}
 
-	return vertexBuffer;
+	return vertBuffer;
 }
 
 void DiffPRTMesh::render()
@@ -471,8 +486,15 @@ std::vector<AOMesh*> AOMesh::loadFile(
 
 			for(auto i = vertBuffer.begin(); i != vertBuffer.end(); ++i)
 			{
-				outFile << (*i).v.x << " " << (*i).v.y << " " << (*i).v.z << " " << (*i).v.w << std::endl;
-				outFile << (*i).bentN.x << " " << (*i).bentN.y << " " << (*i).bentN.z << std::endl;
+				outFile << (*i).v.x << " " 
+					<< (*i).v.y << " " 
+					<< (*i).v.z << " " 
+					<< (*i).v.w << std::endl;
+
+				outFile << (*i).bentN.x << " " 
+					<< (*i).bentN.y << " " 
+					<< (*i).bentN.z << std::endl;
+
 				outFile << (*i).occl << std::endl;
 			}
 
@@ -556,7 +578,7 @@ std::vector<AOMeshVertex> AOMesh::computeVertBuffer(const MeshData& d)
 	return vertBuffer;
 }
 
-AOMesh::AOMesh(const std::vector<AOMeshVertex>& vertexBuffer,
+AOMesh::AOMesh(const std::vector<AOMeshVertex>& vertBuffer,
 	const std::vector<GLushort>& elemBuffer, AOShader* _shader)
 	:Solid(_shader)
 {
@@ -564,11 +586,13 @@ AOMesh::AOMesh(const std::vector<AOMeshVertex>& vertexBuffer,
 
 	glGenBuffers(1, &v_vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, v_vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(AOMeshVertex) * vertexBuffer.size(), vertexBuffer.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(AOMeshVertex) * vertBuffer.size(),
+		vertBuffer.data(), GL_STATIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
     glGenBuffers(1, &e_vbo);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, e_vbo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLushort) * elemBuffer.size(), elemBuffer.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLushort) * elemBuffer.size(),
+		elemBuffer.data(), GL_STATIC_DRAW);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
 	v_attrib = shader->getAttribLoc("vPos");

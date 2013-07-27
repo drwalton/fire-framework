@@ -36,8 +36,8 @@ void Shader::setModelToWorld(const glm::mat4& modelToWorld)
 	glUseProgram(0);
 }
 
-GLuint Shader::loadShader(const std::string& filename, int shaderType, bool DEBUG,
-	std::vector<std::string> subs)
+GLuint Shader::loadShader(const std::string& filename, int shaderType,
+	bool DEBUG,	std::vector<std::string> subs)
 {
 	glswInit();
 	glswSetPath("./", ".glsl");
@@ -120,7 +120,8 @@ GLuint Shader::compileShader(const std::string& filename, bool hasGeomShader, bo
 	GLuint vertexShader = loadShader(filename, GL_VERTEX_SHADER, DEBUG, subs);
 	GLuint fragmentShader = loadShader(filename, GL_FRAGMENT_SHADER, DEBUG, subs);
 	GLuint geomShader = 1;
-	if(hasGeomShader) geomShader = loadShader(filename, GL_GEOMETRY_SHADER, DEBUG, subs);
+	if(hasGeomShader) geomShader = 
+		loadShader(filename, GL_GEOMETRY_SHADER, DEBUG, subs);
 
 	if(!vertexShader || !fragmentShader || !geomShader)
 		return 0;

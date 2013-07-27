@@ -9,8 +9,10 @@
 
 namespace SH
 {
-	/* Finds the SH projection of func */
-	/* where func evaluates to function of type: double func(double theta, double phi) */
+	/* Finds the SH projection of func 
+	 * where func evaluates to some function
+	 * of type: double func(double theta, double phi) 
+	 */
 	template<typename Fn>
 	std::vector<glm::vec4> shProject(int sqrtNSamples, int nBands,
 		Fn func);
@@ -59,7 +61,8 @@ std::vector<glm::vec4> SH::shProject(int sqrtNSamples, int nBands,
 			for(int l = 0; l < nBands; ++l)
 				for(int m = -l; m <= l; ++m)
 				{
-					coeffts[SHI(l,m)] += func(theta, phi) * glm::vec3(realSH(l, m, theta, phi));
+					coeffts[l*(l+1) + m] += 
+						func(theta, phi) * glm::vec3(realSH(l, m, theta, phi));
 				}
 		}
 

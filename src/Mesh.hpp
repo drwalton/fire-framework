@@ -93,9 +93,9 @@ public:
 	void render();
 	void update(int dTime) {};
 private:
-	DiffPRTMesh(const std::vector<PRTMeshVertex>& vertexBuffer,
+	DiffPRTMesh(const std::vector<PRTMeshVertex>& vertBuffer,
 		const std::vector<GLushort>& elemBuffer, SHShader* _shader);
-	static std::vector<PRTMeshVertex> computeVertexBuffer(
+	static std::vector<PRTMeshVertex> computeVertBuffer(
 		const MeshData& d, bool shadowed);
 
 	size_t numElems;

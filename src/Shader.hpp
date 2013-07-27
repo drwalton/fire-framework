@@ -93,7 +93,8 @@ private:
 
 /* LightShader
  * A Shader with additional setters for uniforms related to light sources.
- * Designed for objects illuminated by ambient, point and directional lights (e.g. Solid)
+ * Designed for objects illuminated by ambient, point and directional lights
+ * (e.g. Solid)
  */
 class LightShader : public Shader
 {
