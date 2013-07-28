@@ -125,11 +125,12 @@ Matrix<T>& Matrix<T>::operator = (const Matrix<T>& other)
 {
 	if(this->r != other.r || this->c != other.c)
 		throw new MatDimException;
-	for(int i = 0; i < r; ++i)
-		for(int j = 0; j < c; ++j)
+	for(unsigned i = 0; i < r; ++i)
+		for(unsigned j = 0; j < c; ++j)
 		{
 			data[i][j] = other(i,j);
 		}
+	return *this;
 }
 
 template <typename T>

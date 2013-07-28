@@ -21,6 +21,9 @@ namespace GC
 	const int nAOSamples = sqrtAOSamples * sqrtAOSamples;
 }
 
+/* Used for testing if floats are 0 */
+const float EPS = 10e-6f;
+
 /* Useful mathematical constants */
 const float PI = 3.141592653589793238462f;
 const double SQRT_TWO_d = 1.4142135623730950;

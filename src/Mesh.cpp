@@ -292,7 +292,7 @@ std::vector<PRTMeshVertex> DiffPRTMesh::computeVertBuffer(
 	std::vector<PRTMeshVertex> vertBuffer(d.v.size());
 
 	#pragma omp parallel for
-	for(int i = 0; i < d.v.size(); ++i)
+	for(int i = 0; i < static_cast<int>(d.v.size()); ++i)
 	{
 		PRTMeshVertex vert;
 		vert.v = d.v[i];
@@ -333,7 +333,7 @@ std::vector<PRTMeshVertex> DiffPRTMesh::computeVertBuffer(
 						if(proj <= 0.0f) return glm::vec3(0.0, 0.0, 0.0);
 
 						// For each triangle in mesh
-						for(int e = 0; e < d.e.size(); e += 3)
+						for(size_t e = 0; e < d.e.size(); e += 3)
 						{
 							// Find triangle vertices
 							glm::vec3 ta = glm::vec3(d.v[d.e[e]]);
@@ -517,7 +517,7 @@ std::vector<AOMeshVertex> AOMesh::computeVertBuffer(const MeshData& d)
 	std::vector<AOMeshVertex> vertBuffer(d.v.size());
 
 	#pragma omp parallel for
-	for(int i = 0; i < d.v.size(); ++i)
+	for(int i = 0; i < static_cast<int>(d.v.size()); ++i)
 	{
 		vertBuffer[i].v = d.v[i];
 		vertBuffer[i].bentN = glm::vec3(0.0f);
@@ -525,13 +525,18 @@ std::vector<AOMeshVertex> AOMesh::computeVertBuffer(const MeshData& d)
 
 		double sqrSize = 1.0 / GC::sqrtAOSamples;
 
-		for(int x = 0; x < GC::sqrtAOSamples; ++x)
+		/* Convert norm to spherical co-ords */
+		double norm_theta = acos(d.n[i].z);
+		double norm_phi   = atan2(d.n[i].y, d.n[i].x);
+
+		/* Perform stratified sampling in the hemisphere around the norm */
+		for(int x = 0; x < GC::sqrtAOSamples / 2; ++x)
 			for(int y = 0; y < GC::sqrtAOSamples; ++y)
 			{
-				double u = (x * sqrSize);
+				double u = (x * sqrSize) + 0.5;
 				double v = (y * sqrSize);
-				double theta = acos((2 * u) - 1);
-				double phi = 2 * PI_d * v;
+				double theta = norm_theta + acos((2 * u) - 1);
+				double phi = norm_phi + (2 * PI_d * v);
 
 				glm::vec3 dir
 					(
@@ -546,7 +551,7 @@ std::vector<AOMeshVertex> AOMesh::computeVertBuffer(const MeshData& d)
 				/* Check for intersection */
 				bool intersect = false;
 
-				for(int t = 0; t < d.e.size(); t += 3)
+				for(size_t t = 0; t < d.e.size(); t += 3)
 				{
 					// Find triangle vertices
 					glm::vec3 ta = glm::vec3(d.v[d.e[t]]);
@@ -572,7 +577,7 @@ std::vector<AOMeshVertex> AOMesh::computeVertBuffer(const MeshData& d)
 		if(isNAN(vertBuffer[i].bentN))
 			vertBuffer[i].bentN = d.n[i]; // Give original vector as fallback.
 
-		vertBuffer[i].occl /= (GC::nAOSamples);
+		vertBuffer[i].occl /= PI * (GC::nAOSamples);
 	}
 
 	return vertBuffer;

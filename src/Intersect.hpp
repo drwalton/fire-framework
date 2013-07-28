@@ -2,11 +2,7 @@
 #define INTERSECT_HPP
 
 #include <glm.hpp>
-
-namespace
-{
-	const float EPS = 10e-6f;
-}
+#include "GC.hpp"
 
 /* M\"{o}ller-Trumbore triangle-ray intersection test. */
 /* Code copied from paper, ported to C++ */

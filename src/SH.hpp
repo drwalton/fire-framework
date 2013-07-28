@@ -34,8 +34,6 @@ namespace SH
 	double randd(double low, double high);
 }
 
-
-
 template<typename Fn>
 std::vector<glm::vec4> SH::shProject(int sqrtNSamples, int nBands,
 	Fn func)
@@ -61,8 +59,13 @@ std::vector<glm::vec4> SH::shProject(int sqrtNSamples, int nBands,
 			for(int l = 0; l < nBands; ++l)
 				for(int m = -l; m <= l; ++m)
 				{
+					glm::vec3 val = func(theta, phi);
+					/* Do not calculate SH if unnecessary (val is 0) */
+					if(abs(val.x) < EPS && 
+					   abs(val.y) < EPS && 
+					   abs(val.z) < EPS) continue;
 					coeffts[l*(l+1) + m] += 
-						func(theta, phi) * glm::vec3(realSH(l, m, theta, phi));
+						val * glm::vec3(realSH(l, m, theta, phi));
 				}
 		}
 

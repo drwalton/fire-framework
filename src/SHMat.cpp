@@ -29,7 +29,7 @@ std::vector<float> SHMat::operator * (const std::vector<float>& p)
 
 	std::vector<float> ans;
 
-	for(int i = 0; i < blocks.size(); ++i)
+	for(size_t i = 0; i < blocks.size(); ++i)
 	{
 		std::vector<float> subVec(p.begin() + (i*i), p.begin() + (i+1)*(i+1));
 		std::vector<float> subProd = blocks[i] * subVec;
@@ -48,7 +48,7 @@ std::vector<glm::vec4> SHMat::operator * (const std::vector<glm::vec4>& p)
 
 	std::vector<glm::vec4> ans;
 
-	for(int i = 0; i < blocks.size(); ++i)
+	for(size_t i = 0; i < blocks.size(); ++i)
 	{
 		std::vector<glm::vec4> subVec(p.begin() + (i*i), p.begin() + (i+1)*(i+1));
 		std::vector<glm::vec4> subProd = blocks[i] * subVec;
