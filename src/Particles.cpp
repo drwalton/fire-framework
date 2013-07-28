@@ -90,8 +90,10 @@ void AdvectParticles::init(Texture* bbTex, Texture* decayTex)
 
 void AdvectParticles::render()
 {
-	glDepthMask(GL_FALSE);
 	if(!scene) return;
+	glDepthMask(GL_FALSE);
+	glEnable(GL_BLEND); 
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	shader->setModelToWorld(modelToWorld);
 
@@ -123,6 +125,7 @@ void AdvectParticles::render()
 	glDisableVertexAttribArray(decay_attrib);
 
 	glUseProgram(0);
+	glDisable(GL_BLEND);
 	glDepthMask(GL_TRUE);
 }
 

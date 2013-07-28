@@ -75,12 +75,10 @@ int init()
 
 
 	glEnable(GL_CULL_FACE);
-	glEnable(GL_BLEND); 
 	glEnable(GL_DEPTH_TEST);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	scene = new Scene();
-	/*
+	
 	ParticleShader* pShader = new ParticleShader(true, "ScrollTexFire");
 	Texture* flameTex = new Texture("bigFlame.png");
 	Texture* decayTex = new Texture("decay2.png");
@@ -88,7 +86,7 @@ int init()
 		new AdvectParticlesCentroidLights(nSwirls, 10, 10, 1000, pShader, flameTex, decayTex);
 	centreParticles->translate(glm::vec3(0.0, -1.0, 3.0));
 	scene->add(centreParticles);
-
+	/*
 	AdvectParticlesRandLights* randParticles = new AdvectParticlesRandLights(nSwirls, 10, 2000, pShader, flameTex, decayTex);
 	randParticles->translate(glm::vec3(0.0, -1.0, -3.0));
 	scene->add(randParticles);
@@ -104,7 +102,7 @@ int init()
 		(*i)->translate(glm::vec3(0.0, -1.5, 0.0));
 		scene->add(*i);
 	}
-
+	*/
 	/*
 	LightShader* lShader = new LightShader(false, "Solid");
 	*/
