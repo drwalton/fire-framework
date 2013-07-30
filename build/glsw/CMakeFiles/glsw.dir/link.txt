@@ -1,2 +1,0 @@
-/usr/bin/ar cr libglsw.a  CMakeFiles/glsw.dir/bstrlib.c.o CMakeFiles/glsw.dir/glsw.c.o
-/usr/bin/ranlib libglsw.a
