@@ -15,7 +15,7 @@ layout(std140) uniform cameraBlock
 
 layout(std140) uniform SHBlock
 {
-	vec4 lightCoeffts[9 * 10];	
+	vec4 lightCoeffts[$nSHCoeffts$ * $maxSHLights$];	
 	int nLights;
 };
 
@@ -27,11 +27,11 @@ void main()
 
 	color = vec3(0.0, 0.0, 0.0);
 
-	for(int l = 0; l < 10; ++l)
+	for(int l = 0; l < $maxSHLights$; ++l)
 	{
-		for(int c = 0; c < 9; ++c)
+		for(int c = 0; c < $nSHCoeffts$; ++c)
 		{
-			color += transferCoeffts[c].xyz * lightCoeffts[c + (l * 9)].xyz;
+			color += transferCoeffts[c].xyz * lightCoeffts[c + (l * $nSHCoeffts$)].xyz;
 		}
 	}
 }

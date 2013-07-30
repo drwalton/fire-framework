@@ -525,27 +525,25 @@ std::vector<AOMeshVertex> AOMesh::computeVertBuffer(const MeshData& d)
 
 		double sqrSize = 1.0 / GC::sqrtAOSamples;
 
-		/* Convert norm to spherical co-ords */
-		double norm_theta = acos(d.n[i].z);
-		double norm_phi   = atan2(d.n[i].y, d.n[i].x);
 
 		/* Perform stratified sampling in the hemisphere around the norm */
-		for(int x = 0; x < GC::sqrtAOSamples / 2; ++x)
+		/* Sample over whole sphere first */
+		for(int x = 0; x < GC::sqrtAOSamples; ++x)
 			for(int y = 0; y < GC::sqrtAOSamples; ++y)
 			{
-				double u = (x * sqrSize) + 0.5;
+				double u = (x * sqrSize);
 				double v = (y * sqrSize);
-				double theta = norm_theta + acos((2 * u) - 1);
-				double phi = norm_phi + (2 * PI_d * v);
+				double theta = acos((2 * u) - 1);
+				double phi = (2 * PI_d * v);
 
 				glm::vec3 dir
 					(
 					sin(theta) * cos(phi),
 					sin(theta) * sin(phi),
 					cos(theta)
-					);
+					); 
 
-				/* Continue if dir is into surface */
+				/* Continue if dir is not in hemisphere around norm */
 				if(glm::dot(dir, d.n[i]) < 0.0f) continue;
 
 				/* Check for intersection */

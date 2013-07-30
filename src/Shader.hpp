@@ -41,6 +41,9 @@ public:
 protected:
 	GLuint getUniformLoc(const std::string& name);
 	void setupUniformBlock(const std::string& name);
+
+	static const std::vector<std::string> PHONG_SUBS;
+	static const std::vector<std::string> SH_SUBS;
 private:
 	GLuint id;
 	GLuint loadShader(const std::string& filename, int shaderType, bool DEBUG,

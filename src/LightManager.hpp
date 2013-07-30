@@ -19,13 +19,11 @@ namespace
 		glm::vec4 lightDiffuse[GC::maxPhongLights];
 		glm::vec4 lightSpecular[GC::maxPhongLights];
 		float lightAttenuation[GC::maxPhongLights];
-		int nLights;
 	};
 
 	struct SHBlock
 	{
 		glm::vec4 lightCoeffts[GC::nSHCoeffts * GC::maxSHLights];
-		int nLights;
 	};
 }
 
@@ -41,6 +39,7 @@ private:
 	phongBlock block;
 	GLuint block_ubo;
 	void updateBlock();
+	int nLights;
 };
 
 class SHLightManager
@@ -55,6 +54,7 @@ private:
 	SHBlock block;
 	GLuint block_ubo;
 	void updateBlock();
+	int nLights;
 };
 
 #endif

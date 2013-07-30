@@ -19,6 +19,8 @@ void main()
 {
 	gl_Position = worldToCamera * modelToWorld * vPos;
 
+	
+
 	for(int c = 0; c < $nSHCoeffts$; ++c)
 		smoothCoeffts[c] = transferCoeffts[c];
 }
@@ -30,8 +32,7 @@ in vec4 smoothCoeffts[$nSHCoeffts$];
 
 layout(std140) uniform SHBlock
 {
-	vec4 lightCoeffts[$nSHCoeffts$ * $maxSHLights$];	
-	int nLights;
+	vec4 lightCoeffts[$nSHCoeffts$ * $maxSHLights$];
 };
 
 out vec4 fragColor;

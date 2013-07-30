@@ -28,4 +28,5 @@ const float EPS = 10e-6f;
 const float PI = 3.141592653589793238462f;
 const double SQRT_TWO_d = 1.4142135623730950;
 const double PI_d = 3.141592653589793238462;
+
 #endif

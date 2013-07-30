@@ -1,5 +1,20 @@
 #include "Shader.hpp"
 
+std::string phong_subs[2] = 
+{
+	"$maxPhongLights$", std::to_string(static_cast<long long>(GC::maxPhongLights))
+};
+
+std::string sh_subs[4] = 
+{
+	"$nSHCoeffts$", std::to_string(static_cast<long long>(GC::nSHCoeffts)),
+	"$maxSHLights$", std::to_string(static_cast<long long>(GC::maxSHLights))
+};
+
+
+const std::vector<std::string> Shader::PHONG_SUBS(phong_subs, phong_subs+2);
+const std::vector<std::string> Shader::SH_SUBS(sh_subs, sh_subs+4);
+
 NoSuchException::NoSuchException(const std::string& name, Shader* const& shader)
 {
 	std::cout << "!! Could not find name \"" << name 
@@ -192,7 +207,7 @@ void Shader::setupUniformBlock(const std::string& name)
 }
 
 LightShader::LightShader(bool hasGeometry, const std::string& filename)
-	:Shader(hasGeometry, filename), maxPhongLights(50)
+	:Shader(hasGeometry, filename, PHONG_SUBS), maxPhongLights(50)
 {
 	init();
 }
@@ -267,7 +282,7 @@ void ParticleShader::setDecayTexUnit(GLuint _decayTexUnit)
 }
 
 SHShader::SHShader(bool hasGeomShader,  const std::string& filename)
-	:Shader(hasGeomShader, filename)
+	:Shader(hasGeomShader, filename, SH_SUBS)
 {
 	setupUniformBlock("SHBlock");
 }
@@ -280,7 +295,7 @@ SHShader::SHShader(bool hasGeomShader,  const std::string& filename,
 }
 
 AOShader::AOShader(bool hasGeomShader,  const std::string& filename)
-	:LightShader(hasGeomShader, filename)
+	:LightShader(hasGeomShader, filename, PHONG_SUBS)
 {
 	setupUniformBlock("ambBlock");
 	setupUniformBlock("phongBlock");

@@ -84,14 +84,15 @@ int init()
 	Texture* decayTex = new Texture("decay2.png");
 	AdvectParticlesCentroidLights* centreParticles = 
 		new AdvectParticlesCentroidLights(nSwirls, 10, 10, 1000, pShader, flameTex, decayTex);
-	centreParticles->translate(glm::vec3(0.0, -1.0, 3.0));
+	centreParticles->translate(glm::vec3(0.0, -1.0, 1.5));
 	scene->add(centreParticles);
-	/*
+
 	AdvectParticlesRandLights* randParticles = new AdvectParticlesRandLights(nSwirls, 10, 2000, pShader, flameTex, decayTex);
 	randParticles->translate(glm::vec3(0.0, -1.0, -3.0));
-	scene->add(randParticles);
+	//scene->add(randParticles);
 
 	AOShader* aoShader = new AOShader(false, "AOSolid");
+	LightShader* lightShader = new LightShader(false, "Solid");
 
 	auto loadedAO = AOMesh::loadFile("Rabbit.obj", aoShader);
 
@@ -102,17 +103,12 @@ int init()
 		(*i)->translate(glm::vec3(0.0, -1.5, 0.0));
 		scene->add(*i);
 	}
-	*/
+
 	/*
 	LightShader* lShader = new LightShader(false, "Solid");
 	*/
 
-	std::vector<std::string> subs;
-	subs.push_back("$nSHCoeffts$"); 
-	subs.push_back(std::to_string(static_cast<long long>(GC::nSHCoeffts))); 
-	subs.push_back("$maxSHLights$"); 
-	subs.push_back(std::to_string(static_cast<long long>(GC::maxSHLights))); 
-	SHShader* shShader = new SHShader(false, "PRTfrag", subs);
+	SHShader* shShader = new SHShader(false, "PRTfrag");
 	
 	std::vector<DiffPRTMesh*> loadedPRT = DiffPRTMesh::loadFile(true, "Rabbit.obj", shShader);
 
@@ -121,7 +117,7 @@ int init()
 	{
 		(*i)->uniformScale(2.0f);
 		(*i)->translate(glm::vec3(0.0, -1.5, 0.0));
-		scene->add(*i);
+		//scene->add(*i);
 	}
 
 	/*

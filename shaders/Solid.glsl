@@ -40,11 +40,10 @@ layout(std140) uniform cameraBlock
 
 layout(std140) uniform phongBlock
 {
-	vec4 lightPos[50];
-	vec4 lightDiffuse[50];
-	vec4 lightSpecular[50];
-	float lightAttenuation[50];
-	int nLights;
+	vec4 lightPos[$maxPhongLights$];
+	vec4 lightDiffuse[$maxPhongLights$];
+	vec4 lightSpecular[$maxPhongLights$];
+	float lightAttenuation[$maxPhongLights$];
 };
 
 layout(std140) uniform ambBlock
@@ -65,7 +64,7 @@ void main()
 
 	vec3 view = normalize(-vec3(cameraPos) - vec3(worldPos));
 
-	for(int i = 0; i < 50; ++i)
+	for(int i = 0; i < $maxPhongLights$; ++i)
 	{
 		// Check if light is off.
 		// Lights that are on must have diffuse.w and specular.w equal to 1.0
