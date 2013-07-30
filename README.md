@@ -16,4 +16,9 @@ The user should first construct a Scene object, to which Renderable objects may 
 Libraries
 ---------
 
-All rendering is performed by OpenGL. GLEW is employed for portability. FreeGLUT is used to control the main rendering loops and user input. SOIL is used for texture loading.
+* All rendering is performed by OpenGL. 
+* GLEW is employed for portability. 
+* FreeGLUT is used to control the main rendering loops and user input. 
+* SOIL is used for texture loading. 
+* Assimp is used to load 3D meshes.
+* GLSW is used to handle shader source files.
