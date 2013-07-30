@@ -18,7 +18,7 @@ namespace GC
 
 	/* AO */
 	const int sqrtAOSamples = 10;
-	const int nAOSamples = sqrtAOSamples * sqrtAOSamples;
+	const int nAOSamples = sqrtAOSamples * sqrtAOSamples / 2;
 }
 
 /* Used for testing if floats are 0 */
