@@ -29,7 +29,6 @@ link_directories("${PROJECT_SOURCE_DIR}/../lib/assimp-3.0.1270/lib")
 add_library( libglut SHARED IMPORTED )
 add_subdirectory (lib/SOIL)
 add_subdirectory(lib/glsw)
-add_subdirectory(lib/freeglut)
 
 add_executable (fire-framework 
 	Camera.cpp
@@ -48,4 +47,4 @@ add_executable (fire-framework
 	Texture.cpp
 )
 
-target_link_libraries( fire-framework ${Boost_LIBRARIES} freeglut GL GLEW X11 assimp SOIL glsw)
+target_link_libraries( fire-framework ${Boost_LIBRARIES} glut GL GLEW X11 assimp SOIL glsw)
