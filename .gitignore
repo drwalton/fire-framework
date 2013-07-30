@@ -16,6 +16,7 @@
 # Library directory (contains FreeGLUT, GLEW, SOIL etc.)
 lib/
 build/
+bin/
 
 # Visual Studio gubbins
 *.sdf
