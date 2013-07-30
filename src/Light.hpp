@@ -8,7 +8,7 @@
 #include "SHMat.hpp"
 
 #include <glm.hpp>
-#include <glew.h>
+#include <GL/glew.h>
 
 class PhongLight;
 class SHLight;
@@ -59,6 +59,7 @@ private:
 	glm::vec4 diffuse;
 	glm::vec4 specular;
 	float attenuation;
+	void update();
 };
 
 /* SHLight
@@ -79,6 +80,7 @@ public:
 private:
 	std::vector<glm::vec4> coeffts;
 	SHMat rotation;
+	void update();
 };
 
 template <typename Fn>
@@ -92,7 +94,7 @@ template <typename Fn>
 void SHLight::setFunc(Fn func)
 {
 	coeffts = SH::shProject(GC::sqrtSHSamples, GC::nSHBands, func);
-	if(manager) manager->update(this);
+	update();
 }
 
 #endif

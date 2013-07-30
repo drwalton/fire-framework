@@ -1,7 +1,7 @@
 #ifndef TEXTURE_HPP
 #define TEXTURE_HPP
 
-#include <glew.h>
+#include <GL/glew.h>
 
 #include "SOIL.h"
 #include <string>

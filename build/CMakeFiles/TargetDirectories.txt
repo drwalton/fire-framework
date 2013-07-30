@@ -1,0 +1,4 @@
+/home/david/github/fire-framework/build/lib/SOIL/CMakeFiles/SOIL.dir
+/home/david/github/fire-framework/build/CMakeFiles/fire-framework.dir
+/home/david/github/fire-framework/build/lib/freeglut/CMakeFiles/freeglut.dir
+/home/david/github/fire-framework/build/lib/glsw/CMakeFiles/glsw.dir

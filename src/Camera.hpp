@@ -1,13 +1,13 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
+#include "Shader.hpp"
+
 #include <glm.hpp>
 #include <gtc/matrix_transform.hpp>
-#include <glew.h>
+#include <GL/glew.h>
 
 #include <iostream>
-
-#include "Shader.hpp"
 
 /* Camera Modes
  * FREELOOK: Camera rotates & moves relative to itself.

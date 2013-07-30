@@ -3,7 +3,7 @@
 double SH::realSH(int l, int m, double theta, double phi)
 {
 	if(l < 0 || l < m || -l > m) 
-		throw(new std::bad_function_call(
+		throw(new BadArgumentException(
 			"l,m out of range in call to realSH(). Require -l <= m <= l."));
 	if(m > 0)
 		return SQRT_TWO_d * K(l, m) * cos( m * phi) * P(l,  m, cos(theta));
@@ -24,7 +24,7 @@ double SH::K(int l, int m)
 double SH::P(int l, int m, double x)
 {
 	if(l < m) 
-		throw(new std::bad_function_call(
+		throw(new BadArgumentException(
 			"l,m out of range in call to P(). Require l < m."));
 
 	if(l == m)

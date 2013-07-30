@@ -4,6 +4,7 @@
 #include <exception>
 #include <vector>
 #include <glm.hpp>
+#include <iostream>
 
 class MatDimException : public std::exception {};
 
@@ -227,12 +228,12 @@ std::vector<glm::vec4> Matrix<T>::operator * (const std::vector<glm::vec4>& v)
 template <typename T>
 std::vector<T> operator * (const std::vector<T>& v, const Matrix<T>& m)
 {
-	if(v.size() != r) throw new MatDimException;
-	std::vector<T> ans(c, 0);
+	if(v.size() != m.r) throw new MatDimException;
+	std::vector<T> ans(m.c, 0);
 
-	for(unsigned j = 0; j < c; ++j)
-		for(unsigned i = 0; i < r; ++i)
-			ans[i] += data[i][j] * v[i];
+	for(unsigned j = 0; j < m.c; ++j)
+		for(unsigned i = 0; i < m.r; ++i)
+			ans[i] += m.data[i][j] * v[i];
 
 	return ans;
 }

@@ -6,6 +6,7 @@
 #include "SHMat.hpp"
 
 #include <glm.hpp>
+#include <GL/glut.h>
 
 /* This file will contain the construction and rendering of the scene
  * I am working on right now. 
@@ -94,6 +95,7 @@ int init()
 	AOShader* aoShader = new AOShader(false, "AOSolid");
 	LightShader* lightShader = new LightShader(false, "Solid");
 
+	/*
 	auto loadedAO = AOMesh::loadFile("Rabbit.obj", aoShader);
 
 	for(auto i = loadedAO.begin();
@@ -103,6 +105,7 @@ int init()
 		(*i)->translate(glm::vec3(0.0, -1.5, 0.0));
 		scene->add(*i);
 	}
+	*/
 
 	/*
 	LightShader* lShader = new LightShader(false, "Solid");
@@ -110,6 +113,7 @@ int init()
 
 	SHShader* shShader = new SHShader(false, "PRTfrag");
 	
+	/*
 	std::vector<DiffPRTMesh*> loadedPRT = DiffPRTMesh::loadFile(true, "Rabbit.obj", shShader);
 
 	for(auto i = loadedPRT.begin();
@@ -119,7 +123,7 @@ int init()
 		(*i)->translate(glm::vec3(0.0, -1.5, 0.0));
 		//scene->add(*i);
 	}
-
+	*/
 	/*
 	std::vector<Mesh*> loaded = Mesh::loadFile("Rabbit.obj", lShader);
 

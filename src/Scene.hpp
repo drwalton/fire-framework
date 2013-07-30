@@ -8,7 +8,7 @@
 #include "LightManager.hpp"
 
 #include <glm.hpp>
-#include <glut.h>
+#include <GL/glut.h>
 #include <SOIL.h>
 
 #include <vector>

@@ -1,9 +1,9 @@
 #ifndef PARTICLES_HPP
 #define PARTICLES_HPP
 
-#include <glew.h>
+#include <GL/glew.h>
 #include <SOIL.h>
-#include <glut.h>
+#include <GL/glut.h>
 #include <glm.hpp>
 
 #include "Texture.hpp"
@@ -26,14 +26,12 @@ protected:
 	ParticleShader* shader;
 };
 
-namespace
+struct AdvectParticle
 {
-	struct AdvectParticle
-	{
-		glm::vec4 pos;
-		GLfloat decay;
-	};
-}
+	glm::vec4 pos;
+	GLfloat decay;
+};
+
 
 /* AdvectParticles
  * A ParticleSystem consisting of MaxParticles particles, which behave as follows:

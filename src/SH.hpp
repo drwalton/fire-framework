@@ -1,8 +1,9 @@
 #ifndef SH_HPP
 #define SH_HPP
 
-#include <functional>
 #include <vector>
+#include <string>
+
 #include <glm.hpp>
 
 #include "GC.hpp"
@@ -33,6 +34,13 @@ namespace SH
 
 	double randd(double low, double high);
 }
+
+class BadArgumentException
+{
+public:
+	BadArgumentException(const std::string& _what) :what(_what) {};
+	std::string what;
+};
 
 template<typename Fn>
 std::vector<glm::vec4> SH::shProject(int sqrtNSamples, int nBands,

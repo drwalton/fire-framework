@@ -1,7 +1,7 @@
 #ifndef LIGHTMANAGER_HPP
 #define LIGHTMANAGER_HPP
 
-#include <glew.h>
+#include <GL/glew.h>
 #include <array>
 
 #include "Light.hpp"
@@ -11,21 +11,20 @@
 class PhongLight;
 class SHLight;
 
-namespace
-{
-	struct phongBlock
-	{
-		glm::vec4 lightPos[GC::maxPhongLights];
-		glm::vec4 lightDiffuse[GC::maxPhongLights];
-		glm::vec4 lightSpecular[GC::maxPhongLights];
-		float lightAttenuation[GC::maxPhongLights];
-	};
 
-	struct SHBlock
-	{
-		glm::vec4 lightCoeffts[GC::nSHCoeffts * GC::maxSHLights];
-	};
-}
+struct phongBlock
+{
+	glm::vec4 lightPos[GC::maxPhongLights];
+	glm::vec4 lightDiffuse[GC::maxPhongLights];
+	glm::vec4 lightSpecular[GC::maxPhongLights];
+	float lightAttenuation[GC::maxPhongLights];
+};
+
+struct SHBlock
+{
+	glm::vec4 lightCoeffts[GC::nSHCoeffts * GC::maxSHLights];
+};
+
 
 class PhongLightManager
 {

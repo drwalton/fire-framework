@@ -382,7 +382,7 @@ void DiffPRTMesh::render()
 	for(int c = 0; c < GC::nSHCoeffts; ++c)
 	{
 		glVertexAttribFormat(s_attrib + c, 4, GL_FLOAT,
-			GL_FALSE, offsetof(PRTMeshVertex, s[c]));
+			GL_FALSE, offsetof(PRTMeshVertex, s) + c * sizeof(glm::vec4));
 		glVertexAttribBinding(s_attrib + c, 0);
 	}
 	glBindBuffer(GL_ARRAY_BUFFER, 0);

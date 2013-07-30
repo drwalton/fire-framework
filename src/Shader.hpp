@@ -1,9 +1,9 @@
 #ifndef SHADER_HPP
 #define SHADER_HPP
 
-#include <glew.h>
+#include <GL/glew.h>
 #include <glm.hpp>
-#include <boost\algorithm\string.hpp>
+#include <boost/algorithm/string.hpp>
 
 #include "glsw.h"
 #include "GC.hpp"
