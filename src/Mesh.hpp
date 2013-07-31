@@ -103,7 +103,8 @@ private:
 	static std::vector<PRTMeshVertex> computeVertBuffer(
 		const MeshData& d, DiffPRTMode mode);
 	static void performInterreflectionPass(
-		std::vector<PRTMeshVertex>& vertBuffer);
+		std::vector<PRTMeshVertex>& vertBuffer,
+		const MeshData& d);
 
 	size_t numElems;
 	GLuint v_vbo;

@@ -211,6 +211,12 @@ std::vector<DiffPRTMesh*> DiffPRTMesh::loadFile(
 		std::cout << "Precomputed file found." << std::endl;
 		std::cout << "Loading from precomputed file " + prtFilename << std::endl;
 
+		int currMeshIndex = 0;
+		std::vector<MeshData> data;
+		if(mode == INTERREFLECTED && loadedPassMode == SHADOWED)
+			// Need to load original mesh for norms.
+			data = loadFileData(filename);
+
 		while(prtFile.good())
 		{
 			std::vector<PRTMeshVertex> vertBuffer;
@@ -245,7 +251,7 @@ std::vector<DiffPRTMesh*> DiffPRTMesh::loadFile(
 
 			// Perform extra interreflection pass if required.
 			if(mode == INTERREFLECTED && loadedPassMode == SHADOWED)
-				performInterreflectionPass(vertBuffer);
+				performInterreflectionPass(vertBuffer, data[currMeshIndex]);
 
 			/* Get elemBuffer */
 			prtFile.getline(ignore, 10); // Throw the "Elements" line.
@@ -406,15 +412,62 @@ std::vector<PRTMeshVertex> DiffPRTMesh::computeVertBuffer(
 	}
 
 	if(mode == INTERREFLECTED)
-		performInterreflectionPass(vertBuffer);
+		performInterreflectionPass(vertBuffer, d);
 
 	return vertBuffer;
 }
 
 void DiffPRTMesh::performInterreflectionPass(
-	std::vector<PRTMeshVertex>& vertBuffer)
+	std::vector<PRTMeshVertex>& vertBuffer,
+	const MeshData& d)
 {
+	std::vector<PRTMeshVertex> previousBounce(vertBuffer);
+	std::vector<PRTMeshVertex> currentBounce(vertBuffer.size());
 
+	double sqrSize = 1.0 / GC::sqrtAOSamples;
+
+	for(int b = 0; b < GC::nSHBounces; ++b)
+	{
+		#pragma omp parallel for
+		for(int v = 0; v < static_cast<int>(vertBuffer.size()); ++v)
+		{
+			for(int c = 0; c < GC::nSHCoeffts; ++c)
+				currentBounce[v].s[c] = glm::vec4(0.0f);
+
+			for(int x = 0; x < GC::sqrtSHSamples; ++x)
+				for(int y = 0; y < GC::sqrtSHSamples; ++y)
+				{
+					double u = (x * sqrSize);
+					double v = (y * sqrSize);
+					double theta = acos((2 * u) - 1);
+					double phi = (2 * PI_d * v);
+
+					glm::vec3 dir
+						(
+						sin(theta) * cos(phi),
+						sin(theta) * sin(phi),
+						cos(theta)
+						);
+
+					if(glm::dot(d.n[v], dir) <= 0.0f) continue;
+
+					//Find intersection.
+
+					//Add contribution from intersection.
+				}
+
+			// Normalize coeffts.
+			for(int c = 0; c < GC::nSHCoeffts; ++c)
+				currentBounce[v].s[c] *= 1.0 / (PI * GC::nSHSamples);	
+
+			// Add to vertBuffer coeffts.
+			for(int c = 0; c < GC::nSHCoeffts; ++c)
+				vertBuffer[v].s[c] += currentBounce[v].s[c];
+
+			// Copy currentBounce into previousBounce ready for next iteration.
+			previousBounce[v] = currentBounce[v];
+		}
+	}
 }
 
 void DiffPRTMesh::render()
