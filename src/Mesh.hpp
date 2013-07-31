@@ -56,6 +56,10 @@ namespace
 	bool isNAN(glm::vec3 v);
 }
 
+enum DiffPRTMode : char {UNSHADOWED, SHADOWED, INTERREFLECTED};
+
+class BadPRTModeException : public std::exception {};
+
 class MeshFileException : public std::exception {};
 
 /* Mesh
@@ -87,7 +91,7 @@ class DiffPRTMesh : public Solid
 {
 public:
 	static std::vector<DiffPRTMesh*> loadFile(
-		bool shadowed,
+		DiffPRTMode mode,
 		const std::string& filename,
 		SHShader* _shader);
 	void render();
@@ -96,7 +100,7 @@ private:
 	DiffPRTMesh(const std::vector<PRTMeshVertex>& vertBuffer,
 		const std::vector<GLushort>& elemBuffer, SHShader* _shader);
 	static std::vector<PRTMeshVertex> computeVertBuffer(
-		const MeshData& d, bool shadowed);
+		const MeshData& d, DiffPRTMode mode);
 
 	size_t numElems;
 	GLuint v_vbo;

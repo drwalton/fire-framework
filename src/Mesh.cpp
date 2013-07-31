@@ -138,10 +138,13 @@ void Mesh::render()
 }
 
 std::vector<DiffPRTMesh*> DiffPRTMesh::loadFile(
-	bool shadowed,
+	DiffPRTMode mode,
 	const std::string& filename,
 	SHShader* _shader)
 {
+	if(mode != UNSHADOWED && mode != SHADOWED && mode != INTERREFLECTED)
+		throw(new BadPRTModeException);
+
 	std::cout << "Attempting to load scene file " + filename << std::endl;
 
 	std::vector<DiffPRTMesh*> meshes;
@@ -156,12 +159,14 @@ std::vector<DiffPRTMesh*> DiffPRTMesh::loadFile(
 	 */
 	std::string prtFilename;
 
-	if(!shadowed)
+	if(UNSHADOWED)
 		prtFilename = filename + ".prtdu" +
 			std::to_string(static_cast<long long>(GC::nSHBands)); 
-	else
+	else if (SHADOWED)
 		prtFilename = filename + ".prtds" +
-			std::to_string(static_cast<long long>(GC::nSHBands)); 
+			std::to_string(static_cast<long long>(GC::nSHBands));
+	else // INTERREFLECTED
+		;
 
 	std::ifstream prtFile(prtFilename); 
 
@@ -232,7 +237,7 @@ std::vector<DiffPRTMesh*> DiffPRTMesh::loadFile(
 		for(GLuint m = 0; m < data.size(); ++m)
 		{
 			std::vector<PRTMeshVertex> vertBuffer = 
-				computeVertBuffer(data[m], shadowed);
+				computeVertBuffer(data[m], mode);
 			meshes.push_back(new DiffPRTMesh(vertBuffer, data[m].e, _shader));
 
 			outFile << "Mesh " << std::to_string(static_cast<long long>(m)) << std::endl;
@@ -287,7 +292,7 @@ DiffPRTMesh::DiffPRTMesh(const std::vector<PRTMeshVertex>& vertBuffer,
 }
 
 std::vector<PRTMeshVertex> DiffPRTMesh::computeVertBuffer(
-	const MeshData& d, bool shadowed)
+	const MeshData& d, DiffPRTMode mode)
 {
 	std::vector<PRTMeshVertex> vertBuffer(d.v.size());
 
@@ -299,7 +304,7 @@ std::vector<PRTMeshVertex> DiffPRTMesh::computeVertBuffer(
 
 		std::vector<glm::vec4> coeffts;
 
-		if(!shadowed)
+		if(mode == UNSHADOWED)
 			coeffts = SH::shProject(GC::sqrtSHSamples, GC::nSHBands, 
 				[&d, &i](double theta, double phi) -> glm::vec3 
 					{
@@ -316,7 +321,7 @@ std::vector<PRTMeshVertex> DiffPRTMesh::computeVertBuffer(
 						return glm::vec3(proj, proj, proj);
 					}
 				);
-		else
+		else if(mode == SHADOWED)
 			coeffts = SH::shProject(GC::sqrtSHSamples, GC::nSHBands, 
 				[&d, &i](double theta, double phi) -> glm::vec3 
 					{
@@ -355,6 +360,9 @@ std::vector<PRTMeshVertex> DiffPRTMesh::computeVertBuffer(
 						return glm::vec3(proj, proj, proj);
 					}
 				);
+
+		else // INTERREFLECTED
+			;
 
 		for(GLuint c = 0; c < coeffts.size(); ++c)
 			vert.s[c] = coeffts[c];
