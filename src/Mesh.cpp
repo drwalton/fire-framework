@@ -58,7 +58,7 @@ namespace
 	bool fileExists(const std::string& filename)
 	{
 		std::ifstream file(filename);
-		return static_cast<bool>(file);
+		return file ? true : false;
 	}
 
 	bool isNAN(float f)
@@ -429,10 +429,10 @@ void DiffPRTMesh::performInterreflectionPass(
 	for(int b = 0; b < GC::nSHBounces; ++b)
 	{
 		#pragma omp parallel for
-		for(int v = 0; v < static_cast<int>(vertBuffer.size()); ++v)
+		for(int i = 0; i < static_cast<int>(vertBuffer.size()); ++i)
 		{
 			for(int c = 0; c < GC::nSHCoeffts; ++c)
-				currentBounce[v].s[c] = glm::vec4(0.0f);
+				currentBounce[i].s[c] = glm::vec4(0.0f);
 
 			for(int x = 0; x < GC::sqrtSHSamples; ++x)
 				for(int y = 0; y < GC::sqrtSHSamples; ++y)
@@ -449,23 +449,52 @@ void DiffPRTMesh::performInterreflectionPass(
 						cos(theta)
 						);
 
-					if(glm::dot(d.n[v], dir) <= 0.0f) continue;
+					if(glm::dot(d.n[i], dir) <= 0.0f) // dir not in hemisphere
+						continue;
 
-					//Find intersection.
+					/* Find closest intersection */
+					glm::vec3 closest(-1.0, -1.0, -1.0);
+					int closestTri = -1;
+					for(int t = 0; t < static_cast<int>(d.e.size()); t+=3)
+					{
+						glm::vec3 ta = glm::vec3(d.v[d.e[t]]);
+						glm::vec3 tb = glm::vec3(d.v[d.e[t+1]]);
+						glm::vec3 tc = glm::vec3(d.v[d.e[t+2]]);
 
-					//Add contribution from intersection.
+						glm::vec3 intersect = getTriangleRayIntersection(
+							ta, tb, tc, glm::vec3(d.v[i]), dir);
+
+						if(intersect.z > 0.0f &&
+							(intersect.z < closest.z || closest.z < 0.0f))
+						{
+							closest = intersect;
+							closestTri = t;
+						}
+					}
+
+					if(closestTri == -1) // No intersections
+						continue;
+
+					// Add contribution using coeffts interpolated over triangle.
+					float tu = closest.x;
+					float tv = closest.y;
+					for(int c = 0; c < GC::nSHCoeffts; ++c)
+						currentBounce[i].s[c] += glm::dot(d.n[i], dir) *
+							((1-(tu+tv)) * previousBounce[d.e[closestTri]].s[c] +
+							tu * previousBounce[d.e[closestTri + 1]].s[c] +
+							tv * previousBounce[d.e[closestTri + 2]].s[c]);	
 				}
 
 			// Normalize coeffts.
 			for(int c = 0; c < GC::nSHCoeffts; ++c)
-				currentBounce[v].s[c] *= 1.0 / (PI * GC::nSHSamples);	
+				currentBounce[i].s[c] *= 2.0 / (PI * GC::nSHSamples);	
 
 			// Add to vertBuffer coeffts.
 			for(int c = 0; c < GC::nSHCoeffts; ++c)
-				vertBuffer[v].s[c] += currentBounce[v].s[c];
+				vertBuffer[i].s[c] += currentBounce[i].s[c];
 
 			// Copy currentBounce into previousBounce ready for next iteration.
-			previousBounce[v] = currentBounce[v];
+			previousBounce[i] = currentBounce[i];
 		}
 	}
 }
