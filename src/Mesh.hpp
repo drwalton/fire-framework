@@ -51,12 +51,13 @@ namespace
 	};
 
 	std::vector<MeshData> loadFileData(const std::string& filename);
+	bool fileExists(const std::string& filename);
 
 	bool isNAN(float f);
 	bool isNAN(glm::vec3 v);
 }
 
-enum DiffPRTMode : char {UNSHADOWED, SHADOWED, INTERREFLECTED};
+enum DiffPRTMode : char {UNSHADOWED, SHADOWED, INTERREFLECTED, NONE};
 
 class BadPRTModeException : public std::exception {};
 
@@ -101,6 +102,8 @@ private:
 		const std::vector<GLushort>& elemBuffer, SHShader* _shader);
 	static std::vector<PRTMeshVertex> computeVertBuffer(
 		const MeshData& d, DiffPRTMode mode);
+	static void performInterreflectionPass(
+		std::vector<PRTMeshVertex>& vertBuffer);
 
 	size_t numElems;
 	GLuint v_vbo;

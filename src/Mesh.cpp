@@ -55,6 +55,12 @@ namespace
 		return data;
 	}
 
+	bool fileExists(const std::string& filename)
+	{
+		std::ifstream file(filename);
+		return static_cast<bool>(file);
+	}
+
 	bool isNAN(float f)
 	{
 		return (f != f); //Note that NAN != NAN.
@@ -159,26 +165,55 @@ std::vector<DiffPRTMesh*> DiffPRTMesh::loadFile(
 	 */
 	std::string prtFilename;
 
-	if(UNSHADOWED)
+	DiffPRTMode loadedPassMode;
+
+	if(mode == UNSHADOWED)
+	{
 		prtFilename = filename + ".prtdu" +
 			std::to_string(static_cast<long long>(GC::nSHBands)); 
-	else if (SHADOWED)
+		if(fileExists(prtFilename))
+			loadedPassMode = UNSHADOWED;
+		else
+			loadedPassMode = NONE;
+	}
+	else if (mode == SHADOWED)
+	{
 		prtFilename = filename + ".prtds" +
 			std::to_string(static_cast<long long>(GC::nSHBands));
-	else // INTERREFLECTED
-		;
-
-	std::ifstream prtFile(prtFilename); 
-
-	/* File exists, so load data from it */
-	if(prtFile.is_open()) 
+		if(fileExists(prtFilename))
+			loadedPassMode = SHADOWED;
+		else
+			loadedPassMode = NONE;
+	}
+	else // mode == INTERREFLECTED
 	{
+		// First check if full interreflected pass exists.
+		prtFilename = filename + ".prtdi" +
+			std::to_string(static_cast<long long>(GC::nSHBands));
+		if(fileExists(prtFilename))
+			loadedPassMode = INTERREFLECTED;
+		else // No interreflected pass, check for shadowed pass.
+		{
+			prtFilename = filename + ".prtds" +
+				std::to_string(static_cast<long long>(GC::nSHBands));
+			if(fileExists(prtFilename))
+				loadedPassMode = SHADOWED;
+			else // No useful precomputed pass found.
+				loadedPassMode = NONE;
+		}
+
+	}
+
+	if(loadedPassMode != NONE) // File exists, so load data from it
+	{
+		std::ifstream prtFile(prtFilename); 
+
 		std::cout << "Precomputed file found." << std::endl;
 		std::cout << "Loading from precomputed file " + prtFilename << std::endl;
 
 		while(prtFile.good())
 		{
-			std::vector<PRTMeshVertex> vertexBuffer;
+			std::vector<PRTMeshVertex> vertBuffer;
 			std::vector<GLushort> elemBuffer;
 
 			char ignore[10]; 
@@ -203,10 +238,14 @@ std::vector<DiffPRTMesh*> DiffPRTMesh::loadFile(
 					prtFile >> vert.s[c].w;
 				}
 
-				vertexBuffer.push_back(vert);
+				vertBuffer.push_back(vert);
 			}
 			
 			prtFile.clear();
+
+			// Perform extra interreflection pass if required.
+			if(mode == INTERREFLECTED && loadedPassMode == SHADOWED)
+				performInterreflectionPass(vertBuffer);
 
 			/* Get elemBuffer */
 			prtFile.getline(ignore, 10); // Throw the "Elements" line.
@@ -214,17 +253,16 @@ std::vector<DiffPRTMesh*> DiffPRTMesh::loadFile(
 			while(prtFile >> elem)
 				elemBuffer.push_back(static_cast<GLushort>(elem));
 
-			meshes.push_back(new DiffPRTMesh(vertexBuffer, elemBuffer, _shader));
+			meshes.push_back(new DiffPRTMesh(vertBuffer, elemBuffer, _shader));
 			std::cout << "> Mesh " << meshes.size() - 1 
-				<< " of " << vertexBuffer.size() << " vertices, " 
+				<< " of " << vertBuffer.size() << " vertices, " 
 				<< elemBuffer.size() << " elements." << std::endl;
 		}
 
 		prtFile.close();
 	}
 
-	/* No such file exists, so load from regular file & compute coeffts */
-	else
+	else // No such file exists, so load from scene file & compute coeffts 
 	{
 		std::cout << "No precomputed file \"" << prtFilename << "\" was found." << std::endl;
 
@@ -321,7 +359,7 @@ std::vector<PRTMeshVertex> DiffPRTMesh::computeVertBuffer(
 						return glm::vec3(proj, proj, proj);
 					}
 				);
-		else if(mode == SHADOWED)
+		else // mode == SHADOWED || mode == INTERREFLECTED
 			coeffts = SH::shProject(GC::sqrtSHSamples, GC::nSHBands, 
 				[&d, &i](double theta, double phi) -> glm::vec3 
 					{
@@ -361,16 +399,22 @@ std::vector<PRTMeshVertex> DiffPRTMesh::computeVertBuffer(
 					}
 				);
 
-		else // INTERREFLECTED
-			;
-
 		for(GLuint c = 0; c < coeffts.size(); ++c)
 			vert.s[c] = coeffts[c];
 
 		vertBuffer[i] = vert;
 	}
 
+	if(mode == INTERREFLECTED)
+		performInterreflectionPass(vertBuffer);
+
 	return vertBuffer;
+}
+
+void DiffPRTMesh::performInterreflectionPass(
+	std::vector<PRTMeshVertex>& vertBuffer)
+{
+
 }
 
 void DiffPRTMesh::render()
