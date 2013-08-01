@@ -131,6 +131,7 @@ void AdvectParticles::render()
 
 void AdvectParticles::update(int dTime)
 {
+	#pragma omp parallel for
 	for(int i = 0; i < maxParticles; ++i)
 		updateParticle(i, dTime);
 }
