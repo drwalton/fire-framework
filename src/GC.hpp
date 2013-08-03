@@ -18,6 +18,7 @@ namespace GC
 	const int nSHSamples = sqrtSHSamples * sqrtSHSamples;
 	const int maxSHLights = 10;
 	const int nSHBounces = 5;
+	const bool jitterSamples = true;
 
 	/* AO */
 	const int sqrtAOSamples = 10;

@@ -13,6 +13,8 @@ class MatDimException : public std::exception {};
  * Used by SHMat.
  * N.B. : This matrix class follows the usual row-major convention,
  * differing from the column-major glm::mat* classes.
+ * Also note that the default matrix is the zero matrix.
+ * For an identity matrix, use constructor Matrix(size, 1.0).
  */
 template <typename T>
 class Matrix

@@ -7,7 +7,7 @@ SHMat::SHMat(int nBands)
 	// Push nBands identity matrices into blocks.
 	for(int b = 0; b < nBands; ++b)
 	{
-		blocks.push_back(Matrix<float>(2*b + 1));
+		blocks.push_back(Matrix<float>(2*b + 1, 1.0f));
 	}
 }
 

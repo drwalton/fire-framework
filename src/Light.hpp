@@ -23,9 +23,7 @@ class SHLightManager;
  *			adjusted per-scene by calling Scene::setAmbLight().
  */
 class Light : public Element
-{
-	
-};
+{};
 
 /* PhongLight
  * A light designed for simple Phong-style local lighting shaders.

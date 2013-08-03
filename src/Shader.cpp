@@ -246,7 +246,6 @@ void LightShader::setMaterial(unsigned index, const Material& material)
 void LightShader::setMaterials(const std::vector<Material>& _materials)
 {
 	use();
-	std::cout << "hi\n";
 	for(unsigned i = 0; i < _materials.size(); ++i)
 	{
 		glUniform4fv(material_ambient_u + i, 1, &(_materials[i].ambient.x));

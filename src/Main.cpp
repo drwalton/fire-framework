@@ -85,12 +85,13 @@ int init()
 	AdvectParticlesCentroidLights* centreParticles = 
 		new AdvectParticlesCentroidLights(nSwirls, 10, 10, 1000, pShader, flameTex, decayTex);
 	centreParticles->translate(glm::vec3(0.0, -1.0, 1.5));
-	scene->add(centreParticles);
+	//scene->add(centreParticles);
 
 	AdvectParticlesRandLights* randParticles = new AdvectParticlesRandLights(nSwirls, 10, 2000, pShader, flameTex, decayTex);
 	randParticles->translate(glm::vec3(0.0, -1.0, -3.0));
 	//scene->add(randParticles);
 
+	/*
 	AOShader* aoShader = new AOShader(false, "AOSolid");
 	LightShader* lightShader = new LightShader(false, "Solid");
 
@@ -98,10 +99,10 @@ int init()
 	for(auto i = loadedMesh.begin(); i != loadedMesh.end(); ++i)
 	{
 		(*i)->uniformScale(2.0f);
-		(*i)->translate(glm::vec3(0.0, -1.5, 0.0));
+		(*i)->translate(glm::vec3(0.0, -1.5, 5.0));
 		scene->add(*i);
 	}
-
+	*/
 	/*
 	auto loadedAO = AOMesh::loadFile("Rabbit.obj", aoShader);
 
@@ -120,17 +121,16 @@ int init()
 
 	SHShader* shShader = new SHShader(false, "PRTfrag");
 	
-	/*
-	std::vector<DiffPRTMesh*> loadedPRT = DiffPRTMesh::loadFile(true, "Rabbit.obj", shShader);
+	std::vector<DiffPRTMesh*> loadedPRT = DiffPRTMesh::loadFile(
+		UNSHADOWED, COMBINED, "Rabbit.obj", shShader);
 
 	for(auto i = loadedPRT.begin();
 		i != loadedPRT.end(); ++i)
 	{
 		(*i)->uniformScale(2.0f);
 		(*i)->translate(glm::vec3(0.0, -1.5, 0.0));
-		//scene->add(*i);
+		scene->add(*i);
 	}
-	*/
 	/*
 	std::vector<Mesh*> loaded = Mesh::loadFile("Rabbit.obj", lShader);
 
@@ -158,7 +158,7 @@ int init()
 		[] (double theta, double phi) -> glm::vec3 
 		{
 			//float val = 0.2f;
-			float val = theta > 2.0 ? 0.6f : 0.0f;
+			float val = phi < 2.0 ? 0.007f : 0.0f;
 
 			return glm::vec3(val, val, val);
 		}
@@ -175,7 +175,7 @@ void display()
 	eTime = glutGet(GLUT_ELAPSED_TIME);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	scene->update(deTime);
-	light->rotateCoeffts(glm::rotate(glm::mat4(1.0f), angle, glm::vec3(1.0f, 1.0f, 0.0f)));
+	//light->rotateCoeffts(glm::rotate(glm::mat4(1.0f), angle, glm::vec3(0.0f, 1.0f, 0.0f)));
 	angle += 1.0f;
 	angle = angle > 360.0f ? angle - 360.0f : angle;
 	scene->render();

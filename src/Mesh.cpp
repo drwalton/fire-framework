@@ -422,9 +422,11 @@ std::vector<PRTMeshVertex> DiffPRTMesh::computeVertBuffer(
 							);
 						dir = glm::normalize(dir);
 						glm::vec3 norm = glm::normalize(d.n[i]);
-						double proj = glm::dot(dir, norm);
-						proj = (proj > 0.0 ? proj : 0.0);
-						return glm::vec3(proj, proj, proj);
+						Material mat = d.M[d.m[i]];
+						glm::vec3 diffuse(mat.diffuse);
+						float proj = glm::dot(dir, norm);
+						proj = (proj > 0.0f ? proj : 0.0f);
+						return diffuse * proj;
 					}
 				);
 		else // mode == SHADOWED || mode == INTERREFLECTED
@@ -440,7 +442,7 @@ std::vector<PRTMeshVertex> DiffPRTMesh::computeVertBuffer(
 							);
 						dir = glm::normalize(dir);
 						glm::vec3 norm = glm::normalize(d.n[i]);
-						double proj = glm::dot(dir, norm);
+						float proj = glm::dot(dir, norm);
 						if(proj <= 0.0f) return glm::vec3(0.0, 0.0, 0.0);
 
 						// For each triangle in mesh
@@ -463,7 +465,10 @@ std::vector<PRTMeshVertex> DiffPRTMesh::computeVertBuffer(
 						if(intersect) return glm::vec3(0.0, 0.0, 0.0);
 						// Light not occluded.
 
-						return glm::vec3(proj, proj, proj);
+						Material mat = d.M[d.m[i]];
+						glm::vec3 diffuse(mat.diffuse);
+
+						return proj * diffuse;
 					}
 				);
 
@@ -540,11 +545,23 @@ void DiffPRTMesh::performInterreflectionPass(
 					// Add contribution using coeffts interpolated over triangle.
 					float tu = closest.x;
 					float tv = closest.y;
+
+					// Find average diffuse color over triangle
+					glm::vec4 avgDiffuse = 
+						(1-(tu+tv)) * d.M[d.m[d.e[closestTri]]].diffuse +
+						tu * d.M[d.m[d.e[closestTri + 1]]].diffuse +
+						tv * d.M[d.m[d.e[closestTri + 2]]].diffuse;
+
 					for(int c = 0; c < GC::nSHCoeffts; ++c)
-						currentBounce[i].s[c] += glm::dot(d.n[i], dir) *
+					{
+						glm::vec4 avgPrevBounce = 
 							((1-(tu+tv)) * previousBounce[d.e[closestTri]].s[c] +
 							tu * previousBounce[d.e[closestTri + 1]].s[c] +
-							tv * previousBounce[d.e[closestTri + 2]].s[c]);	
+							tv * previousBounce[d.e[closestTri + 2]].s[c]);
+
+						currentBounce[i].s[c] += 
+							glm::dot(d.n[i], dir) * avgDiffuse * avgPrevBounce;
+					}
 				}
 
 			// Normalize coeffts.
