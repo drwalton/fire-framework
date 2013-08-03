@@ -55,7 +55,6 @@ int main(int argc, char** argv)
 // Called by glutInit().
 int init()
 {
-
 	std::vector<glm::vec4> c = SH::shProject(10, 3, 
 		[] (double x, double y) -> glm::vec3 
 		{
