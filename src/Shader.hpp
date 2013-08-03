@@ -34,7 +34,8 @@ public:
 	void setModelToWorld(const glm::mat4& _modelToWorld);
 	GLuint getAttribLoc(const std::string& name);
 
-	virtual void setMaterial(const Material& material) {};
+	virtual void setMaterial(unsigned index, const Material& material) {};
+	virtual void setMaterials(const std::vector<Material> _materials) {};
 
 	const std::string filename;
 	static GLuint getUBlockBindingIndex(const std::string& name);
@@ -106,7 +107,8 @@ public:
 	LightShader(bool hasGeomShader, const std::string& filename,
 		std::vector<std::string> subs);
 
-	void setMaterial(const Material& material);
+	void setMaterial(unsigned index, const Material& material);
+	void setMaterials(const std::vector<Material>& _materials);
 	void setWorldToCamera(const glm::mat4& _worldToCamera);
 private:
 	void init();

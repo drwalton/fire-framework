@@ -21,36 +21,43 @@ class Shader;
 class LightShader;
 class SHSHader;
 
+enum MeshLoadMode : char {SEPARATE, COMBINED};
+
 namespace
 {
 	struct MeshData
 	{
-		std::vector<glm::vec4> v;
-		std::vector<glm::vec3> n;
-		std::vector<GLushort> e;
+		std::vector<glm::vec4> v; //Vertex positions
+		std::vector<glm::vec3> n; //Normals
+		std::vector<GLushort>  e; //Element indices
+		std::vector<GLuint>    m; //Material indices
+		std::vector<Material>  M; //Materials
 	};
 
 	struct MeshVertex
 	{
-		glm::vec4 v;
-		glm::vec3 n;
-		GLfloat f;
+		glm::vec4 v; //Position
+		glm::vec3 n; //Norm
+		GLfloat   f; //Padding
+		unsigned  m; //Material index
 	};
 
 	struct PRTMeshVertex
 	{
-		glm::vec4 v;
-		glm::vec4 s[GC::nSHCoeffts];
+		glm::vec4                 v; //Position
+		glm::vec4 s[GC::nSHCoeffts]; //Transfer func. coeffts
 	};
 
 	struct AOMeshVertex
 	{
-		glm::vec4 v;
-		glm::vec3 bentN;
-		GLfloat occl;
+		glm::vec4     v; //Position
+		glm::vec3 bentN; //Bent normal
+		GLfloat    occl; //Occlusion coefft
 	};
 
-	std::vector<MeshData> loadFileData(const std::string& filename);
+	std::vector<MeshData> loadFileData(
+		const std::string& filename, MeshLoadMode mode);
+	std::vector<MeshData> combineMeshData(const std::vector<MeshData>& data);
 	bool fileExists(const std::string& filename);
 
 	bool isNAN(float f);
@@ -74,25 +81,28 @@ class MeshFileException : public std::exception {};
 class Mesh : public Solid
 {
 public:
-	static std::vector<Mesh*> loadFile(const std::string& filename, 
-		LightShader* _shader);
+	static std::vector<Mesh*> loadFile(
+		const std::string& filename, MeshLoadMode mode, LightShader* _shader);
 	void render();
 	void update(int dTime) {};
 private:
-	Mesh(const MeshData& d, LightShader* _shader);
+	Mesh(const MeshData& d, LightShader* _shader,
+		const std::vector<Material>& _materials);
 
 	size_t numElems;
 	GLuint v_vbo;
 	GLuint e_vbo;
 	GLuint v_attrib;
 	GLuint n_attrib;
+	GLuint m_attrib;
 };
 
 class DiffPRTMesh : public Solid
 {
 public:
 	static std::vector<DiffPRTMesh*> loadFile(
-		DiffPRTMode mode,
+		DiffPRTMode PRTmode,
+		MeshLoadMode loadMode,
 		const std::string& filename,
 		SHShader* _shader);
 	void render();
@@ -118,6 +128,7 @@ class AOMesh : public Solid
 public:
 	static std::vector<AOMesh*> loadFile(
 		const std::string& filename,
+		MeshLoadMode mode,
 		AOShader* _shader);
 	void render();
 	void update(int dTime) {};

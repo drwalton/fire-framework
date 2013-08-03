@@ -6,8 +6,11 @@
 
 #include <glm.hpp>
 #include <gtc/matrix_transform.hpp>
+#include <exception>
 
 class Scene;
+
+class BadMaterialIndex : public std::exception {};
 
 /* Renderable
  * A Renderable is an ADT for an Element which has a render() function called by it's owning Scene each frame.
@@ -36,24 +39,25 @@ protected:
 };
 
 /* Solid
- * A Solid is an ADT for a Renderable consisting of a solid mesh.
+ * A Solid is an ADT for a Renderable consisting of a solid opaque mesh.
  * This class also contains functions returning simple geometric Solid objects.
  */
 class Solid : public Renderable
 {
 public:
 	Solid(Shader* _shader);
-	Solid(Shader* _shader, const Material& _material);
+	Solid(Shader* _shader, const std::vector<Material>& _materials);
 	Shader* getShader() {return (Shader*) shader;};
-	void setMaterial(const Material& _material);
-	Material getMaterial() {return material;};
-	void setAmbient(const glm::vec4& ambient) {material.ambient = ambient;};
-	void setDiffuse(const glm::vec4& diffuse) {material.diffuse = diffuse;};
-	void setSpecular(const glm::vec4& specular) {material.specular = specular;};
-	void setExponent(float exponent) {material.exponent = exponent;};
+	void setMaterials(const std::vector<Material>& _materials);
+	void setMaterial(unsigned index, const Material& _material);
+	Material getMaterial(unsigned index);
+	void setAmbient(unsigned index, const glm::vec4& _ambient);
+	void setDiffuse(unsigned index, const glm::vec4& _diffuse);
+	void setSpecular(unsigned index, const glm::vec4& _specular);
+	void setExponent(unsigned index, float _exponent);
 protected:
 	Shader* shader;
-	Material material;
+	std::vector<Material> materials;
 };
 
 #endif

@@ -1,7 +1,8 @@
 #include "Mesh.hpp"
 namespace
 {
-	std::vector<MeshData> loadFileData(const std::string& filename)
+	std::vector<MeshData> loadFileData(
+		const std::string& filename, MeshLoadMode mode)
 	{
 		Assimp::Importer importer;
 
@@ -11,15 +12,37 @@ namespace
 
 		if(!scene) throw new MeshFileException;
 
-		std::cout << "Loading scene from file: " << filename << "\n";
+		std::cout << "Loading scene from file: " << filename << std::endl;
+		std::cout << "> " << scene->mNumMeshes << " meshes, "
+			<< scene->mNumMaterials << " materials." << std::endl;
 
 		std::vector<MeshData> data;
 
 		for(int i = 0; i < (int) scene->mNumMeshes; ++i)
 		{
 			aiMesh* mesh = scene->mMeshes[i];
+			aiMaterial* mat = scene->mMaterials[mesh->mMaterialIndex];
 
 			MeshData d;
+			Material m;
+
+			/* Load material properties */
+			aiColor3D ambient;
+			aiColor3D diffuse;
+			aiColor3D specular;
+			float exponent;
+
+			mat->Get(AI_MATKEY_COLOR_AMBIENT, ambient);
+			mat->Get(AI_MATKEY_COLOR_DIFFUSE, diffuse);
+			mat->Get(AI_MATKEY_COLOR_SPECULAR, specular);
+			mat->Get(AI_MATKEY_SHININESS, exponent);
+
+			m.ambient = glm::vec4(ambient.r, ambient.g, ambient.b, 1.0f);
+			m.diffuse = glm::vec4(diffuse.r, diffuse.g, diffuse.b, 1.0f);
+			m.specular = glm::vec4(specular.r, specular.g, specular.b, 1.0f);
+			m.exponent = exponent;
+
+			d.M.push_back(m);
 
 			std::cout << "> Mesh " << i << " of "
 				<< mesh->mNumVertices << " vertices, "
@@ -40,6 +63,8 @@ namespace
 					mesh->mNormals[j].y,
 					mesh->mNormals[j].z);
 				d.n.push_back(norm);
+				//Material indices (all 0)
+				d.m.push_back(0);
 			}
 
 			for(int j = 0; j < (int) mesh->mNumFaces; ++j)
@@ -52,7 +77,37 @@ namespace
 
 			data.push_back(d);
 		}
+
+		if(mode == COMBINED) data = combineMeshData(data);
+
 		return data;
+	}
+
+	std::vector<MeshData> combineMeshData(const std::vector<MeshData>& data)
+	{
+		MeshData combined;
+
+		for(auto d = data.begin(); d != data.end(); ++d)
+		{
+			GLushort currElemBase = static_cast<GLushort>(combined.e.size());
+			GLushort currMatBase  = static_cast<GLushort>(combined.M.size());
+
+			for(auto v = d->v.begin(); v != d->v.end(); ++v)
+				combined.v.push_back(*v);
+			for(auto n = d->n.begin(); n != d->n.end(); ++n)
+				combined.n.push_back(*n);
+			for(auto e = d->e.begin(); e != d->e.end(); ++e)
+				combined.e.push_back(currElemBase + *e);
+			for(auto m = d->m.begin(); m != d->m.end(); ++m)
+				combined.m.push_back(currMatBase + *m);
+			for(auto M = d->M.begin(); M != d->M.end(); ++M)
+				combined.M.push_back(*M);
+		}
+
+		std::vector<MeshData> combinedVec;
+		combinedVec.push_back(combined);
+
+		return combinedVec;
 	}
 
 	bool fileExists(const std::string& filename)
@@ -76,20 +131,21 @@ namespace
 	}
 }
 
-std::vector<Mesh*> Mesh::loadFile(const std::string& filename,
-	LightShader* _shader)
+std::vector<Mesh*> Mesh::loadFile(
+	const std::string& filename, MeshLoadMode mode, LightShader* _shader)
 {
 	std::vector<Mesh*> meshes;
-	std::vector<MeshData> data = loadFileData(filename);
+	std::vector<MeshData> data = loadFileData(filename, mode);
 
 	for(auto i = data.begin(); i != data.end(); ++i)
-		meshes.push_back(new Mesh(*i, _shader));
+		meshes.push_back(new Mesh(*i, _shader, i->M));
 
 	return meshes;
 }
 
-Mesh::Mesh(const MeshData& d, LightShader* _shader)
-	:Solid(_shader)
+Mesh::Mesh(const MeshData& d, LightShader* _shader,
+	const std::vector<Material>& _materials)
+	:Solid(_shader, _materials)
 {
 	numElems = d.e.size();
 
@@ -97,7 +153,7 @@ Mesh::Mesh(const MeshData& d, LightShader* _shader)
 	for(GLuint i = 0; i < d.v.size(); ++i)
 	{
 		MeshVertex vert;
-		vert.v = d.v[i]; vert.n = d.n[i];
+		vert.v = d.v[i]; vert.n = d.n[i]; vert.m = d.m[i];
 		vertexBuffer.push_back(vert);
 	}
 
@@ -113,6 +169,7 @@ Mesh::Mesh(const MeshData& d, LightShader* _shader)
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	v_attrib = shader->getAttribLoc("vPosition");
 	n_attrib = shader->getAttribLoc("vNorm");
+	m_attrib = shader->getAttribLoc("matIndex");
 }
 
 void Mesh::render()
@@ -120,7 +177,7 @@ void Mesh::render()
 	if(!scene) return;
 	
 	shader->setModelToWorld(modelToWorld);
-	shader->setMaterial(material);
+	static_cast<LightShader*>(shader)->setMaterials(materials);
 
 	shader->use();
 	glEnableVertexAttribArray(v_attrib);
@@ -131,6 +188,8 @@ void Mesh::render()
 	glVertexAttribBinding(v_attrib, 0);
 	glVertexAttribFormat(n_attrib, 3, GL_FLOAT, GL_FALSE, offsetof(MeshVertex, n));
 	glVertexAttribBinding(n_attrib, 0);
+	glVertexAttribFormat(m_attrib, 1, GL_UNSIGNED_INT, GL_FALSE, offsetof(MeshVertex, m));
+	glVertexAttribBinding(m_attrib, 0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, e_vbo);
@@ -144,11 +203,14 @@ void Mesh::render()
 }
 
 std::vector<DiffPRTMesh*> DiffPRTMesh::loadFile(
-	DiffPRTMode mode,
+	DiffPRTMode PRTmode,
+	MeshLoadMode loadMode,
 	const std::string& filename,
 	SHShader* _shader)
 {
-	if(mode != UNSHADOWED && mode != SHADOWED && mode != INTERREFLECTED)
+	if(PRTmode != UNSHADOWED && 
+		PRTmode != SHADOWED && 
+		PRTmode != INTERREFLECTED)
 		throw(new BadPRTModeException);
 
 	std::cout << "Attempting to load scene file " + filename << std::endl;
@@ -167,7 +229,7 @@ std::vector<DiffPRTMesh*> DiffPRTMesh::loadFile(
 
 	DiffPRTMode loadedPassMode;
 
-	if(mode == UNSHADOWED)
+	if(PRTmode == UNSHADOWED)
 	{
 		prtFilename = filename + ".prtdu" +
 			std::to_string(static_cast<long long>(GC::nSHBands)); 
@@ -176,7 +238,7 @@ std::vector<DiffPRTMesh*> DiffPRTMesh::loadFile(
 		else
 			loadedPassMode = NONE;
 	}
-	else if (mode == SHADOWED)
+	else if (PRTmode == SHADOWED)
 	{
 		prtFilename = filename + ".prtds" +
 			std::to_string(static_cast<long long>(GC::nSHBands));
@@ -213,9 +275,9 @@ std::vector<DiffPRTMesh*> DiffPRTMesh::loadFile(
 
 		int currMeshIndex = 0;
 		std::vector<MeshData> data;
-		if(mode == INTERREFLECTED && loadedPassMode == SHADOWED)
+		if(PRTmode == INTERREFLECTED && loadedPassMode == SHADOWED)
 			// Need to load original mesh for norms.
-			data = loadFileData(filename);
+			data = loadFileData(filename, loadMode);
 
 		while(prtFile.good())
 		{
@@ -250,7 +312,7 @@ std::vector<DiffPRTMesh*> DiffPRTMesh::loadFile(
 			prtFile.clear();
 
 			// Perform extra interreflection pass if required.
-			if(mode == INTERREFLECTED && loadedPassMode == SHADOWED)
+			if(PRTmode == INTERREFLECTED && loadedPassMode == SHADOWED)
 				performInterreflectionPass(vertBuffer, data[currMeshIndex]);
 
 			/* Get elemBuffer */
@@ -272,7 +334,7 @@ std::vector<DiffPRTMesh*> DiffPRTMesh::loadFile(
 	{
 		std::cout << "No precomputed file \"" << prtFilename << "\" was found." << std::endl;
 
-		std::vector<MeshData> data = loadFileData(filename);
+		std::vector<MeshData> data = loadFileData(filename, loadMode);
 
 		std::ofstream outFile(prtFilename);
 
@@ -281,7 +343,7 @@ std::vector<DiffPRTMesh*> DiffPRTMesh::loadFile(
 		for(GLuint m = 0; m < data.size(); ++m)
 		{
 			std::vector<PRTMeshVertex> vertBuffer = 
-				computeVertBuffer(data[m], mode);
+				computeVertBuffer(data[m], PRTmode);
 			meshes.push_back(new DiffPRTMesh(vertBuffer, data[m].e, _shader));
 
 			outFile << "Mesh " << std::to_string(static_cast<long long>(m)) << std::endl;
@@ -534,6 +596,7 @@ void DiffPRTMesh::render()
 
 std::vector<AOMesh*> AOMesh::loadFile(
 		const std::string& filename,
+		MeshLoadMode mode,
 		AOShader* _shader)
 {
 	std::cout << "Attempting to load scene file " + filename << std::endl;
@@ -604,7 +667,7 @@ std::vector<AOMesh*> AOMesh::loadFile(
 	{
 		std::cout << "No precomputed file \"" << aoFilename << "\" was found." << std::endl;
 
-		std::vector<MeshData> data = loadFileData(filename);
+		std::vector<MeshData> data = loadFileData(filename, mode);
 
 		std::ofstream outFile(aoFilename);
 
@@ -742,7 +805,7 @@ void AOMesh::render()
 	if(!scene) return;
 	
 	shader->setModelToWorld(modelToWorld);
-	shader->setMaterial(material);
+	shader->setMaterials(materials);
 
 	shader->use();
 	glEnableVertexAttribArray(v_attrib);

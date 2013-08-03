@@ -41,18 +41,56 @@ glm::vec4 Renderable::getOrigin()
 Solid::Solid(Shader* _shader)
 	:Renderable(false), shader(_shader)
 {
+	Material material;
 	material.ambient = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
 	material.diffuse = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
 	material.specular = glm::vec4(0.5f, 0.5f, 0.5f, 0.5f);
 	material.exponent = 10.0f;
+	materials.push_back(material);
 }
 
-Solid::Solid(Shader* _shader, const Material& _material)
+Solid::Solid(Shader* _shader, const std::vector<Material>& _materials)
 	:Renderable(false), shader(_shader),
-	 material(_material)
+	 materials(_materials)
 {}
 
-void Solid::setMaterial(const Material& _material)
+void Solid::setMaterials(const std::vector<Material>& _materials)
 {
-	material = _material;
+	materials = _materials;
+}
+
+void Solid::setMaterial(unsigned index, const Material& _material)
+{
+	if(index < 0 || index >= materials.size()) throw(new BadMaterialIndex);
+	materials[index] = _material;
+}
+
+Material Solid::getMaterial(unsigned index)
+{
+	if(index < 0 || index >= materials.size()) throw(new BadMaterialIndex);
+	return materials[index];
+}
+
+void Solid::setAmbient(unsigned index, const glm::vec4& _ambient)
+{
+	if(index < 0 || index >= materials.size()) throw(new BadMaterialIndex);
+	materials[index].ambient = _ambient;
+}
+
+void Solid::setDiffuse(unsigned index, const glm::vec4& _diffuse)
+{
+	if(index < 0 || index >= materials.size()) throw(new BadMaterialIndex);
+	materials[index].diffuse = _diffuse;
+}
+
+void Solid::setSpecular(unsigned index, const glm::vec4& _specular)
+{
+	if(index < 0 || index >= materials.size()) throw(new BadMaterialIndex);
+	materials[index].specular = _specular;
+}
+
+void Solid::setExponent(unsigned index, float _exponent)
+{
+	if(index < 0 || index >= materials.size()) throw(new BadMaterialIndex);
+	materials[index].exponent = _exponent;
 }

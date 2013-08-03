@@ -1,8 +1,9 @@
 #include "Shader.hpp"
 
-std::string phong_subs[2] = 
+std::string phong_subs[4] = 
 {
-	"$maxPhongLights$", std::to_string(static_cast<long long>(GC::maxPhongLights))
+	"$maxPhongLights$", std::to_string(static_cast<long long>(GC::maxPhongLights)),
+	"$maxMaterials$", std::to_string(static_cast<long long>(GC::maxMaterials))
 };
 
 std::string sh_subs[4] = 
@@ -12,7 +13,7 @@ std::string sh_subs[4] =
 };
 
 
-const std::vector<std::string> Shader::PHONG_SUBS(phong_subs, phong_subs+2);
+const std::vector<std::string> Shader::PHONG_SUBS(phong_subs, phong_subs+4);
 const std::vector<std::string> Shader::SH_SUBS(sh_subs, sh_subs+4);
 
 NoSuchException::NoSuchException(const std::string& name, Shader* const& shader)
@@ -232,13 +233,27 @@ void LightShader::init()
 	glUseProgram(0);
 }
 
-void LightShader::setMaterial(const Material& material)
+void LightShader::setMaterial(unsigned index, const Material& material)
 {
 	use();
-	glUniform4fv(material_ambient_u, 1, &(material.ambient)[0]);
-	glUniform4fv(material_diffuse_u, 1, &(material.diffuse[0]));
-	glUniform4fv(material_specular_u, 1, &(material.specular[0]));
-	glUniform1fv(material_exponent_u, 1, &(material.exponent));
+	glUniform4fv(material_ambient_u + index, 1, &(material.ambient.x));
+	glUniform4fv(material_diffuse_u + index, 1, &(material.diffuse.x));
+	glUniform4fv(material_specular_u + index, 1, &(material.specular.x));
+	glUniform1fv(material_exponent_u + index, 1, &(material.exponent));
+	glUseProgram(0);
+}
+
+void LightShader::setMaterials(const std::vector<Material>& _materials)
+{
+	use();
+	std::cout << "hi\n";
+	for(unsigned i = 0; i < _materials.size(); ++i)
+	{
+		glUniform4fv(material_ambient_u + i, 1, &(_materials[i].ambient.x));
+		glUniform4fv(material_diffuse_u + i, 1, &(_materials[i].diffuse.x));
+		glUniform4fv(material_specular_u + i, 1, &(_materials[i].specular.x));
+		glUniform1fv(material_exponent_u + i, 1, &(_materials[i].exponent));
+	}
 	glUseProgram(0);
 }
 

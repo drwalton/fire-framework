@@ -94,6 +94,14 @@ int init()
 	AOShader* aoShader = new AOShader(false, "AOSolid");
 	LightShader* lightShader = new LightShader(false, "Solid");
 
+	auto loadedMesh = Mesh::loadFile("Rabbit.obj", COMBINED, lightShader);
+	for(auto i = loadedMesh.begin(); i != loadedMesh.end(); ++i)
+	{
+		(*i)->uniformScale(2.0f);
+		(*i)->translate(glm::vec3(0.0, -1.5, 0.0));
+		scene->add(*i);
+	}
+
 	/*
 	auto loadedAO = AOMesh::loadFile("Rabbit.obj", aoShader);
 
