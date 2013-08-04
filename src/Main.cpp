@@ -158,12 +158,26 @@ int init()
 		[] (double theta, double phi) -> glm::vec3 
 		{
 			//float val = 0.2f;
-			float val = phi < 2.0 ? 0.007f : 0.0f;
+			float val = phi + theta < 1.0 ? 5.0f : 0.0f;
 
 			return glm::vec3(val, val, val);
 		}
 	);
 	scene->add(light);
+
+	/* Testing projection, recovery */
+	std::vector<glm::vec4> coeffts = SH::shProject(
+		GC::sqrtSHSamples + 10, GC::nSHBands + 2,
+		[] (double theta, double phi) -> glm::vec3
+		{
+			return glm::vec3(1.0f);
+		}
+	);
+	std::cout << "Coeffts:\n";
+	for(auto i = coeffts.begin(); i != coeffts.end(); ++i)
+		std::cout << i->x << " ";
+	std::cout << "\nRecovery:\n";
+	std::cout << SH::evaluate(coeffts, 0.0f, 0.0f).x << std::endl;
 
 	return 1;
 }

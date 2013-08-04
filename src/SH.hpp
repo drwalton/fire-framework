@@ -18,6 +18,9 @@ namespace SH
 	std::vector<glm::vec4> shProject(int sqrtNSamples, int nBands,
 		Fn func);
 
+	glm::vec4 evaluate(std::vector<glm::vec4> projection,
+		float theta, float phi);
+
 	/* Computes the real spherical harmonic SH_l^m(\theta, \phi) */
 	double realSH(int l, int m, double theta, double phi);
 
