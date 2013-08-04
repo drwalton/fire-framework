@@ -20,3 +20,5 @@ TODO
     SH rotation are really working as expected. Now seems OK!
  * Add a collection of useful basic SH lights funcs - useful for both
     testing and future progress.
+ * Add a method of visualising SH projections of functions, so it is possible
+    to check out how they actually look.
