@@ -8,7 +8,8 @@ namespace
 
 		const aiScene* scene = importer.ReadFile(filename,
 			aiProcess_CalcTangentSpace | aiProcess_Triangulate |
-			aiProcess_JoinIdenticalVertices | aiProcess_SortByPType );
+			aiProcess_JoinIdenticalVertices | aiProcess_SortByPType |
+			aiProcess_GenSmoothNormals);
 
 		if(!scene) throw new MeshFileException;
 
@@ -311,20 +312,29 @@ std::vector<DiffPRTMesh*> DiffPRTMesh::loadFile(
 			
 			prtFile.clear();
 
-			// Perform extra interreflection pass if required.
-			if(PRTmode == INTERREFLECTED && loadedPassMode == SHADOWED)
-				performInterreflectionPass(vertBuffer, data[currMeshIndex]);
-
 			/* Get elemBuffer */
 			prtFile.getline(ignore, 10); // Throw the "Elements" line.
 			int elem;
 			while(prtFile >> elem)
 				elemBuffer.push_back(static_cast<GLushort>(elem));
 
+			// Perform extra interreflection pass if required.
+			if(PRTmode == INTERREFLECTED && loadedPassMode == SHADOWED)
+			{
+				performInterreflectionPass(vertBuffer, data[currMeshIndex]);
+				// Write interreflected coeffts to file
+				prtFilename = filename + ".prtdi" +
+					std::to_string(static_cast<long long>(GC::nSHBands));
+				writeMeshToFile(std::ofstream(prtFilename),
+					vertBuffer, currMeshIndex, data);
+			}
+
 			meshes.push_back(new DiffPRTMesh(vertBuffer, elemBuffer, _shader));
 			std::cout << "> Mesh " << meshes.size() - 1 
 				<< " of " << vertBuffer.size() << " vertices, " 
 				<< elemBuffer.size() << " elements." << std::endl;
+
+			++currMeshIndex;
 		}
 
 		prtFile.close();
@@ -346,27 +356,7 @@ std::vector<DiffPRTMesh*> DiffPRTMesh::loadFile(
 				computeVertBuffer(data[m], PRTmode);
 			meshes.push_back(new DiffPRTMesh(vertBuffer, data[m].e, _shader));
 
-			outFile << "Mesh " << std::to_string(static_cast<long long>(m)) << std::endl;
-			outFile << "Vertices" << std::endl;
-
-			for(auto i = vertBuffer.begin(); i != vertBuffer.end(); ++i)
-			{
-				outFile << (*i).v.x << " " 
-					<< (*i).v.y << " "
-					<< (*i).v.z << " " 
-					<< (*i).v.w << std::endl;
-
-				for(int c = 0; c < GC::nSHCoeffts; ++c)
-					outFile << (*i).s[c].x << " " 
-					<< (*i).s[c].y << " " 
-					<< (*i).s[c].z << " " 
-					<< (*i).s[c].w << std::endl;
-			}
-
-			outFile << "Elements" << std::endl;
-
-			for(auto i = data[m].e.begin(); i != data[m].e.end(); ++i)
-				outFile << (*i) << std::endl;
+			writeMeshToFile(outFile, vertBuffer, m, data);
 		}
 
 		outFile.close();
@@ -493,12 +483,14 @@ std::vector<PRTMeshVertex> DiffPRTMesh::computeVertBuffer(
 				{
 					currPercent = percent;
 					std::cout << "*";
-					if(percent % 10 == 0) 
+					if(percent % 10 == 0 && percent != 100) 
 						std::cout << " " << percent << "% complete" << std::endl; 
 				}
 			}
 		} // end parallel for
 	} // end parallel
+
+	std::cout << " 100% complete" << std::endl;
 
 	if(mode == INTERREFLECTED)
 	{
@@ -619,14 +611,44 @@ void DiffPRTMesh::performInterreflectionPass(
 					{
 						currPercent = percent;
 						std::cout << "*";
-						if(percent % 10 == 0) 
+						if(percent % 10 == 0 && percent != 100) 
 							std::cout << " " << percent 
 								<< "% complete" << std::endl; 
 					}
 				}
 			} // end parallel for
 		} // end parallel
+		std::cout << " 100% complete" << std::endl;
 	} // end bounces
+}
+
+void DiffPRTMesh::writeMeshToFile(
+	std::ofstream& file,
+	const std::vector<PRTMeshVertex>& vertBuffer,
+	unsigned m,
+	const std::vector<MeshData>& data)
+{
+	file << "Mesh " << std::to_string(static_cast<long long>(m)) << std::endl;
+	file << "Vertices" << std::endl;
+
+	for(auto i = vertBuffer.begin(); i != vertBuffer.end(); ++i)
+	{
+		file << (*i).v.x << " " 
+			<< (*i).v.y << " "
+			<< (*i).v.z << " " 
+			<< (*i).v.w << std::endl;
+
+		for(int c = 0; c < GC::nSHCoeffts; ++c)
+			file << (*i).s[c].x << " " 
+			<< (*i).s[c].y << " " 
+			<< (*i).s[c].z << " " 
+			<< (*i).s[c].w << std::endl;
+	}
+
+	file << "Elements" << std::endl;
+
+	for(auto i = data[m].e.begin(); i != data[m].e.end(); ++i)
+		file << (*i) << std::endl;
 }
 
 void DiffPRTMesh::render()

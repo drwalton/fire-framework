@@ -123,13 +123,55 @@ int init()
 	SHShader* shShader = new SHShader(false, "PRTfrag");
 	
 	std::vector<DiffPRTMesh*> loadedPRT = DiffPRTMesh::loadFile(
-		INTERREFLECTED, COMBINED, "Rabbit.obj", shShader);
+		UNSHADOWED, COMBINED, "bunny.obj", shShader);
+
+	for(auto i = loadedPRT.begin();
+		i != loadedPRT.end(); ++i)
+	{
+		(*i)->uniformScale(6.0f);
+		(*i)->translate(glm::vec3(-2.0, -0.5, 0.0));
+		scene->add(*i);
+	}
+	loadedPRT = DiffPRTMesh::loadFile(
+		SHADOWED, COMBINED, "bunny.obj", shShader);
+
+	for(auto i = loadedPRT.begin();
+		i != loadedPRT.end(); ++i)
+	{
+		(*i)->uniformScale(6.0f);
+		(*i)->translate(glm::vec3(0.0, -0.5, 0.0));
+		scene->add(*i);
+	}
+	loadedPRT = DiffPRTMesh::loadFile(
+		INTERREFLECTED, COMBINED, "bunny.obj", shShader);
+
+	for(auto i = loadedPRT.begin();
+		i != loadedPRT.end(); ++i)
+	{
+		(*i)->uniformScale(6.0f);
+		(*i)->translate(glm::vec3(2.0, -0.5, 0.0));
+		scene->add(*i);
+	}
+	/*
+	loadedPRT = DiffPRTMesh::loadFile(
+		SHADOWED, COMBINED, "Rabbit.obj", shShader);
 
 	for(auto i = loadedPRT.begin();
 		i != loadedPRT.end(); ++i)
 	{
 		(*i)->uniformScale(2.0f);
 		(*i)->translate(glm::vec3(0.0, -1.5, 0.0));
+		scene->add(*i);
+	}
+
+	loadedPRT = DiffPRTMesh::loadFile(
+		INTERREFLECTED, COMBINED, "Rabbit.obj", shShader);
+
+	for(auto i = loadedPRT.begin();
+		i != loadedPRT.end(); ++i)
+	{
+		(*i)->uniformScale(2.0f);
+		(*i)->translate(glm::vec3(2.0, -1.5, 0.0));
 		scene->add(*i);
 	}
 	/*

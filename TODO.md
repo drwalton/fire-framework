@@ -17,6 +17,6 @@ TODO
 
 3. SH - lighting and rotations
  * More recent tests have left me worried over whether both SH and 
-    SH rotation are really working as expected. Test more.
+    SH rotation are really working as expected. Now seems OK!
  * Add a collection of useful basic SH lights funcs - useful for both
     testing and future progress.

@@ -116,6 +116,12 @@ private:
 	static void performInterreflectionPass(
 		std::vector<PRTMeshVertex>& vertBuffer,
 		const MeshData& d);
+	static void writeMeshToFile(
+		std::ofstream& file,
+		const std::vector<PRTMeshVertex>& vertBuffer,
+		unsigned m,
+		const std::vector<MeshData>& data
+		);
 
 	size_t numElems;
 	GLuint v_vbo;
