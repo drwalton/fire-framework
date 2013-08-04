@@ -17,6 +17,8 @@ void display();
 void reshape (int, int);
 void keyboard(unsigned char, int, int);
 
+void addSHArray(Scene* scene, glm::vec3 pos, int nBands, float scale, float spacing);
+
 const int nSwirls = 400;
 const int nSparks = 5;
 
@@ -212,18 +214,7 @@ int init()
 	);
 	scene->add(light);
 
-	Shader* plotShader = new Shader(false, "SpherePlot");
-
-	SpherePlot* plot = new SpherePlot(		
-		[] (double theta, double phi) -> float 
-		{
-			//float val = 0.2f;
-			float val = SH::realSH(10, 3, theta, phi);
-
-			return val;
-		}
-		, 50, plotShader);
-	scene->add(plot);
+	addSHArray(scene, glm::vec3(0.0f, -3.5, 0.0f), 7, 1.0f, 1.0f);
 
 	return 1;
 }
@@ -278,4 +269,27 @@ void keyboard(unsigned char key, int x, int y)
         exit(0);
         return;
     }
+}
+
+void addSHArray(Scene* scene, glm::vec3 pos, int nBands, float scale, float spacing)
+{
+	Shader* plotShader = new Shader(false, "SpherePlot");
+
+	for(int l = 0; l < nBands; ++l)
+		for(int m = -l; m <= l; ++m)
+		{
+			SpherePlot* plot = new SpherePlot(		
+				[l, m] (double theta, double phi) -> float 
+				{
+					//float val = 0.2f;
+					float val = SH::realSH(l, m, theta, phi);
+
+					return val;
+				}
+				, 50, plotShader);
+			plot->uniformScale(scale);
+			plot->translate(pos + glm::vec3(m * spacing, l * spacing, 0.0f));
+			
+			scene->add(plot);
+		}
 }
