@@ -120,6 +120,8 @@ int init()
 	LightShader* lShader = new LightShader(false, "Solid");
 	*/
 
+
+	/*
 	SHShader* shShader = new SHShader(false, "PRTfrag");
 	
 	std::vector<DiffPRTMesh*> loadedPRT = DiffPRTMesh::loadFile(
@@ -152,6 +154,8 @@ int init()
 		(*i)->translate(glm::vec3(2.0, -0.5, 0.0));
 		scene->add(*i);
 	}
+	*/
+
 	/*
 	loadedPRT = DiffPRTMesh::loadFile(
 		SHADOWED, COMBINED, "Rabbit.obj", shShader);
@@ -208,19 +212,18 @@ int init()
 	);
 	scene->add(light);
 
-	/* Testing projection, recovery */
-	std::vector<glm::vec4> coeffts = SH::shProject(
-		GC::sqrtSHSamples + 10, GC::nSHBands + 2,
-		[] (double theta, double phi) -> glm::vec3
+	Shader* plotShader = new Shader(false, "SpherePlot");
+
+	SpherePlot* plot = new SpherePlot(		
+		[] (double theta, double phi) -> float 
 		{
-			return glm::vec3(1.0f);
+			//float val = 0.2f;
+			float val = SH::realSH(10, 3, theta, phi);
+
+			return val;
 		}
-	);
-	std::cout << "Coeffts:\n";
-	for(auto i = coeffts.begin(); i != coeffts.end(); ++i)
-		std::cout << i->x << " ";
-	std::cout << "\nRecovery:\n";
-	std::cout << SH::evaluate(coeffts, 0.0f, 0.0f).x << std::endl;
+		, 50, plotShader);
+	scene->add(plot);
 
 	return 1;
 }

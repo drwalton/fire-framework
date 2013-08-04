@@ -6,6 +6,7 @@
 #include "Camera.hpp"
 #include "GC.hpp"
 #include "LightManager.hpp"
+#include "SpherePlot.hpp"
 
 #include <glm.hpp>
 #include <GL/glut.h>

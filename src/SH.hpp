@@ -99,4 +99,5 @@ std::vector<glm::vec4> SH::shProject(int sqrtNSamples, int nBands,
 	return coeffts4;
 }
 
+
 #endif

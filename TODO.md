@@ -11,7 +11,7 @@ TODO
 
 2. Shader pointers
  * Each renderable has a shader of type Shader*.
- * This does not do call the correct virtual functions for the particular
+ * This does not call the correct virtual functions for the particular
     derived renderable's shader type!
  * Fix this somehow?
 

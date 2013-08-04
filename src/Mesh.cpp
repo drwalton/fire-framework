@@ -201,6 +201,8 @@ void Mesh::render()
 
 	glDisableVertexAttribArray(v_attrib);
 	glDisableVertexAttribArray(n_attrib);
+
+	glUseProgram(0);
 }
 
 std::vector<DiffPRTMesh*> DiffPRTMesh::loadFile(
