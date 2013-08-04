@@ -5,6 +5,7 @@
 #include "SH.hpp"
 #include "Renderable.hpp"
 #include "Intersect.hpp"
+#include "Octree.hpp"
 
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
