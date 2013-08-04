@@ -10,6 +10,7 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 #include <GL/glew.h>
+#include <omp.h>
 
 #include <string>
 #include <vector>

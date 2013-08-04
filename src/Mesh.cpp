@@ -402,84 +402,109 @@ std::vector<PRTMeshVertex> DiffPRTMesh::computeVertBuffer(
 {
 	std::vector<PRTMeshVertex> vertBuffer(d.v.size());
 
-	#pragma omp parallel for
-	for(int i = 0; i < static_cast<int>(d.v.size()); ++i)
+	int tid;
+	int completedVerts = 0;
+	int currPercent = 0;
+	int nVerts = static_cast<int>(d.v.size());
+
+	#pragma omp parallel private(tid)
 	{
-		PRTMeshVertex vert;
-		vert.v = d.v[i];
+		tid = omp_get_thread_num();
 
-		std::vector<glm::vec4> coeffts;
+		#pragma omp for
+		for(int i = 0; i < nVerts; ++i)
+		{
+			PRTMeshVertex vert;
+			vert.v = d.v[i];
 
-		if(mode == UNSHADOWED)
-			coeffts = SH::shProject(GC::sqrtSHSamples, GC::nSHBands, 
-				[&d, &i](double theta, double phi) -> glm::vec3 
-					{
-						glm::vec3 dir
-							(
-							sin(theta) * cos(phi),
-							sin(theta) * sin(phi),
-							cos(theta)
-							);
-						dir = glm::normalize(dir);
-						glm::vec3 norm = glm::normalize(d.n[i]);
-						Material mat = d.M[d.m[i]];
-						glm::vec3 diffuse(mat.diffuse);
-						float proj = glm::dot(dir, norm);
-						proj = (proj > 0.0f ? proj : 0.0f);
-						return diffuse * proj;
-					}
-				);
-		else // mode == SHADOWED || mode == INTERREFLECTED
-			coeffts = SH::shProject(GC::sqrtSHSamples, GC::nSHBands, 
-				[&d, &i](double theta, double phi) -> glm::vec3 
-					{
-						bool intersect = false;
-						glm::vec3 dir
-							(
-							sin(theta) * cos(phi),
-							sin(theta) * sin(phi),
-							cos(theta)
-							);
-						dir = glm::normalize(dir);
-						glm::vec3 norm = glm::normalize(d.n[i]);
-						float proj = glm::dot(dir, norm);
-						if(proj <= 0.0f) return glm::vec3(0.0, 0.0, 0.0);
+			std::vector<glm::vec4> coeffts;
 
-						// For each triangle in mesh
-						for(size_t e = 0; e < d.e.size(); e += 3)
+			if(mode == UNSHADOWED)
+				coeffts = SH::shProject(GC::sqrtSHSamples, GC::nSHBands, 
+					[&d, &i](double theta, double phi) -> glm::vec3 
 						{
-							// Find triangle vertices
-							glm::vec3 ta = glm::vec3(d.v[d.e[e]]);
-							glm::vec3 tb = glm::vec3(d.v[d.e[e+1]]);
-							glm::vec3 tc = glm::vec3(d.v[d.e[e+2]]);
-
-							// Check for intersection
-							if(triangleRayIntersect(
-								ta, tb, tc, glm::vec3(d.v[i]), dir))
-							{
-								intersect = true;
-								break;
-							}
+							glm::vec3 dir
+								(
+								sin(theta) * cos(phi),
+								sin(theta) * sin(phi),
+								cos(theta)
+								);
+							dir = glm::normalize(dir);
+							glm::vec3 norm = glm::normalize(d.n[i]);
+							Material mat = d.M[d.m[i]];
+							glm::vec3 diffuse(mat.diffuse);
+							float proj = glm::dot(dir, norm);
+							proj = (proj > 0.0f ? proj : 0.0f);
+							return diffuse * proj;
 						}
-						// Light is blocked, return 0.
-						if(intersect) return glm::vec3(0.0, 0.0, 0.0);
-						// Light not occluded.
+					);
+			else // mode == SHADOWED || mode == INTERREFLECTED
+				coeffts = SH::shProject(GC::sqrtSHSamples, GC::nSHBands, 
+					[&d, &i](double theta, double phi) -> glm::vec3 
+						{
+							bool intersect = false;
+							glm::vec3 dir
+								(
+								sin(theta) * cos(phi),
+								sin(theta) * sin(phi),
+								cos(theta)
+								);
+							dir = glm::normalize(dir);
+							glm::vec3 norm = glm::normalize(d.n[i]);
+							float proj = glm::dot(dir, norm);
+							if(proj <= 0.0f) return glm::vec3(0.0, 0.0, 0.0);
 
-						Material mat = d.M[d.m[i]];
-						glm::vec3 diffuse(mat.diffuse);
+							// For each triangle in mesh
+							for(size_t e = 0; e < d.e.size(); e += 3)
+							{
+								// Find triangle vertices
+								glm::vec3 ta = glm::vec3(d.v[d.e[e]]);
+								glm::vec3 tb = glm::vec3(d.v[d.e[e+1]]);
+								glm::vec3 tc = glm::vec3(d.v[d.e[e+2]]);
 
-						return proj * diffuse;
-					}
-				);
+								// Check for intersection
+								if(triangleRayIntersect(
+									ta, tb, tc, glm::vec3(d.v[i]), dir))
+								{
+									intersect = true;
+									break;
+								}
+							}
+							// Light is blocked, return 0.
+							if(intersect) return glm::vec3(0.0, 0.0, 0.0);
+							// Light not occluded.
 
-		for(GLuint c = 0; c < coeffts.size(); ++c)
-			vert.s[c] = coeffts[c];
+							Material mat = d.M[d.m[i]];
+							glm::vec3 diffuse(mat.diffuse);
 
-		vertBuffer[i] = vert;
-	}
+							return proj * diffuse;
+						}
+					);
+
+			for(GLuint c = 0; c < coeffts.size(); ++c)
+				vert.s[c] = coeffts[c];
+
+			vertBuffer[i] = vert;
+			completedVerts++;
+			if(tid == 0)
+			{
+				int percent = (completedVerts * 100) / nVerts;
+				if(percent > currPercent)
+				{
+					currPercent = percent;
+					std::cout << "*";
+					if(percent % 10 == 0) 
+						std::cout << " " << percent << "% complete" << std::endl; 
+				}
+			}
+		} // end parallel for
+	} // end parallel
 
 	if(mode == INTERREFLECTED)
+	{
+		std::cout << "Interreflection pass begins...\n";
 		performInterreflectionPass(vertBuffer, d);
+	}
 
 	return vertBuffer;
 }
@@ -495,87 +520,113 @@ void DiffPRTMesh::performInterreflectionPass(
 
 	for(int b = 0; b < GC::nSHBounces; ++b)
 	{
-		#pragma omp parallel for
-		for(int i = 0; i < static_cast<int>(vertBuffer.size()); ++i)
+		std::cout << "Calculating bounce " << b + 1
+			<< " of " << GC::nSHBounces << std::endl;
+
+		int tid;
+		int completedVerts = 0;
+		int currPercent = 0;
+		int nVerts = static_cast<int>(vertBuffer.size());
+
+		#pragma omp parallel private(tid)
 		{
-			for(int c = 0; c < GC::nSHCoeffts; ++c)
-				currentBounce[i].s[c] = glm::vec4(0.0f);
+			tid = omp_get_thread_num();
+			#pragma omp for
+			for(int i = 0; i < nVerts; ++i)
+			{
+				for(int c = 0; c < GC::nSHCoeffts; ++c)
+					currentBounce[i].s[c] = glm::vec4(0.0f);
 
-			for(int x = 0; x < GC::sqrtSHSamples; ++x)
-				for(int y = 0; y < GC::sqrtSHSamples; ++y)
-				{
-					double u = (x * sqrSize);
-					double v = (y * sqrSize);
-					double theta = acos((2 * u) - 1);
-					double phi = (2 * PI_d * v);
-
-					glm::vec3 dir
-						(
-						sin(theta) * cos(phi),
-						sin(theta) * sin(phi),
-						cos(theta)
-						);
-
-					if(glm::dot(d.n[i], dir) <= 0.0f) // dir not in hemisphere
-						continue;
-
-					/* Find closest intersection */
-					glm::vec3 closest(-1.0, -1.0, -1.0);
-					int closestTri = -1;
-					for(int t = 0; t < static_cast<int>(d.e.size()); t+=3)
+				for(int x = 0; x < GC::sqrtSHSamples; ++x)
+					for(int y = 0; y < GC::sqrtSHSamples; ++y)
 					{
-						glm::vec3 ta = glm::vec3(d.v[d.e[t]]);
-						glm::vec3 tb = glm::vec3(d.v[d.e[t+1]]);
-						glm::vec3 tc = glm::vec3(d.v[d.e[t+2]]);
+						double u = (x * sqrSize);
+						double v = (y * sqrSize);
+						double theta = acos((2 * u) - 1);
+						double phi = (2 * PI_d * v);
 
-						glm::vec3 intersect = getTriangleRayIntersection(
-							ta, tb, tc, glm::vec3(d.v[i]), dir);
+						glm::vec3 dir
+							(
+							sin(theta) * cos(phi),
+							sin(theta) * sin(phi),
+							cos(theta)
+							);
 
-						if(intersect.z > 0.0f &&
-							(intersect.z < closest.z || closest.z < 0.0f))
+						if(glm::dot(d.n[i], dir) <= 0.0f) // dir not in hemisphere
+							continue;
+
+						/* Find closest intersection */
+						glm::vec3 closest(-1.0, -1.0, -1.0);
+						int closestTri = -1;
+						for(int t = 0; t < static_cast<int>(d.e.size()); t+=3)
 						{
-							closest = intersect;
-							closestTri = t;
+							glm::vec3 ta = glm::vec3(d.v[d.e[t]]);
+							glm::vec3 tb = glm::vec3(d.v[d.e[t+1]]);
+							glm::vec3 tc = glm::vec3(d.v[d.e[t+2]]);
+
+							glm::vec3 intersect = getTriangleRayIntersection(
+								ta, tb, tc, glm::vec3(d.v[i]), dir);
+
+							if(intersect.z > 0.0f &&
+								(intersect.z < closest.z || closest.z < 0.0f))
+							{
+								closest = intersect;
+								closestTri = t;
+							}
+						}
+
+						if(closestTri == -1) // No intersections
+							continue;
+
+						// Add contribution using coeffts interpolated over triangle.
+						float tu = closest.x;
+						float tv = closest.y;
+
+						// Find average diffuse color over triangle
+						glm::vec4 avgDiffuse = 
+							(1-(tu+tv)) * d.M[d.m[d.e[closestTri]]].diffuse +
+							tu * d.M[d.m[d.e[closestTri + 1]]].diffuse +
+							tv * d.M[d.m[d.e[closestTri + 2]]].diffuse;
+
+						for(int c = 0; c < GC::nSHCoeffts; ++c)
+						{
+							glm::vec4 avgPrevBounce = 
+								((1-(tu+tv)) * previousBounce[d.e[closestTri]].s[c] +
+								tu * previousBounce[d.e[closestTri + 1]].s[c] +
+								tv * previousBounce[d.e[closestTri + 2]].s[c]);
+
+							currentBounce[i].s[c] += 
+								glm::dot(d.n[i], dir) * avgDiffuse * avgPrevBounce;
 						}
 					}
 
-					if(closestTri == -1) // No intersections
-						continue;
+				// Normalize coeffts.
+				for(int c = 0; c < GC::nSHCoeffts; ++c)
+					currentBounce[i].s[c] *= 2.0 / (PI * GC::nSHSamples);	
 
-					// Add contribution using coeffts interpolated over triangle.
-					float tu = closest.x;
-					float tv = closest.y;
+				// Add to vertBuffer coeffts.
+				for(int c = 0; c < GC::nSHCoeffts; ++c)
+					vertBuffer[i].s[c] += currentBounce[i].s[c];
 
-					// Find average diffuse color over triangle
-					glm::vec4 avgDiffuse = 
-						(1-(tu+tv)) * d.M[d.m[d.e[closestTri]]].diffuse +
-						tu * d.M[d.m[d.e[closestTri + 1]]].diffuse +
-						tv * d.M[d.m[d.e[closestTri + 2]]].diffuse;
+				// Copy currentBounce into previousBounce ready for next iteration.
+				previousBounce[i] = currentBounce[i];
 
-					for(int c = 0; c < GC::nSHCoeffts; ++c)
+				completedVerts++;
+				if(tid == 0)
+				{
+					int percent = (completedVerts * 100) / nVerts;
+					if(percent > currPercent)
 					{
-						glm::vec4 avgPrevBounce = 
-							((1-(tu+tv)) * previousBounce[d.e[closestTri]].s[c] +
-							tu * previousBounce[d.e[closestTri + 1]].s[c] +
-							tv * previousBounce[d.e[closestTri + 2]].s[c]);
-
-						currentBounce[i].s[c] += 
-							glm::dot(d.n[i], dir) * avgDiffuse * avgPrevBounce;
+						currPercent = percent;
+						std::cout << "*";
+						if(percent % 10 == 0) 
+							std::cout << " " << percent 
+								<< "% complete" << std::endl; 
 					}
 				}
-
-			// Normalize coeffts.
-			for(int c = 0; c < GC::nSHCoeffts; ++c)
-				currentBounce[i].s[c] *= 2.0 / (PI * GC::nSHSamples);	
-
-			// Add to vertBuffer coeffts.
-			for(int c = 0; c < GC::nSHCoeffts; ++c)
-				vertBuffer[i].s[c] += currentBounce[i].s[c];
-
-			// Copy currentBounce into previousBounce ready for next iteration.
-			previousBounce[i] = currentBounce[i];
-		}
-	}
+			} // end parallel for
+		} // end parallel
+	} // end bounces
 }
 
 void DiffPRTMesh::render()

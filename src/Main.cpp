@@ -20,7 +20,8 @@ void keyboard(unsigned char, int, int);
 const int nSwirls = 400;
 const int nSparks = 5;
 
-float angle = 0.0f;
+float theta = 0.0f;
+float phi = 0.0f;
 
 Scene* scene;
 SHLight* light;
@@ -122,7 +123,7 @@ int init()
 	SHShader* shShader = new SHShader(false, "PRTfrag");
 	
 	std::vector<DiffPRTMesh*> loadedPRT = DiffPRTMesh::loadFile(
-		UNSHADOWED, COMBINED, "Rabbit.obj", shShader);
+		INTERREFLECTED, COMBINED, "Rabbit.obj", shShader);
 
 	for(auto i = loadedPRT.begin();
 		i != loadedPRT.end(); ++i)
@@ -189,9 +190,12 @@ void display()
 	eTime = glutGet(GLUT_ELAPSED_TIME);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	scene->update(deTime);
-	//light->rotateCoeffts(glm::rotate(glm::mat4(1.0f), angle, glm::vec3(0.0f, 1.0f, 0.0f)));
-	angle += 1.0f;
-	angle = angle > 360.0f ? angle - 360.0f : angle;
+	glm::mat4 rotation(1.0f);
+	//Look up/down
+	rotation = glm::rotate(glm::mat4(1.0), phi, glm::vec3(1.0, 0.0, 0.0));
+	//Spin around
+	rotation = glm::rotate(rotation,     theta, glm::vec3(0.0, 1.0, 0.0));
+	light->rotateCoeffts(rotation);
 	scene->render();
 	glutSwapBuffers();
 	glutPostRedisplay();
@@ -212,8 +216,21 @@ void keyboard(unsigned char key, int x, int y)
 
     switch (key)
     {
-      	case 27:
-            exit(0);
-            return;
+	case 't':
+		theta += 1.6f;
+		break;
+	case 'g':
+		theta -= 1.6f;
+		break;
+	case 'f':
+		phi -= 1.6f;
+		break;
+	case 'h':
+		phi += 1.6f;
+		break;
+
+    case 27:
+        exit(0);
+        return;
     }
 }
