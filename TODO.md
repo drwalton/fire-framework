@@ -21,4 +21,7 @@ TODO
  * Add a collection of useful basic SH lights funcs - useful for both
     testing and future progress.
  * Add a method of visualising SH projections of functions, so it is possible
-    to check out how they actually look.
+    to check out how they actually look, check for ringing etc.
+
+4. Faster Baking
+ * Octree has been written, but needs testing and integration into prebaking.
