@@ -1,13 +1,12 @@
 TODO
 =========
 
+0. Make PRT option on CPU !!! URGENT !!!
+ * Maybe use additional flexibility to allow for projections at different no.s of bands
+     this will allow side-by-side comparison of results.
+
 1. Model materials
- * Solids will have per-vertex materials. done!
- * A uniform will contain an array of material properties, and
-    each vertex will have an associated material index. The material
-    values will be pulled out in the vertex shader, and smoothly passed
-    to the frag shader. done! (For Solid.glsl only)
- * Appropriate aspects of these materials will be used in PRT preprocesses. done? (test much more).
+ * Add a way to load multiple models, give them different materials & bake them together.
 
 2. Shader pointers
  * Each renderable has a shader of type Shader*.
@@ -19,9 +18,7 @@ TODO
  * More recent tests have left me worried over whether both SH and 
     SH rotation are really working as expected. Now seems OK!
  * Add a collection of useful basic SH lights funcs - useful for both
-    testing and future progress.
- * Add a method of visualising SH projections of functions, so it is possible
-    to check out how they actually look, check for ringing etc.
+    testing and future progress. in progress...
 
 4. Faster Baking
  * Octree has been written, but needs testing and integration into prebaking.
