@@ -19,7 +19,7 @@ layout(std140) uniform cameraBlock
 
 void main()
 {
-	smoothNorm = vNorm;
+	smoothNorm = mat3(modelToWorld) * vNorm;
 	gl_Position = worldToCamera * modelToWorld * vPosition;
 	positive = vPositive;
 }
@@ -41,13 +41,13 @@ layout(std140) uniform cameraBlock
 };
 
 const vec4 posWarmColor = vec4(0.0, 0.0, 1.0, 1.0);
-const vec4 posCoolColor = vec4(0.0, 0.0, 0.5, 1.0);
+const vec4 posCoolColor = vec4(0.0, 0.0, 0.2, 1.0);
 const vec4 negWarmColor = vec4(0.0, 1.0, 0.0, 1.0);
-const vec4 negCoolColor = vec4(0.0, 0.5, 0.0, 1.0);
+const vec4 negCoolColor = vec4(0.0, 0.2, 0.0, 1.0);
 
 void main()
 {
-	float vDotN = max(dot(cameraDir.xyz, smoothNorm), 0.0);
+	float vDotN = max(dot(-cameraDir.xyz, smoothNorm), 0.0);
 	if(positive < 0.5)
 	{
 		fragColor = mix(posCoolColor, posWarmColor, vDotN);

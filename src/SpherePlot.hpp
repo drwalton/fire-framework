@@ -5,28 +5,26 @@
 #include "Renderable.hpp"
 #include <GL/glew.h>
 
+struct SpherePlotVertex
+{
+	glm::vec4 pos;
+	glm::vec3 norm;
+	float pad;
+	float positive;
+};
 
-	struct SpherePlotVertex
-	{
-		glm::vec4 pos;
-		glm::vec3 norm;
-		float pad;
-		float positive;
-	};
+struct SpherePlotMesh
+{
+	std::vector<SpherePlotVertex> v;
+	std::vector<GLushort>         e;
+};
 
-	struct SpherePlotMesh
-	{
-		std::vector<SpherePlotVertex> v;
-		std::vector<GLushort>         e;
-	};
-
-	struct SphereSample
-	{
-		float theta;
-		float phi;
-		float val;
-	};
-
+struct SphereSample
+{
+	float theta;
+	float phi;
+	float val;
+};
 
 /* SpherePlot
  * A Renderable containing a 3D plot of 

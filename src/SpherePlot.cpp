@@ -25,8 +25,8 @@ SpherePlotMesh SpherePlot::genMesh(const std::vector<SphereSample>& samples)
 		sqrt(static_cast<double>(samples.size())));
 
 	// Calculate norms.
-	for(unsigned v = 0; v < mesh.v.size(); ++v)
-		mesh.v[v].norm = glm::normalize(glm::vec3(mesh.v[v].pos));
+	//for(unsigned v = 0; v < mesh.v.size(); ++v)
+		//mesh.v[v].norm = glm::normalize(glm::vec3(mesh.v[v].pos));
 
 	//Add elements
 	for(unsigned v = 0; v < mesh.v.size(); ++v)
@@ -36,11 +36,16 @@ SpherePlotMesh SpherePlot::genMesh(const std::vector<SphereSample>& samples)
 
 		if(i == sqrtNSamples || j == sqrtNSamples) continue;
 
+		/* Verts at each corner of a quad. */
 		GLushort tlv, trv, blv, brv;
 		tlv = i + j*sqrtNSamples;
 		trv = i + 1 + j*sqrtNSamples;
 		blv = i + (j + 1)*sqrtNSamples;
 		brv = (i + 1) + (j + 1)*sqrtNSamples;
+
+		glm::vec3 across(mesh.v[trv].pos - mesh.v[tlv].pos);
+		glm::vec3   down(mesh.v[blv].pos - mesh.v[tlv].pos);
+		mesh.v[tlv].norm = glm::normalize(glm::cross(down, across));
 
 		mesh.e.push_back(blv);
 		mesh.e.push_back(tlv);

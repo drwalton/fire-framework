@@ -42,7 +42,6 @@ int main(int argc, char** argv)
     glutInitDisplayMode(GLUT_DOUBLE);
     glutInitWindowSize(500, 500);
     glutInitWindowPosition(100, 100);
-	glClearColor(0.0, 0.0, 0.0, 1.0);
     glutCreateWindow("API Demo");
     glewInit();
     int good = init();
@@ -58,6 +57,8 @@ int main(int argc, char** argv)
 // Called by glutInit().
 int init()
 {
+	glClearColor(1.0, 1.0, 1.0, 1.0);
+
 	std::vector<glm::vec4> c = SH::shProject(10, 3, 
 		[] (double x, double y) -> glm::vec3 
 		{
@@ -214,7 +215,7 @@ int init()
 	);
 	scene->add(light);
 
-	addSHArray(scene, glm::vec3(0.0f, -3.5, 0.0f), 7, 1.0f, 1.0f);
+	addSHArray(scene, glm::vec3(0.0f, -3.5, 0.0f), 7, 1.0f, 2.0f);
 
 	return 1;
 }
@@ -271,6 +272,7 @@ void keyboard(unsigned char key, int x, int y)
     }
 }
 
+// Renders an array of SH basis functions.
 void addSHArray(Scene* scene, glm::vec3 pos, int nBands, float scale, float spacing)
 {
 	Shader* plotShader = new Shader(false, "SpherePlot");
@@ -288,6 +290,7 @@ void addSHArray(Scene* scene, glm::vec3 pos, int nBands, float scale, float spac
 				}
 				, 50, plotShader);
 			plot->uniformScale(scale);
+			plot->prependTransform(glm::rotate(glm::mat4(1.0f), 90.0f, glm::vec3(0.0, 1.0, 0.0)));
 			plot->translate(pos + glm::vec3(m * spacing, l * spacing, 0.0f));
 			
 			scene->add(plot);
