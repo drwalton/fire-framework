@@ -4,6 +4,7 @@
 #include "Mesh.hpp"
 #include "SH.hpp"
 #include "SHMat.hpp"
+#include "SphereFunc.hpp"
 
 #include <glm.hpp>
 #include <GL/glut.h>
@@ -11,6 +12,41 @@
 /* This file will contain the construction and rendering of the scene
  * I am working on right now. 
  */
+
+template <typename Fn>
+void plotApproximations(Fn f, int nBands, float spacing, glm::vec3 translate)
+{
+	Shader* plotShader = new Shader(false, "SpherePlot");
+
+	SpherePlot* original = new SpherePlot(		
+	[&f] (double theta, double phi) -> float 
+	{
+		return f(theta, phi);
+	}
+	, 100, plotShader);
+
+	scene->add(original);
+
+	for(int i = 1; i < nBands; ++i)
+	{
+		std::vector<glm::vec4> proj = SH::shProject(20, i, 
+		[&f] (double theta, double phi) -> glm::vec3 
+		{
+			return glm::vec3(f(theta, phi));
+		}
+		);
+
+		SpherePlot* recovered = new SpherePlot(		
+		[&proj] (double theta, double phi) -> float 
+		{
+			return SH::evaluate(proj, theta, phi).x;
+		}
+		, 50, plotShader);
+
+		recovered->translate(glm::vec3(i * spacing, 0.0, 0.0));
+		scene->add(recovered);
+	}
+}
 
 int init();
 void display();
@@ -27,6 +63,7 @@ float phi = 0.0f;
 
 Scene* scene;
 SHLight* light;
+SpherePlot* plot;
 
 const int k = 5;
 
@@ -124,7 +161,7 @@ int init()
 	*/
 
 
-	/*
+
 	SHShader* shShader = new SHShader(false, "PRTfrag");
 	
 	std::vector<DiffPRTMesh*> loadedPRT = DiffPRTMesh::loadFile(
@@ -157,7 +194,7 @@ int init()
 		(*i)->translate(glm::vec3(2.0, -0.5, 0.0));
 		scene->add(*i);
 	}
-	*/
+
 
 	/*
 	loadedPRT = DiffPRTMesh::loadFile(
@@ -204,18 +241,40 @@ int init()
 		scene->add(*i);
 	}
 	*/
+	Shader* plotShader = new Shader(false, "SpherePlot");
+
+	plot = new SpherePlot(
+		[] (double theta, double phi) -> float
+		{
+			//float val = 0.2f;
+			float val = pulse(theta, phi, glm::vec3(1.0, 0.0, 0.0), 4.0f, 1.0f);
+
+			return val;
+		},
+			20, plotShader);
+	scene->add(plot);
+
 	light = new SHLight(
 		[] (double theta, double phi) -> glm::vec3 
 		{
 			//float val = 0.2f;
-			float val = phi + theta < 1.0 ? 5.0f : 0.0f;
+			float val = pulse(theta, phi, glm::vec3(1.0, 0.0, 0.0), 4.0f, 1.0f);
 
 			return glm::vec3(val, val, val);
 		}
 	);
 	scene->add(light);
 
-	addSHArray(scene, glm::vec3(0.0f, -3.5, 0.0f), 7, 1.0f, 2.0f);
+	/*
+	plotApproximations( 
+	[] (float theta, float phi) -> float
+	{
+		return patches(theta, phi, 0.5f);
+	},
+		8, 1.5f, glm::vec3(-7.0, 0.0, 0.0));
+	*/
+	
+	//addSHArray(scene, glm::vec3(0.0f, -3.5, 0.0f), 7, 1.0f, 2.0f);
 
 	return 1;
 }
@@ -233,6 +292,8 @@ void display()
 	//Spin around
 	rotation = glm::rotate(rotation,     theta, glm::vec3(0.0, 1.0, 0.0));
 	light->rotateCoeffts(rotation);
+	plot->setModelToWorld(rotation);
+	plot->translate(glm::vec3(0.0, 2.0, 0.0));
 	scene->render();
 	glutSwapBuffers();
 	glutPostRedisplay();
@@ -273,7 +334,8 @@ void keyboard(unsigned char key, int x, int y)
 }
 
 // Renders an array of SH basis functions.
-void addSHArray(Scene* scene, glm::vec3 pos, int nBands, float scale, float spacing)
+void addSHArray(Scene* scene, glm::vec3 pos, int nBands,
+	float scale, float spacing)
 {
 	Shader* plotShader = new Shader(false, "SpherePlot");
 
@@ -290,7 +352,8 @@ void addSHArray(Scene* scene, glm::vec3 pos, int nBands, float scale, float spac
 				}
 				, 50, plotShader);
 			plot->uniformScale(scale);
-			plot->prependTransform(glm::rotate(glm::mat4(1.0f), 90.0f, glm::vec3(0.0, 1.0, 0.0)));
+			plot->prependTransform(glm::rotate(
+				glm::mat4(1.0f), 90.0f, glm::vec3(0.0, 1.0, 0.0)));
 			plot->translate(pos + glm::vec3(m * spacing, l * spacing, 0.0f));
 			
 			scene->add(plot);

@@ -13,12 +13,7 @@ SHMat::SHMat(int nBands)
 
 SHMat::SHMat(const glm::mat4& rotation, int nBands)
 {
-	glm::mat3 subMat
-		(
-		rotation[0][0], rotation[0][1], rotation[0][2],
-		rotation[1][0], rotation[1][1], rotation[1][2],
-		rotation[2][0], rotation[2][1], rotation[2][2]
-		);
+	glm::mat3 subMat(rotation);
 	init(subMat, nBands);
 }
 
@@ -72,7 +67,7 @@ void SHMat::init(const glm::mat3& rotation, int nBands)
 	/* Rearrange coeffts of R */
 	Matrix<float> R((unsigned)3,(unsigned)3);
 	R(0,0) = R_o(1,1);
-	R(0,1) = R_o(2,1);
+	R(0,1) = R_o(1,2);
 	R(0,2) = R_o(1,0);
 	R(1,0) = R_o(2,1);
 	R(1,1) = R_o(2,2);

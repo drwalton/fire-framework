@@ -35,6 +35,8 @@ class SpherePlot : public Renderable
 public:
 	template <typename Func>
 	SpherePlot(Func f, unsigned sqrtNSamples, Shader* shader);
+	template <typename Func>
+	void replot(Func f, unsigned sqrtNSamples);
 	void render();
 	void update(int dTime) {};
 	Shader* getShader() {return shader;};
@@ -67,6 +69,14 @@ SpherePlot::SpherePlot(Func f, unsigned sqrtNSamples, Shader* shader)
 }
 
 template <typename Func>
+void SpherePlot::replot(Func f, unsigned sqrtNSamples)
+{
+	auto samples = takeSamples(f, sqrtNSamples);
+	auto mesh = genMesh(samples);
+	uploadMeshToGPU(mesh);
+}
+
+template <typename Func>
 std::vector<SphereSample> SpherePlot::takeSamples(
 	Func f, unsigned sqrtNSamples)
 {
@@ -75,8 +85,8 @@ std::vector<SphereSample> SpherePlot::takeSamples(
 	double sqrWidth = 1 / (double) sqrtNSamples;
 	double u, v, theta, phi;	 
 
-	for(int i = 0; i < sqrtNSamples + 1; ++i)
-		for(int j = 0; j < sqrtNSamples; ++j)
+	for(unsigned i = 0; i < sqrtNSamples + 1; ++i)
+		for(unsigned j = 0; j < sqrtNSamples; ++j)
 		{
 			u = (i * sqrWidth);
 			v = (j * sqrWidth);

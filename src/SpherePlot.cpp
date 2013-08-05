@@ -24,11 +24,7 @@ SpherePlotMesh SpherePlot::genMesh(const std::vector<SphereSample>& samples)
 	int sqrtNSamples = static_cast<int>(
 		sqrt(static_cast<double>(samples.size())));
 
-	// Calculate norms.
-	//for(unsigned v = 0; v < mesh.v.size(); ++v)
-		//mesh.v[v].norm = glm::normalize(glm::vec3(mesh.v[v].pos));
-
-	//Add elements
+	/* Add elements, norms. */
 	for(unsigned v = 0; v < mesh.v.size(); ++v)
 	{
 		unsigned i = v % sqrtNSamples;
@@ -43,10 +39,12 @@ SpherePlotMesh SpherePlot::genMesh(const std::vector<SphereSample>& samples)
 		blv = i + (j + 1)*sqrtNSamples;
 		brv = (i + 1) + (j + 1)*sqrtNSamples;
 
+		/* Calculate norms. */
 		glm::vec3 across(mesh.v[trv].pos - mesh.v[tlv].pos);
 		glm::vec3   down(mesh.v[blv].pos - mesh.v[tlv].pos);
 		mesh.v[tlv].norm = glm::normalize(glm::cross(down, across));
 
+		/* Add elements. */
 		mesh.e.push_back(blv);
 		mesh.e.push_back(tlv);
 		mesh.e.push_back(trv);

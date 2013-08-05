@@ -47,6 +47,7 @@ const vec4 negCoolColor = vec4(0.0, 0.2, 0.0, 1.0);
 
 void main()
 {
+	smoothNorm = normalize(smoothNorm);
 	float vDotN = max(dot(-cameraDir.xyz, smoothNorm), 0.0);
 	if(positive < 0.5)
 	{
