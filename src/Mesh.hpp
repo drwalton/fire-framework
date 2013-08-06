@@ -46,6 +46,7 @@ public:
 		LightShader* shader);
 	void render();
 	void update(int dTime) {};
+	Shader* getShader() {return shader;};
 
 	static MeshData loadSceneFile(
 		const std::string& filename, const Material& mat);
@@ -56,6 +57,7 @@ public:
 
 	static MeshData combineData(
 		const std::vector<MeshData>& data);
+
 private:
 	void init(const MeshData& data);
 

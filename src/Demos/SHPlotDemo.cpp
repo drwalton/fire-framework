@@ -14,6 +14,41 @@
  * I am working on right now. 
  */
 
+template <typename Fn>
+void plotApproximations(Fn f, int nBands, float spacing, glm::vec3 translate)
+{
+	Shader* plotShader = new Shader(false, "SpherePlot");
+
+	SpherePlot* original = new SpherePlot(		
+	[&f] (double theta, double phi) -> float 
+	{
+		return f(theta, phi);
+	}
+	, 100, plotShader);
+
+	scene->add(original);
+
+	for(int i = 1; i < nBands; ++i)
+	{
+		std::vector<glm::vec3> proj = SH::shProject(20, i, 
+		[&f] (double theta, double phi) -> glm::vec3 
+		{
+			return glm::vec3(f(theta, phi));
+		}
+		);
+
+		SpherePlot* recovered = new SpherePlot(		
+		[&proj] (double theta, double phi) -> float 
+		{
+			return SH::evaluate(proj, theta, phi).x;
+		}
+		, 50, plotShader);
+
+		recovered->translate(glm::vec3(i * spacing, 0.0, 0.0));
+		scene->add(recovered);
+	}
+}
+
 int init();
 void display();
 void reshape (int, int);
@@ -66,43 +101,16 @@ int init()
 	glEnable(GL_DEPTH_TEST);
 
 	scene = new Scene();
-
-	ParticleShader* pShader = new ParticleShader(true, "ScrollTexFire");
-	Texture* flameTex = new Texture("bigFlame.png");
-	Texture* decayTex = new Texture("decay2.png");
-	AdvectParticlesCentroidLights* centreParticles = 
-		new AdvectParticlesCentroidLights(nSwirls, 10, 10, 1000, pShader, flameTex, decayTex);
-	centreParticles->translate(glm::vec3(0.0, -1.0, 1.5));
-	scene->add(centreParticles);
-
-	AdvectParticlesRandLights* randParticles = new AdvectParticlesRandLights(nSwirls, 10, 2000, pShader, flameTex, decayTex);
-	randParticles->translate(glm::vec3(0.0, -1.0, -3.0));
 	
-	scene->add(randParticles);
-
-	Material greenMat;
-
-	greenMat.ambient = glm::vec4(0.0f, 0.1f, 0.0f, 1.0f);
-	greenMat.diffuse = glm::vec4(0.0f, 0.7f, 0.0f, 1.0f);
-	greenMat.specular = glm::vec4(0.2f, 0.2f, 0.2f, 1.0f);
-	greenMat.exponent = 1.0f;
-
-	AOShader* aoShader = new AOShader(false, "AOSolid");
-	LightShader* lightShader = new LightShader(false, "Solid");
-
-	Mesh* bunny = new Mesh("bunny.obj", greenMat, lightShader);
-	scene->add(bunny);
-
-	light = new SHLight(
-		[] (double theta, double phi) -> glm::vec3 
-		{
-			//float val = 0.2f;
-			float val = pulse(theta, phi, glm::vec3(1.0, 0.0, 0.0), 4.0f, 1.0f);
-
-			return glm::vec3(val, val, val);
-		}
-	);
-	scene->add(light);
+	plotApproximations( 
+	[] (float theta, float phi) -> float
+	{
+		return phi / (2 * PI);
+	},
+		8, 1.5f, glm::vec3(-7.0, 0.0, 0.0));
+	
+	
+	//addSHArray(scene, glm::vec3(0.0f, -3.5, 0.0f), 7, 1.0f, 2.0f);
 
 	return 1;
 }
@@ -115,11 +123,6 @@ void display()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	scene->update(deTime);
 	glm::mat4 rotation(1.0f);
-	//Look up/down
-	rotation = glm::rotate(glm::mat4(1.0), phi, glm::vec3(1.0, 0.0, 0.0));
-	//Spin around
-	rotation = glm::rotate(rotation,     theta, glm::vec3(0.0, 1.0, 0.0));
-	light->rotateCoeffts(rotation);
 	scene->render();
 	glutSwapBuffers();
 	glutPostRedisplay();
@@ -140,21 +143,35 @@ void keyboard(unsigned char key, int x, int y)
 
     switch (key)
     {
-	case 't':
-		theta += 1.6f;
-		break;
-	case 'g':
-		theta -= 1.6f;
-		break;
-	case 'f':
-		phi -= 1.6f;
-		break;
-	case 'h':
-		phi += 1.6f;
-		break;
-
     case 27:
         exit(0);
         return;
     }
+}
+
+// Renders an array of SH basis functions.
+void addSHArray(Scene* scene, glm::vec3 pos, int nBands,
+	float scale, float spacing)
+{
+	Shader* plotShader = new Shader(false, "SpherePlot");
+
+	for(int l = 0; l < nBands; ++l)
+		for(int m = -l; m <= l; ++m)
+		{
+			SpherePlot* plot = new SpherePlot(		
+				[l, m] (double theta, double phi) -> float 
+				{
+					//float val = 0.2f;
+					float val = SH::realSH(l, m, theta, phi);
+
+					return val;
+				}
+				, 50, plotShader);
+			plot->uniformScale(scale);
+			plot->prependTransform(glm::rotate(
+				glm::mat4(1.0f), 90.0f, glm::vec3(0.0, 1.0, 0.0)));
+			plot->translate(pos + glm::vec3(m * spacing, l * spacing, 0.0f));
+			
+			scene->add(plot);
+		}
 }

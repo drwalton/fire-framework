@@ -80,6 +80,7 @@ void PhongLightManager::updateBlock()
 }
 
 SHLightManager::SHLightManager()
+	:nLights(0)
 {
 	for(int i = 0; i < GC::maxSHLights; ++i)
 		lights[i] = nullptr;

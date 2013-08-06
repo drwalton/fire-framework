@@ -29,14 +29,14 @@ MeshData Mesh::loadSceneFile(
 
 		MeshData d;
 
+		d.M.push_back(mat);
+
 		std::cout << "> Mesh " << i << " of "
 			<< mesh->mNumVertices << " vertices, "
 			<< mesh->mNumFaces << " triangles.\n";
 
 		for(int j = 0; j < (int) mesh->mNumVertices; ++j)
 		{
-			d.M.push_back(mat);
-
 			//Vertices
 			glm::vec4 vert = glm::vec4(
 				mesh->mVertices[j].x,
@@ -138,7 +138,10 @@ void Mesh::init(const MeshData& data)
 		vert.v = data.v[i];
 		vert.n = data.n[i];
 		vert.m = data.m[i];
+		vertBuffer.push_back(vert);
 	}
+
+	mats = data.M;
 
 	glGenBuffers(1, &v_vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, v_vbo);
