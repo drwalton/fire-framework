@@ -42,7 +42,11 @@ SpherePlotMesh SpherePlot::genMesh(const std::vector<SphereSample>& samples)
 		/* Calculate norms. */
 		glm::vec3 across(mesh.v[trv].pos - mesh.v[tlv].pos);
 		glm::vec3   down(mesh.v[blv].pos - mesh.v[tlv].pos);
-		mesh.v[tlv].norm = glm::normalize(glm::cross(down, across));
+		glm::vec3 norm = glm::cross(down, across);
+		if(abs(norm.x) < EPS && abs(norm.y) < EPS && abs(norm.z) < EPS)
+			mesh.v[tlv].norm = glm::vec3(0.0f, 0.0f, 0.0f);
+		else
+			mesh.v[tlv].norm = glm::normalize(norm);
 
 		/* Add elements. */
 		mesh.e.push_back(blv);
