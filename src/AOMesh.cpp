@@ -18,6 +18,7 @@ AOMesh::AOMesh(
 	{
 		MeshData data = Mesh::loadSceneFile(filename, material);
 		elems = data.e;
+		numElems = elems.size();
 		bake(data, sqrtNSamples, mesh, elems);
 		writePrebakedFile(mesh, elems, mats, prebakedFilename);
 	}
@@ -48,7 +49,7 @@ AOMesh::AOMesh(
 		MeshData data = Mesh::loadSceneFiles(filenames, mats);
 		elems = data.e;
 		mats = data.M;
-		numElems = data.e.size();
+		numElems = elems.size();
 		bake(data, sqrtNSamples, mesh, elems);
 		writePrebakedFile(mesh, elems, mats, prebakedFilename);
 	}
@@ -82,6 +83,7 @@ void AOMesh::render()
 	if(!scene) return;
 	
 	shader->setModelToWorld(modelToWorld);
+
 	static_cast<AOShader*>(shader)->setMaterials(mats);
 
 	shader->use();
@@ -95,7 +97,7 @@ void AOMesh::render()
 	glVertexAttribBinding(v_attrib, 0);
 	glVertexAttribFormat(n_attrib, 3, GL_FLOAT, GL_FALSE, offsetof(AOMeshVertex, n));
 	glVertexAttribBinding(n_attrib, 0);
-	glVertexAttribFormat(m_attrib, 1, GL_INT, GL_FALSE, offsetof(AOMeshVertex, m));
+	glVertexAttribFormat(m_attrib, 1, GL_UNSIGNED_INT, GL_FALSE, offsetof(AOMeshVertex, m));
 	glVertexAttribBinding(m_attrib, 0);
 	glVertexAttribFormat(occl_attrib, 1, GL_FLOAT, GL_FALSE, offsetof(AOMeshVertex, occl));
 	glVertexAttribBinding(occl_attrib, 0);
@@ -217,6 +219,7 @@ void AOMesh::bake(
 			}
 		} // end parallel for
 	} // end parallel
+	std::cout << " 100% complete" << std::endl;
 }
 
 void AOMesh::writePrebakedFile(
@@ -345,6 +348,8 @@ void AOMesh::readPrebakedFile(
 
 		mats.push_back(mat);
 	}
+
+	numElems = elems.size();
 
 	file.close();
 }

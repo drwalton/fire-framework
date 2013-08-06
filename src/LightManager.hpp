@@ -41,7 +41,7 @@ public:
 	SHLightManager();
 	SHLight* add(SHLight* l);
 	SHLight* remove(SHLight* l);
-	glm::vec4 getSHLitColor(const std::vector<glm::vec3>& coeffts);
+	glm::vec3 getSHLitColor(const std::vector<glm::vec3>& coeffts);
 private:
 	std::array<SHLight*, GC::maxSHLights> lights;
 	int nLights;

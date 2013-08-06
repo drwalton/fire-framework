@@ -176,7 +176,7 @@ void Mesh::render()
 	glVertexAttribBinding(v_attrib, 0);
 	glVertexAttribFormat(n_attrib, 3, GL_FLOAT, GL_FALSE, offsetof(MeshVertex, n));
 	glVertexAttribBinding(n_attrib, 0);
-	glVertexAttribFormat(m_attrib, 1, GL_INT, GL_FALSE, offsetof(MeshVertex, m));
+	glVertexAttribFormat(m_attrib, 1, GL_UNSIGNED_INT, GL_FALSE, offsetof(MeshVertex, m));
 	glVertexAttribBinding(m_attrib, 0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 

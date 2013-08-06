@@ -103,7 +103,7 @@ SHLight* Scene::remove(SHLight* l)
 	return shManager.remove(l);
 }
 
-glm::vec4 Scene::getSHLitColor(const std::vector<glm::vec3>& coeffts)
+glm::vec3 Scene::getSHLitColor(const std::vector<glm::vec3>& coeffts)
 {
 	return shManager.getSHLitColor(coeffts);
 }

@@ -99,14 +99,15 @@ int init()
 	bunnyAO->translate(glm::vec3(1.0f, 0.0f, 0.0f));
 	scene->add(bunnyAO);
 
-	PRTMesh* bunnyPRT = new PRTMesh("teapot.obj", greenMat, UNSHADOWED, 10, 3, shShader);
+	PRTMesh* bunnyPRT = new PRTMesh("bunny.obj", greenMat, UNSHADOWED, 10, 3, shShader);
+	bunnyPRT->translate(glm::vec3(-1.0f, 0.0f, 0.0f));
 	scene->add(bunnyPRT);
 
 	light = new SHLight(
 		[] (float theta, float phi) -> glm::vec3 
 		{
 			//float val = 0.2f;
-			float val = pulse(theta, phi, glm::vec3(1.0f, 0.0f, 0.0f), 4.0f, 1.0f);
+			float val = pulse(theta, phi, glm::vec3(1.0f, 0.0f, 0.0f), 4.0f, 10.0f);
 
 			return glm::vec3(val, val, val);
 		}

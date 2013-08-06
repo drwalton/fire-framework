@@ -77,7 +77,7 @@ private:
 	std::vector<GLushort>  elems;
 
 	std::vector<std::vector<glm::vec3>> transfer;
-	std::vector<glm::vec4> colors;
+	std::vector<glm::vec3> colors;
 
 	GLuint verts_vbo;
 	GLuint elems_vbo;

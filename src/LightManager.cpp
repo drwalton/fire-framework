@@ -120,7 +120,7 @@ SHLight* SHLightManager::remove(SHLight* l)
 	return l;
 }
 
-glm::vec4 SHLightManager::getSHLitColor(const std::vector<glm::vec3>& coeffts)
+glm::vec3 SHLightManager::getSHLitColor(const std::vector<glm::vec3>& coeffts)
 {
 	glm::vec3 color(0.0f);
 	
@@ -128,5 +128,5 @@ glm::vec4 SHLightManager::getSHLitColor(const std::vector<glm::vec3>& coeffts)
 		for(unsigned c = 0; c < coeffts.size(); ++c)
 			color += lights[i]->getCoeffts()[c] * coeffts[c];
 
-	return glm::vec4(color.x, color.y, color.z, 1.0f);
+	return color;
 }

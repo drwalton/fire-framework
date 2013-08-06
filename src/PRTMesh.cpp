@@ -20,6 +20,7 @@ PRTMesh::PRTMesh(
 	else
 	{
 		MeshData data = Mesh::loadSceneFile(filename, material);
+		verts = data.v;
 		elems = data.e;
 		bake(data, mode, nBands, sqrtNSamples, verts, transfer, nBounces);
 		writePrebakedFile(verts, elems, transfer, prebakedFilename);
@@ -51,6 +52,7 @@ PRTMesh::PRTMesh(
 	else
 	{
 		MeshData data = Mesh::loadSceneFiles(filenames, materials);
+		verts = data.v;
 		elems = data.e;
 		bake(data, mode, nBands, sqrtNSamples, verts, transfer, nBounces);
 		writePrebakedFile(verts, elems, transfer, prebakedFilename);
@@ -61,15 +63,16 @@ PRTMesh::PRTMesh(
 
 void PRTMesh::render()
 {
+	shader->setModelToWorld(modelToWorld);
+
 	//Calculate vertex colors.
-	#pragma omp parallel for	
 	for(int i = 0; i < static_cast<int>(transfer.size()); ++i)
 		colors[i] = scene->getSHLitColor(transfer[i]);
 
 	//Send new colors to GPU.
 	glBindBuffer(GL_ARRAY_BUFFER, colors_vbo);
 	glBufferSubData(GL_ARRAY_BUFFER, 0, 
-		sizeof(glm::vec4) * colors.size(), colors.data());
+		sizeof(glm::vec3) * colors.size(), colors.data());
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	//Render.
@@ -82,8 +85,8 @@ void PRTMesh::render()
 	glVertexAttribFormat(vert_attrib, 4, GL_FLOAT, GL_FALSE, 0);
 	glVertexAttribBinding(vert_attrib, 0);
 
-	glBindVertexBuffer(1, colors_vbo, 0, sizeof(glm::vec4));
-	glVertexAttribFormat(color_attrib, 4, GL_FLOAT, GL_FALSE, 0);
+	glBindVertexBuffer(1, colors_vbo, 0, sizeof(glm::vec3));
+	glVertexAttribFormat(color_attrib, 3, GL_FLOAT, GL_FALSE, 0);
 	glVertexAttribBinding(color_attrib, 1);
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -103,7 +106,7 @@ void PRTMesh::render()
 void PRTMesh::init()
 {
 	for(unsigned i = 0; i < verts.size(); ++i)
-		colors.push_back(glm::vec4(0.0f));
+		colors.push_back(glm::vec3(0.0f));
 
 	glGenBuffers(1, &verts_vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, verts_vbo);
@@ -111,7 +114,7 @@ void PRTMesh::init()
 		verts.data(), GL_STATIC_DRAW);
 	glGenBuffers(1, &colors_vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, colors_vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec4) * colors.size(),
+	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * colors.size(),
 		colors.data(), GL_DYNAMIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
@@ -131,8 +134,6 @@ void PRTMesh::bake(const MeshData& data,
 	std::vector<std::vector<glm::vec3>>& transfer, 
 	int nBounces)
 {
-	verts.resize(data.v.size());
-
 	int tid;
 	int completedVerts = 0;
 	int currPercent = 0;
@@ -148,9 +149,6 @@ void PRTMesh::bake(const MeshData& data,
 		//#pragma omp for
 		for(int i = 0; i < nVerts; ++i)
 		{
-			glm::vec4 vert = data.v[i];
-			verts.push_back(vert);
-
 			std::vector<glm::vec3> coeffts;
 
 			if(mode == UNSHADOWED)

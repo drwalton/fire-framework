@@ -47,7 +47,7 @@ public:
 
 	SHLight* add(SHLight* l);
 	SHLight* remove(SHLight* l);
-	glm::vec4 getSHLitColor(const std::vector<glm::vec3>& coeffts);
+	glm::vec3 getSHLitColor(const std::vector<glm::vec3>& coeffts);
 
 	void setAmbLight(glm::vec4 _ambLight);
 
