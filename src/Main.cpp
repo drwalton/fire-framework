@@ -3,6 +3,7 @@
 #include "Particles.hpp"
 #include "Mesh.hpp"
 #include "AOMesh.hpp"
+#include "PRTMesh.hpp"
 #include "SH.hpp"
 #include "SHMat.hpp"
 #include "SphereFunc.hpp"
@@ -89,6 +90,7 @@ int init()
 
 	AOShader* aoShader = new AOShader(false, "AOSolid");
 	LightShader* lightShader = new LightShader(false, "Solid");
+	SHShader* shShader = new SHShader(false, "PRTfrag");
 
 	Mesh* bunny = new Mesh("bunny.obj", greenMat, lightShader);
 	scene->add(bunny);
@@ -97,11 +99,14 @@ int init()
 	bunnyAO->translate(glm::vec3(1.0f, 0.0f, 0.0f));
 	scene->add(bunnyAO);
 
+	PRTMesh* bunnyPRT = new PRTMesh("teapot.obj", greenMat, UNSHADOWED, 10, 3, shShader);
+	scene->add(bunnyPRT);
+
 	light = new SHLight(
-		[] (double theta, double phi) -> glm::vec3 
+		[] (float theta, float phi) -> glm::vec3 
 		{
 			//float val = 0.2f;
-			float val = pulse(theta, phi, glm::vec3(1.0, 0.0, 0.0), 4.0f, 1.0f);
+			float val = pulse(theta, phi, glm::vec3(1.0f, 0.0f, 0.0f), 4.0f, 1.0f);
 
 			return glm::vec3(val, val, val);
 		}

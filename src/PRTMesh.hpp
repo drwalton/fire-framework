@@ -35,8 +35,8 @@ public:
 		int nBounces = 3);
 
 	void render();
-
 	void update(int dTime) {};
+	Shader* getShader() {return shader;};
 private:
 	std::string genPrebakedFilename(
 		const std::string& filename,

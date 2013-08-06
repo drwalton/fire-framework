@@ -143,23 +143,23 @@ void AOMesh::bake(
 			mesh[i].m = data.m[i];
 			mesh[i].occl = 0.0f;
 
-			double sqrSize = 1.0 / sqrtNSamples;
+			float sqrSize = 1.0f / sqrtNSamples;
 
 			/* Perform stratified sampling in the hemisphere around the norm */
 			/* Sample over whole sphere first */
 			for(int x = 0; x < sqrtNSamples; ++x)
 				for(int y = 0; y < sqrtNSamples; ++y)
 				{
-					double u = (x * sqrSize);
-					double v = (y * sqrSize);
+					float u = (x * sqrSize);
+					float v = (y * sqrSize);
 					if(GC::jitterSamples)
 					{
-						u += randd(0, sqrSize);
-						v += randd(0, sqrSize);
+						u += randf(0, sqrSize);
+						v += randf(0, sqrSize);
 					}
 
-					double theta = acos((2 * u) - 1);
-					double phi = (2 * PI_d * v);
+					float theta = acos((2 * u) - 1);
+					float phi = (2 * PI * v);
 
 					glm::vec3 dir
 						(

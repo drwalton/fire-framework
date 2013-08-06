@@ -186,7 +186,6 @@ GLuint Shader::getUBlockBindingIndex(const std::string& name)
 	if (name.compare("cameraBlock") == 0) return 0;
 	if (name.compare("ambBlock")    == 0) return 1;
 	if (name.compare("phongBlock")  == 0) return 2;
-	if (name.compare("SHBlock")     == 0) return 3;
 
 	return -1; // Name not found
 }
@@ -298,14 +297,12 @@ void ParticleShader::setDecayTexUnit(GLuint _decayTexUnit)
 SHShader::SHShader(bool hasGeomShader,  const std::string& filename)
 	:Shader(hasGeomShader, filename, SH_SUBS)
 {
-	setupUniformBlock("SHBlock");
 }
 
 SHShader::SHShader(bool hasGeomShader,  const std::string& filename, 
 	std::vector<std::string> subs)
 	:Shader(hasGeomShader, filename, subs)
 {
-	setupUniformBlock("SHBlock");
 }
 
 AOShader::AOShader(bool hasGeomShader,  const std::string& filename)

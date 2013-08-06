@@ -46,10 +46,10 @@ public:
 	void setDiffuse(glm::vec4 _diffuse);
 	void setSpecular(glm::vec4 _specular);
 	void setAttenuation(float _attenuation);
-	glm::vec4 getPos() {return pos;};
-	glm::vec4 getDiffuse() {return diffuse;};
-	glm::vec4 getSpecular() {return specular;};
-	float getAttenuation() {return attenuation;};
+	const glm::vec4& getPos() {return pos;};
+	const glm::vec4& getDiffuse() {return diffuse;};
+	const glm::vec4& getSpecular() {return specular;};
+	const float& getAttenuation() {return attenuation;};
 	int index;
 	PhongLightManager* manager;
 private:
@@ -71,14 +71,14 @@ public:
 	template <typename Fn>
 	void setFunc(Fn func);
 	void setCoeffts(std::vector<glm::vec3> _coeffts);
-	std::vector<glm::vec3> getCoeffts() {return rotation * coeffts;};
+	const std::vector<glm::vec3>& getCoeffts() {return rotCoeffts;};
 	void rotateCoeffts(glm::mat4 rotation);
 	int index;
 	SHLightManager* manager;
 private:
 	std::vector<glm::vec3> coeffts;
+	std::vector<glm::vec3> rotCoeffts;
 	SHMat rotation;
-	void update();
 };
 
 template <typename Fn>
@@ -86,13 +86,14 @@ SHLight::SHLight(Fn func)
 	:index(-1), manager(nullptr), rotation(SHMat(GC::nSHBands))
 {
 	coeffts = SH::shProject(GC::sqrtSHSamples, GC::nSHBands, func);
+	rotCoeffts = coeffts;
 };
 
 template <typename Fn>
 void SHLight::setFunc(Fn func)
 {
 	coeffts = SH::shProject(GC::sqrtSHSamples, GC::nSHBands, func);
-	update();
+	rotCoeffts = rotation * coeffts;
 }
 
 #endif

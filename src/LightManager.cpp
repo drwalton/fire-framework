@@ -100,17 +100,6 @@ SHLight* SHLightManager::add(SHLight* l)
 	return l;
 }
 
-SHLight* SHLightManager::update(SHLight* l)
-{
-	/* Check light is actually in manager before updating */
-	if(l->manager != this || l == nullptr) return nullptr;
-	/* Check light's index is valid */
-	if(l != lights[l->index] ||
-		l->index < 0 || l->index >= nLights)
-		return nullptr; //TODO: throw exception?
-	return l;
-}
-
 SHLight* SHLightManager::remove(SHLight* l)
 {
 	/* Check light is in manager first */
@@ -136,7 +125,7 @@ glm::vec4 SHLightManager::getSHLitColor(const std::vector<glm::vec3>& coeffts)
 	glm::vec3 color(0.0f);
 	
 	for(int i = 0; i < nLights; ++i)
-		for(int c = 0; c < coeffts.size(); ++c)
+		for(unsigned c = 0; c < coeffts.size(); ++c)
 			color += lights[i]->getCoeffts()[c] * coeffts[c];
 
 	return glm::vec4(color.x, color.y, color.z, 1.0f);

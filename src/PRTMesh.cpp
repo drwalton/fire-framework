@@ -7,7 +7,7 @@ PRTMesh::PRTMesh(
 	int nBands,
 	Shader* shader, 
 	int nBounces)
-	:Renderable(false)
+	:Renderable(false), shader(shader)
 {
 	std::string prebakedFilename = genPrebakedFilename(filename, mode, nBands);
 
@@ -35,7 +35,7 @@ PRTMesh::PRTMesh(
 	int nBands,
 	Shader* shader, 
 	int nBounces)
-	:Renderable(false)
+	:Renderable(false), shader(shader)
 {
 	std::string prebakedFilename = "";
 	for(auto n = filenames.begin(); n != filenames.end(); ++n)
@@ -62,7 +62,8 @@ PRTMesh::PRTMesh(
 void PRTMesh::render()
 {
 	//Calculate vertex colors.
-	for(unsigned i = 0; i < transfer.size(); ++i)
+	#pragma omp parallel for	
+	for(int i = 0; i < static_cast<int>(transfer.size()); ++i)
 		colors[i] = scene->getSHLitColor(transfer[i]);
 
 	//Send new colors to GPU.
@@ -101,6 +102,9 @@ void PRTMesh::render()
 
 void PRTMesh::init()
 {
+	for(unsigned i = 0; i < verts.size(); ++i)
+		colors.push_back(glm::vec4(0.0f));
+
 	glGenBuffers(1, &verts_vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, verts_vbo);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec4) * verts.size(),
@@ -137,11 +141,11 @@ void PRTMesh::bake(const MeshData& data,
 	std::cout 
 		<< "Calculating transfer coeffts (may take some time) ..." << std::endl;
 
-	#pragma omp parallel private(tid)
+	//#pragma omp parallel private(tid)
 	{
-		tid = omp_get_thread_num();
-
-		#pragma omp for
+		//tid = omp_get_thread_num();
+		tid = 0;
+		//#pragma omp for
 		for(int i = 0; i < nVerts; ++i)
 		{
 			glm::vec4 vert = data.v[i];
@@ -151,7 +155,7 @@ void PRTMesh::bake(const MeshData& data,
 
 			if(mode == UNSHADOWED)
 				coeffts = SH::shProject(sqrtNSamples, nBands, 
-					[&data, &i](double theta, double phi) -> glm::vec3 
+					[&data, &i](float theta, float phi) -> glm::vec3 
 						{
 							glm::vec3 dir
 								(
@@ -174,7 +178,7 @@ void PRTMesh::bake(const MeshData& data,
 
 			else // mode == SHADOWED || mode == INTERREFLECTED
 				coeffts = SH::shProject(sqrtNSamples, nBands, 
-					[&data, &i](double theta, double phi) -> glm::vec3 
+					[&data, &i](float theta, float phi) -> glm::vec3 
 						{
 							bool intersect = false;
 
@@ -283,18 +287,18 @@ void PRTMesh::interreflect(
 				for(int x = 0; x < sqrtNSamples; ++x)
 					for(int y = 0; y < sqrtNSamples; ++y)
 					{
-						double sqrWidth = 1 / (double) sqrtNSamples;
+						float sqrWidth = 1 / (float) sqrtNSamples;
 
-						double u = (x * sqrSize);
-						double v = (y * sqrSize);
+						float u = (x * sqrSize);
+						float v = (y * sqrSize);
 						if(GC::jitterSamples)
 						{
-							u += randd(0, sqrWidth);
-							v += randd(0, sqrWidth);
+							u += randf(0, sqrWidth);
+							v += randf(0, sqrWidth);
 						}
 
-						double theta = acos((2 * u) - 1);
-						double phi = (2 * PI_d * v);
+						float theta = acos((2 * u) - 1);
+						float phi = (2 * PI * v);
 
 						glm::vec3 dir
 							(

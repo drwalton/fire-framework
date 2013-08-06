@@ -32,16 +32,11 @@ void PhongLight::update()
 void SHLight::setCoeffts(std::vector<glm::vec3> _coeffts)
 {
 	coeffts = _coeffts;
-	update();
+	rotCoeffts = rotation * coeffts;
 }
 
 void SHLight::rotateCoeffts(glm::mat4 _rotation)
 {
 	rotation = SHMat(_rotation, GC::nSHBands);
-	update();
-}
-
-void SHLight::update()
-{
-	if(manager) manager->update(this);
+	rotCoeffts = rotation * coeffts;
 }

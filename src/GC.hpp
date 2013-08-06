@@ -30,7 +30,6 @@ const float EPS = 10e-6f;
 
 /* Useful mathematical constants */
 const float PI = 3.141592653589793238462f;
-const double SQRT_TWO_d = 1.4142135623730950;
-const double PI_d = 3.141592653589793238462;
+const float SQRT_TWO = 1.4142135623730950f;
 
 #endif

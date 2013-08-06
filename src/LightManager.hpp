@@ -40,7 +40,6 @@ class SHLightManager
 public:
 	SHLightManager();
 	SHLight* add(SHLight* l);
-	SHLight* update(SHLight* l);
 	SHLight* remove(SHLight* l);
 	glm::vec4 getSHLitColor(const std::vector<glm::vec3>& coeffts);
 private:

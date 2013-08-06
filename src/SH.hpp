@@ -12,7 +12,7 @@ namespace SH
 {
 	/* Finds the SH projection of func 
 	 * where func evaluates to some function
-	 * of type: double func(double theta, double phi) 
+	 * of type: float func(float theta, float phi) 
 	 */
 	template<typename Fn>
 	std::vector<glm::vec3> shProject(int sqrtNSamples, int nBands,
@@ -22,10 +22,10 @@ namespace SH
 		float theta, float phi);
 
 	/* Computes the real spherical harmonic SH_l^m(\theta, \phi) */
-	double realSH(int l, int m, double theta, double phi);
+	float realSH(int l, int m, float theta, float phi);
 
-	double K(int l, int m);
-	double P(int l, int m, double x);
+	float K(int l, int m);
+	float P(int l, int m, float x);
 	int fact(int i);
 	int dblFact(int i);
 
@@ -36,7 +36,7 @@ namespace SH
 	}
 }
 
-double randd(double low, double high);
+float randf(float low, float high);
 
 class BadArgumentException
 {
@@ -56,8 +56,8 @@ std::vector<glm::vec3> SH::shProject(int sqrtNSamples, int nBands,
 			coeffts.push_back(glm::vec3(0.0f));
 
 	/* Perform stratified random sampling over the sphere */
-	double sqrWidth = 1 / (double) sqrtNSamples;
-	double u, v, theta, phi;	 
+	float sqrWidth = 1 / (float) sqrtNSamples;
+	float u, v, theta, phi;	 
 
 	for(int i = 0; i < sqrtNSamples; ++i)
 		for(int j = 0; j < sqrtNSamples; ++j)
@@ -66,11 +66,11 @@ std::vector<glm::vec3> SH::shProject(int sqrtNSamples, int nBands,
 			v = (j * sqrWidth);
 			if(GC::jitterSamples)
 			{
-				u += randd(0, sqrWidth);
-				v += randd(0, sqrWidth);
+				u += randf(0, sqrWidth);
+				v += randf(0, sqrWidth);
 			}
 			theta = acos((2 * u) - 1);
-			phi = 2 * PI_d * v;
+			phi = 2 * PI * v;
 			for(int l = 0; l < nBands; ++l)
 				for(int m = -l; m <= l; ++m)
 				{
@@ -85,10 +85,10 @@ std::vector<glm::vec3> SH::shProject(int sqrtNSamples, int nBands,
 		}
 
 	/* Normalize coefficients */
-	double nSamples = sqrtNSamples * sqrtNSamples;
+	int nSamples = sqrtNSamples * sqrtNSamples;
 	for(auto i = coeffts.begin(); i != coeffts.end(); ++i)
 	{
-		(*i) *= 4.0 * PI / nSamples;
+		(*i) *= 4.0 * PI / static_cast<float>(nSamples);
 	}
 
 	return coeffts;
