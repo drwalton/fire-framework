@@ -134,6 +134,9 @@ void PRTMesh::bake(const MeshData& data,
 	int currPercent = 0;
 	int nVerts = static_cast<int>(data.v.size());
 
+	std::cout 
+		<< "Calculating transfer coeffts (may take some time) ..." << std::endl;
+
 	#pragma omp parallel private(tid)
 	{
 		tid = omp_get_thread_num();

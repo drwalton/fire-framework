@@ -93,6 +93,10 @@ int init()
 	Mesh* bunny = new Mesh("bunny.obj", greenMat, lightShader);
 	scene->add(bunny);
 
+	AOMesh* bunnyAO = new AOMesh("bunny.obj", greenMat, aoShader, 10);
+	bunnyAO->translate(glm::vec3(1.0f, 0.0f, 0.0f));
+	scene->add(bunnyAO);
+
 	light = new SHLight(
 		[] (double theta, double phi) -> glm::vec3 
 		{

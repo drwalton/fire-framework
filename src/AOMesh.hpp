@@ -1,6 +1,8 @@
 #ifndef AOMESH_HPP
 #define AOMESH_HPP
 
+#include <omp.h>
+
 #include "Mesh.hpp"
 #include "Intersect.hpp"
 
@@ -23,6 +25,9 @@ public:
 		const std::vector<std::string>& filenames,
 		const std::vector<Material>& materials,
 		AOShader* shader, int sqrtNSamples);
+	void render();
+	void update(int dTime) {};
+	Shader* getShader() {return shader;};
 private:
 	void writePrebakedFile(
 		const std::vector<AOMeshVertex>& mesh,
@@ -42,8 +47,6 @@ private:
 		int sqrtNSamples,
 		std::vector<AOMeshVertex>& mesh, 
 		const std::vector<GLushort>& elems);
-	void render();
-	void update(int dTime) {};
 
 	LightShader* shader;
 

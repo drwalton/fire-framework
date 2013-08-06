@@ -47,6 +47,7 @@ AOMesh::AOMesh(
 	{
 		MeshData data = Mesh::loadSceneFiles(filenames, mats);
 		elems = data.e;
+		mats = data.M;
 		numElems = data.e.size();
 		bake(data, sqrtNSamples, mesh, elems);
 		writePrebakedFile(mesh, elems, mats, prebakedFilename);
@@ -73,6 +74,7 @@ void AOMesh::init(
 	v_attrib = shader->getAttribLoc("vPosition");
 	n_attrib = shader->getAttribLoc("vNorm");
 	m_attrib = shader->getAttribLoc("vMatIndex");
+	occl_attrib = shader->getAttribLoc("vOccl");
 }
 
 void AOMesh::render()
@@ -121,73 +123,100 @@ void AOMesh::bake(
 {
 	mesh.resize(data.v.size());
 
-	#pragma omp parallel for
-	for(int i = 0; i < static_cast<int>(data.v.size()); ++i)
+	int tid;
+	int completedVerts = 0;
+	int currPercent = 0;
+	int nVerts = static_cast<int>(data.v.size());
+
+	std::cout 
+		<< "Calculating occlusion (may take some time) ..." << std::endl;
+
+	#pragma omp parallel private(tid)
 	{
-		mesh[i].v = data.v[i];
-		mesh[i].n = glm::vec3(0.0f);
-		mesh[i].occl = 0.0f;
+		tid = omp_get_thread_num();
 
-		double sqrSize = 1.0 / sqrtNSamples;
+		#pragma omp for
+		for(int i = 0; i < static_cast<int>(data.v.size()); ++i)
+		{
+			mesh[i].v = data.v[i];
+			mesh[i].n = glm::vec3(0.0f);
+			mesh[i].m = data.m[i];
+			mesh[i].occl = 0.0f;
 
-		/* Perform stratified sampling in the hemisphere around the norm */
-		/* Sample over whole sphere first */
-		for(int x = 0; x < sqrtNSamples; ++x)
-			for(int y = 0; y < sqrtNSamples; ++y)
-			{
-				double u = (x * sqrSize);
-				double v = (y * sqrSize);
-				if(GC::jitterSamples)
+			double sqrSize = 1.0 / sqrtNSamples;
+
+			/* Perform stratified sampling in the hemisphere around the norm */
+			/* Sample over whole sphere first */
+			for(int x = 0; x < sqrtNSamples; ++x)
+				for(int y = 0; y < sqrtNSamples; ++y)
 				{
-					u += randd(0, sqrSize);
-					v += randd(0, sqrSize);
-				}
-
-				double theta = acos((2 * u) - 1);
-				double phi = (2 * PI_d * v);
-
-				glm::vec3 dir
-					(
-					sin(theta) * cos(phi),
-					sin(theta) * sin(phi),
-					cos(theta)
-					); 
-
-				/* Continue if dir is not in hemisphere around norm */
-				if(glm::dot(dir, data.n[i]) < 0.0f) continue;
-
-				/* Check for intersection */
-				bool intersect = false;
-
-				for(unsigned t = 0; t < data.e.size(); t += 3)
-				{
-					// Find triangle vertices
-					glm::vec3 ta = glm::vec3(data.v[data.e[t]]);
-					glm::vec3 tb = glm::vec3(data.v[data.e[t+1]]);
-					glm::vec3 tc = glm::vec3(data.v[data.e[t+2]]);
-
-					if(triangleRayIntersect(ta, tb, tc, glm::vec3(data.v[i]), dir))
+					double u = (x * sqrSize);
+					double v = (y * sqrSize);
+					if(GC::jitterSamples)
 					{
-						intersect = true;
-						break; // No need to check other triangles.
+						u += randd(0, sqrSize);
+						v += randd(0, sqrSize);
+					}
+
+					double theta = acos((2 * u) - 1);
+					double phi = (2 * PI_d * v);
+
+					glm::vec3 dir
+						(
+						sin(theta) * cos(phi),
+						sin(theta) * sin(phi),
+						cos(theta)
+						); 
+
+					/* Continue if dir is not in hemisphere around norm */
+					if(glm::dot(dir, data.n[i]) < 0.0f) continue;
+
+					/* Check for intersection */
+					bool intersect = false;
+
+					for(unsigned t = 0; t < data.e.size(); t += 3)
+					{
+						// Find triangle vertices
+						glm::vec3 ta = glm::vec3(data.v[data.e[t]]);
+						glm::vec3 tb = glm::vec3(data.v[data.e[t+1]]);
+						glm::vec3 tc = glm::vec3(data.v[data.e[t+2]]);
+
+						if(triangleRayIntersect(ta, tb, tc, glm::vec3(data.v[i]), dir))
+						{
+							intersect = true;
+							break; // No need to check other triangles.
+						}
+					}
+
+					if(!intersect)
+					{
+						mesh[i].n += dir;
+						mesh[i].occl += 1.0f;
 					}
 				}
 
-				if(!intersect)
+			/* Normalize bent norm and occlusion coefft */
+			if(!(abs(mesh[i].n.x) < EPS && 
+				 abs(mesh[i].n.x) < EPS && 
+				 abs(mesh[i].n.z) < EPS))
+				 mesh[i].n = glm::normalize(mesh[i].n);
+
+			mesh[i].occl /= PI * (sqrtNSamples * sqrtNSamples);
+
+			completedVerts++;
+			if(tid == 0)
+			{
+				int percent = (completedVerts * 100) / nVerts;
+				if(percent > currPercent)
 				{
-					mesh[i].n += dir;
-					mesh[i].occl += 1.0f;
+					currPercent = percent;
+					std::cout << "*";
+					if(percent % 10 == 0 && percent != 100) 
+						std::cout << " " << percent << "% complete" << std::endl; 
 				}
 			}
-
-		/* Normalize bent norm and occlusion coefft */
-		if(!(abs(mesh[i].n.x) < EPS && 
-			 abs(mesh[i].n.x) < EPS && 
-			 abs(mesh[i].n.z) < EPS))
-			 mesh[i].n = glm::normalize(mesh[i].n);
-
-		mesh[i].occl /= PI * (sqrtNSamples * sqrtNSamples);
-	}
+		} // end parallel for
+	} // end parallel
 }
 
 void AOMesh::writePrebakedFile(
