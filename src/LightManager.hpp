@@ -20,12 +20,6 @@ struct phongBlock
 	float lightAttenuation[GC::maxPhongLights];
 };
 
-struct SHBlock
-{
-	glm::vec4 lightCoeffts[GC::nSHCoeffts * GC::maxSHLights];
-};
-
-
 class PhongLightManager
 {
 public:
@@ -48,11 +42,9 @@ public:
 	SHLight* add(SHLight* l);
 	SHLight* update(SHLight* l);
 	SHLight* remove(SHLight* l);
+	glm::vec4 getSHLitColor(const std::vector<glm::vec3>& coeffts);
 private:
 	std::array<SHLight*, GC::maxSHLights> lights;
-	SHBlock block;
-	GLuint block_ubo;
-	void updateBlock();
 	int nLights;
 };
 

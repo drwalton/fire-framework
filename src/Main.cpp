@@ -2,6 +2,7 @@
 #include "Texture.hpp"
 #include "Particles.hpp"
 #include "Mesh.hpp"
+#include "AOMesh.hpp"
 #include "SH.hpp"
 #include "SHMat.hpp"
 #include "SphereFunc.hpp"
@@ -29,7 +30,7 @@ void plotApproximations(Fn f, int nBands, float spacing, glm::vec3 translate)
 
 	for(int i = 1; i < nBands; ++i)
 	{
-		std::vector<glm::vec4> proj = SH::shProject(20, i, 
+		std::vector<glm::vec3> proj = SH::shProject(20, i, 
 		[&f] (double theta, double phi) -> glm::vec3 
 		{
 			return glm::vec3(f(theta, phi));

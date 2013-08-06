@@ -4,17 +4,19 @@ AOMesh::AOMesh(
 	const std::string& filename,
 	const Material& material,
 	AOShader* shader, int sqrtNSamples)
-	:shader(shader)
+	:Renderable(false), shader(shader)
 {
+	mats.push_back(material);
+
 	std::vector<AOMeshVertex> mesh;
 	std::vector<GLushort> elems;
 
-	prebakedFilename = filename + ".ao";
+	std::string prebakedFilename = filename + ".ao";
 	if(fileExists(prebakedFilename))
 		readPrebakedFile(mesh, elems, mats, prebakedFilename);
 	else
 	{
-		MeshData data = Mesh::loadSceneFile(filename, mat);
+		MeshData data = Mesh::loadSceneFile(filename, material);
 		elems = data.e;
 		bake(data, sqrtNSamples, mesh, elems);
 		writePrebakedFile(mesh, elems, mats, prebakedFilename);
@@ -27,8 +29,10 @@ AOMesh::AOMesh(
 	const std::vector<std::string>& filenames,
 	const std::vector<Material>& materials,
 	AOShader* shader, int sqrtNSamples)
-	:shader(shader)
+	:Renderable(false), shader(shader)
 {
+	mats = materials;
+
 	std::vector<AOMeshVertex> mesh;
 	std::vector<GLushort> elems;
 
@@ -43,6 +47,7 @@ AOMesh::AOMesh(
 	{
 		MeshData data = Mesh::loadSceneFiles(filenames, mats);
 		elems = data.e;
+		numElems = data.e.size();
 		bake(data, sqrtNSamples, mesh, elems);
 		writePrebakedFile(mesh, elems, mats, prebakedFilename);
 	}
@@ -88,9 +93,9 @@ void AOMesh::render()
 	glVertexAttribBinding(v_attrib, 0);
 	glVertexAttribFormat(n_attrib, 3, GL_FLOAT, GL_FALSE, offsetof(AOMeshVertex, n));
 	glVertexAttribBinding(n_attrib, 0);
-	glVertexAttribFormat(m_attrib, 1, GL_INT, GL_FALSE, offsetof(MeshVertex, m));
+	glVertexAttribFormat(m_attrib, 1, GL_INT, GL_FALSE, offsetof(AOMeshVertex, m));
 	glVertexAttribBinding(m_attrib, 0);
-	glVertexAttribFormat(occl_attrib, 1, GL_FLOAT, GL_FALSE, offsetof(MeshVertex, occl));
+	glVertexAttribFormat(occl_attrib, 1, GL_FLOAT, GL_FALSE, offsetof(AOMeshVertex, occl));
 	glVertexAttribBinding(occl_attrib, 0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
@@ -117,7 +122,7 @@ void AOMesh::bake(
 	mesh.resize(data.v.size());
 
 	#pragma omp parallel for
-	for(int i = 0; i < static_cast<int>(d.v.size()); ++i)
+	for(int i = 0; i < static_cast<int>(data.v.size()); ++i)
 	{
 		mesh[i].v = data.v[i];
 		mesh[i].n = glm::vec3(0.0f);
@@ -134,8 +139,8 @@ void AOMesh::bake(
 				double v = (y * sqrSize);
 				if(GC::jitterSamples)
 				{
-					u += randd(0, sqrWidth);
-					v += randd(0, sqrWidth);
+					u += randd(0, sqrSize);
+					v += randd(0, sqrSize);
 				}
 
 				double theta = acos((2 * u) - 1);
@@ -149,19 +154,19 @@ void AOMesh::bake(
 					); 
 
 				/* Continue if dir is not in hemisphere around norm */
-				if(glm::dot(dir, d.n[i]) < 0.0f) continue;
+				if(glm::dot(dir, data.n[i]) < 0.0f) continue;
 
 				/* Check for intersection */
 				bool intersect = false;
 
-				for(size_t t = 0; t < d.e.size(); t += 3)
+				for(unsigned t = 0; t < data.e.size(); t += 3)
 				{
 					// Find triangle vertices
-					glm::vec3 ta = glm::vec3(data.v[d.e[t]]);
-					glm::vec3 tb = glm::vec3(data.v[d.e[t+1]]);
-					glm::vec3 tc = glm::vec3(data.v[d.e[t+2]]);
+					glm::vec3 ta = glm::vec3(data.v[data.e[t]]);
+					glm::vec3 tb = glm::vec3(data.v[data.e[t+1]]);
+					glm::vec3 tc = glm::vec3(data.v[data.e[t+2]]);
 
-					if(triangleRayIntersect(ta, tb, tc, glm::vec3(d.v[i]), dir))
+					if(triangleRayIntersect(ta, tb, tc, glm::vec3(data.v[i]), dir))
 					{
 						intersect = true;
 						break; // No need to check other triangles.
@@ -176,11 +181,12 @@ void AOMesh::bake(
 			}
 
 		/* Normalize bent norm and occlusion coefft */
-		vertBuffer[i].bentN = glm::normalize(vertBuffer[i].bentN);
-		if(isNAN(vertBuffer[i].bentN))
-			vertBuffer[i].bentN = d.n[i]; // Give original vector as fallback.
+		if(!(abs(mesh[i].n.x) < EPS && 
+			 abs(mesh[i].n.x) < EPS && 
+			 abs(mesh[i].n.z) < EPS))
+			 mesh[i].n = glm::normalize(mesh[i].n);
 
-		vertBuffer[i].occl /= PI * (sqrtNSamples * sqrtNSamples);
+		mesh[i].occl /= PI * (sqrtNSamples * sqrtNSamples);
 	}
 }
 
@@ -241,7 +247,7 @@ void AOMesh::writePrebakedFile(
 	file.close();
 }
 
-void Mesh::readPrebakedFile(
+void AOMesh::readPrebakedFile(
 	std::vector<AOMeshVertex>& mesh,
 	std::vector<GLushort>& elems,
  	std::vector<Material>& mats,
@@ -249,7 +255,7 @@ void Mesh::readPrebakedFile(
 {
 	std::ifstream file(filename);
 
-	if(!file) throw(new NoSuchFileException(filename));
+	if(!file) throw(new MeshFileException);
 
 	char ignore[10];
 
@@ -277,15 +283,15 @@ void Mesh::readPrebakedFile(
 		mesh.push_back(vert);
 	}
 
-	file.clear()
-	file.getLine(ignore, 10); //Throw the "Elements" line.
+	file.clear();
+	file.getline(ignore, 10); //Throw the "Elements" line.
 
 	int elem;
 	while(file >> elem)
 		elems.push_back(static_cast<GLushort>(elem));
 
-	file.clear()
-	file.getLine(ignore, 10); //Throw the "Materials" line.
+	file.clear();
+	file.getline(ignore, 10); //Throw the "Materials" line.
 
 	while(file >> next)
 	{

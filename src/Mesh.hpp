@@ -4,11 +4,18 @@
 #include <vector>
 #include <string>
 #include <iostream>
+#include <fstream>
+#include <exception>
 
 #include <glm.hpp>
 #include <GL/glew.h>
+#include <assimp\Importer.hpp>
+#include <assimp\scene.h>
+#include <assimp\postprocess.h>
 
 #include "Scene.hpp"
+
+class MeshFileException : public std::exception {};
 
 struct MeshData
 {
@@ -51,6 +58,8 @@ public:
 		const std::vector<MeshData>& data);
 private:
 	void init(const MeshData& data);
+
+	LightShader* shader;
 
 	size_t numElems;
 

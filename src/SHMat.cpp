@@ -36,17 +36,17 @@ std::vector<float> SHMat::operator * (const std::vector<float>& p)
 	return ans;
 }
 
-std::vector<glm::vec4> SHMat::operator * (const std::vector<glm::vec4>& p)
+std::vector<glm::vec3> SHMat::operator * (const std::vector<glm::vec3>& p)
 {
 	if(p.size() != blocks.size()*blocks.size()) 
 		throw new MatDimException;
 
-	std::vector<glm::vec4> ans;
+	std::vector<glm::vec3> ans;
 
 	for(size_t i = 0; i < blocks.size(); ++i)
 	{
-		std::vector<glm::vec4> subVec(p.begin() + (i*i), p.begin() + (i+1)*(i+1));
-		std::vector<glm::vec4> subProd = blocks[i] * subVec;
+		std::vector<glm::vec3> subVec(p.begin() + (i*i), p.begin() + (i+1)*(i+1));
+		std::vector<glm::vec3> subProd = blocks[i] * subVec;
 
 		for(auto i = subProd.begin(); i != subProd.end(); ++i)
 			ans.push_back(*i);

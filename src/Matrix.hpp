@@ -45,7 +45,7 @@ public:
 	Matrix<T> operator + (const Matrix<T>& m);
 	Matrix<T> operator * (const Matrix<T>& m);
 	std::vector<T> operator * (const std::vector<T>& v);
-	std::vector<glm::vec4> operator * (const std::vector<glm::vec4>& v);
+	std::vector<glm::vec3> operator * (const std::vector<glm::vec3>& v);
 
 	void print();
 
@@ -211,10 +211,10 @@ std::vector<T> Matrix<T>::operator * (const std::vector<T>& v)
 }
 
 template <typename T>
-std::vector<glm::vec4> Matrix<T>::operator * (const std::vector<glm::vec4>& v)
+std::vector<glm::vec3> Matrix<T>::operator * (const std::vector<glm::vec3>& v)
 {
 	if(v.size() != c) throw new MatDimException;
-	std::vector<glm::vec4> ans(r, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+	std::vector<glm::vec3> ans(r, glm::vec3(0.0f));
 
 	for(unsigned i = 0; i < r; ++i)
 		for(unsigned j = 0; j < c; ++j)

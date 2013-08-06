@@ -15,10 +15,10 @@ namespace SH
 	 * of type: double func(double theta, double phi) 
 	 */
 	template<typename Fn>
-	std::vector<glm::vec4> shProject(int sqrtNSamples, int nBands,
+	std::vector<glm::vec3> shProject(int sqrtNSamples, int nBands,
 		Fn func);
 
-	glm::vec4 evaluate(std::vector<glm::vec4> projection,
+	glm::vec3 evaluate(std::vector<glm::vec3> projection,
 		float theta, float phi);
 
 	/* Computes the real spherical harmonic SH_l^m(\theta, \phi) */
@@ -34,9 +34,9 @@ namespace SH
 		if(l == 0) return 0;
 		else return (l+1)*l + m;
 	}
-
-	double randd(double low, double high);
 }
+
+double randd(double low, double high);
 
 class BadArgumentException
 {
@@ -46,7 +46,7 @@ public:
 };
 
 template<typename Fn>
-std::vector<glm::vec4> SH::shProject(int sqrtNSamples, int nBands,
+std::vector<glm::vec3> SH::shProject(int sqrtNSamples, int nBands,
 	Fn func)
 {
 	/* Initialise vector of coeffts with zeros */
@@ -91,12 +91,7 @@ std::vector<glm::vec4> SH::shProject(int sqrtNSamples, int nBands,
 		(*i) *= 4.0 * PI / nSamples;
 	}
 
-	/* Convert coeffts to vec4 */
-	std::vector<glm::vec4> coeffts4;
-	for(auto i = coeffts.begin(); i != coeffts.end(); ++i)
-		coeffts4.push_back(glm::vec4((*i), 1.0));
-
-	return coeffts4;
+	return coeffts;
 }
 
 

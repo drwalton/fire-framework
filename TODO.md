@@ -23,6 +23,6 @@ TODO
 4. Faster Baking
  * Octree has been written, but needs testing and integration into prebaking.
 
-5. Better CMake
- * Cmake kind of works, but needs tweaking and a full description of how to use it.
- * This may be best left for a bit later.
+5. Fix inconsistent use of floats and doubles. 
+ * Doubles for all CPU manipulation, cast to float only when necessary for 
+     GPU upload.

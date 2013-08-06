@@ -5,7 +5,8 @@ PRTMesh::PRTMesh(
 	const Material& material,
 	PRTMode mode, int sqrtNSamples,
 	int nBands,
-	Shader* shader)
+	Shader* shader, 
+	int nBounces)
 	:Renderable(false)
 {
 	std::string prebakedFilename = genPrebakedFilename(filename, mode, nBands);
@@ -18,9 +19,9 @@ PRTMesh::PRTMesh(
 
 	else
 	{
-		MeshData data = Mesh::loadSceneFile(filename, materail);
+		MeshData data = Mesh::loadSceneFile(filename, material);
 		elems = data.e;
-		bake(data, mode, nBands, verts, transfer);
+		bake(data, mode, nBands, sqrtNSamples, verts, transfer, nBounces);
 		writePrebakedFile(verts, elems, transfer, prebakedFilename);
 	}
 
@@ -32,13 +33,14 @@ PRTMesh::PRTMesh(
 	const std::vector<Material>& materials,
 	PRTMode mode, int sqrtNSamples,
 	int nBands,
-	Shader* shader)
+	Shader* shader, 
+	int nBounces)
 	:Renderable(false)
 {
 	std::string prebakedFilename = "";
 	for(auto n = filenames.begin(); n != filenames.end(); ++n)
 		prebakedFilename += *n;
-	prebakedFilename = genPrebakedFilename(filename, mode, nBands);
+	prebakedFilename = genPrebakedFilename(prebakedFilename, mode, nBands);
 
 	if(fileExists(prebakedFilename))
 		readPrebakedFile(
@@ -50,7 +52,7 @@ PRTMesh::PRTMesh(
 	{
 		MeshData data = Mesh::loadSceneFiles(filenames, materials);
 		elems = data.e;
-		bake(data, mode, nBands, verts, transfer);
+		bake(data, mode, nBands, sqrtNSamples, verts, transfer, nBounces);
 		writePrebakedFile(verts, elems, transfer, prebakedFilename);
 	}
 
@@ -60,7 +62,7 @@ PRTMesh::PRTMesh(
 void PRTMesh::render()
 {
 	//Calculate vertex colors.
-	for(int i = 0; i < transfer.size(); ++i)
+	for(unsigned i = 0; i < transfer.size(); ++i)
 		colors[i] = scene->getSHLitColor(transfer[i]);
 
 	//Send new colors to GPU.
@@ -120,9 +122,10 @@ void PRTMesh::init()
 }
 
 void PRTMesh::bake(const MeshData& data,
-	PRTMode mode, int nBands, 
+	PRTMode mode, int nBands, int sqrtNSamples,
 	std::vector<glm::vec4>& verts,
-	std::vector<std::vector<glm::vec3>>& transfer)
+	std::vector<std::vector<glm::vec3>>& transfer, 
+	int nBounces)
 {
 	verts.resize(data.v.size());
 
@@ -234,7 +237,7 @@ void PRTMesh::bake(const MeshData& data,
 	if(mode == INTERREFLECTED)
 	{
 		std::cout << "Interreflection pass begins...\n";
-		interreflect(data, nBands, verts, transfer);
+		interreflect(data, nBands, sqrtNSamples, nBounces, verts, transfer);
 	}
 }
 
@@ -244,10 +247,10 @@ void PRTMesh::interreflect(
 	const std::vector<glm::vec4>& verts,
 	std::vector<std::vector<glm::vec3>>& transfer)
 {
-	std::vector<std:vector<glm::vec3>> prevBounce(transfer);
-	std::vector<std:vector<glm::vec3>> currBounce(transfer.size());
+	std::vector<std::vector<glm::vec3>> prevBounce(transfer);
+	std::vector<std::vector<glm::vec3>> currBounce(transfer.size());
 
-	float sqrSize = 1.0 / sqrtNSamples;
+	float sqrSize = 1.0f / sqrtNSamples;
 
 	for(int b = 0; b < nBounces; ++b)
 	{
@@ -266,7 +269,7 @@ void PRTMesh::interreflect(
 			for(int i = 0; i < nVerts; ++i)
 			{
 				/* Zero currBounce */
-				for(auto v = currBounce.begin() v != currBounce.end(); ++v)
+				for(auto v = currBounce.begin(); v != currBounce.end(); ++v)
 				{
 					std::vector<glm::vec3> vert;
 					for(int i = 0; i < nBands*nBands; ++i)
@@ -277,6 +280,8 @@ void PRTMesh::interreflect(
 				for(int x = 0; x < sqrtNSamples; ++x)
 					for(int y = 0; y < sqrtNSamples; ++y)
 					{
+						double sqrWidth = 1 / (double) sqrtNSamples;
+
 						double u = (x * sqrSize);
 						double v = (y * sqrSize);
 						if(GC::jitterSamples)
@@ -333,26 +338,26 @@ void PRTMesh::interreflect(
 
 						for(int c = 0; c < nBands*nBands; ++c)
 						{
-							glm::vec4 avgPrevBounce = 
-								((1-(tu+tv)) * previousBounce[data.e[closestTri]][c] +
-								tu * previousBounce[data.e[closestTri + 1]][c] +
-								tv * previousBounce[data.e[closestTri + 2]][c]);
+							glm::vec3 avgPrevBounce = 
+								((1-(tu+tv)) * prevBounce[data.e[closestTri]][c] +
+								tu * prevBounce[data.e[closestTri + 1]][c] +
+								tv * prevBounce[data.e[closestTri + 2]][c]);
 
-							currentBounce[i][c] += 
-								glm::dot(data.n[i], dir) * avgDiffuse * avgPrevBounce;
+							currBounce[i][c] += 
+								glm::dot(data.n[i], dir) * glm::vec3(avgDiffuse) * avgPrevBounce;
 						}
 					}
 
 				// Normalize coeffts.
 				for(int c = 0; c < nBands*nBands; ++c)
-					currentBounce[i][c] *= 2.0 / (PI * sqrtNSamples);	
+					currBounce[i][c] *= 2.0 / (PI * sqrtNSamples);	
 
 				// Add to vertBuffer coeffts.
 				for(int c = 0; c < nBands*nBands; ++c)
-					coeffts[i][c] += currentBounce[i][c];
+					transfer[i][c] += currBounce[i][c];
 
 				// Copy currentBounce into previousBounce ready for next iteration.
-				previousBounce[i] = currentBounce[i];
+				prevBounce[i] = currBounce[i];
 
 				completedVerts++;
 				if(tid == 0)
@@ -428,8 +433,8 @@ void PRTMesh::writePrebakedFile(
 		for(auto c = v->begin(); c != v->end(); ++c)
 		{
 			file 
-				<< c->x << " ";
-				<< c->y << " ";
+				<< c->x << " "
+				<< c->y << " "
 				<< c->z << " ";
 		}
 		file << std::endl;
@@ -447,7 +452,7 @@ void PRTMesh::readPrebakedFile(
 {
 	std::ifstream file(filename);
 
-	if(!file) throw(new NoSuchFileException(filename));
+	if(!file) throw(new MeshFileException);
 
 	char ignore[10];
 
@@ -467,15 +472,15 @@ void PRTMesh::readPrebakedFile(
 		verts.push_back(vert);
 	}
 
-	file.clear()
-	file.getLine(ignore, 10); //Throw the "Elements" line.
+	file.clear();
+	file.getline(ignore, 10); //Throw the "Elements" line.
 
 	int elem;
 	while(file >> elem)
 		elems.push_back(static_cast<GLushort>(elem));
 
-	file.clear()
-	file.getLine(ignore, 10); //Throw the "Transfer Coeffts" line.
+	file.clear();
+	file.getline(ignore, 10); //Throw the "Transfer Coeffts" line.
 
 	for(auto v = verts.begin(); v != verts.end(); ++v)
 	{

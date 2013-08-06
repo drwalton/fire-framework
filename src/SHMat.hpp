@@ -16,7 +16,7 @@ public:
 	~SHMat() {};
 
 	std::vector<float> operator * (const std::vector<float>& p);
-	std::vector<glm::vec4> operator * (const std::vector<glm::vec4>& p);
+	std::vector<glm::vec3> operator * (const std::vector<glm::vec3>& p);
 
 	void print();
 private:

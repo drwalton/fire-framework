@@ -70,13 +70,13 @@ public:
 	SHLight(Fn func);
 	template <typename Fn>
 	void setFunc(Fn func);
-	void setCoeffts(std::vector<glm::vec4> _coeffts);
-	std::vector<glm::vec4> getCoeffts() {return rotation * coeffts;};
+	void setCoeffts(std::vector<glm::vec3> _coeffts);
+	std::vector<glm::vec3> getCoeffts() {return rotation * coeffts;};
 	void rotateCoeffts(glm::mat4 rotation);
 	int index;
 	SHLightManager* manager;
 private:
-	std::vector<glm::vec4> coeffts;
+	std::vector<glm::vec3> coeffts;
 	SHMat rotation;
 	void update();
 };

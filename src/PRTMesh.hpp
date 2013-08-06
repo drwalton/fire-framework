@@ -1,7 +1,17 @@
 #ifndef PRTMESH_HPP
 #define PRTMESH_HPP
 
+#include <vector>
+#include <string>
+
+#include <omp.h>
+
+#include <glm.hpp>
+
 #include "Mesh.hpp"
+#include "Scene.hpp"
+#include "Intersect.hpp"
+#include "SH.hpp"
 
 enum PRTMode : char {UNSHADOWED, SHADOWED, INTERREFLECTED, NONE};
 
@@ -13,14 +23,16 @@ public:
 		const Material& material,
 		PRTMode mode, int sqrtNSamples,
 		int nBands,
-		Shader* shader);
+		Shader* shader,
+		int nBounces = 3);
 
 	PRTMesh(
 		const std::vector<std::string>& filenames,
 		const std::vector<Material>& materials,
 		PRTMode mode, int sqrtNSamples,
 		int nBands,
-		Shader* shader);
+		Shader* shader,
+		int nBounces = 3);
 
 	void render();
 
@@ -48,13 +60,14 @@ private:
 	void init();
 
 	void bake(const MeshData& data,
-		PRTMode mode, int nBands, 
+		PRTMode mode, int nBands, int sqrtNSamples,
 		std::vector<glm::vec4>& verts,
-		std::vector<std::vector<glm::vec3>>& transfer);
+		std::vector<std::vector<glm::vec3>>& transfer,
+		int nBounces);
 
 	void interreflect(
 		const MeshData& data,
-		int nBands, 
+		int nBands, int sqrtNSamples, int nBounces,
 		const std::vector<glm::vec4>& verts,
 		std::vector<std::vector<glm::vec3>>& transfer);
 

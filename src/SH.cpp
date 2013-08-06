@@ -1,11 +1,11 @@
 #include "SH.hpp"
 
-glm::vec4 SH::evaluate(std::vector<glm::vec4> projection,
+glm::vec3 SH::evaluate(std::vector<glm::vec3> projection,
 	float theta, float phi)
 {
-	glm::vec4 value(0.0f);
+	glm::vec3 value(0.0f);
 
-	for(int i = 0; i < projection.size(); ++i)
+	for(unsigned i = 0; i < projection.size(); ++i)
 	{
 		int l = static_cast<int>(sqrt(static_cast<float>(i)));
 		int m = i - l*(l+1);
@@ -84,7 +84,7 @@ int SH::dblFact(int i)
 	return ans;
 }
 
-double SH::randd(double low, double high)
+double randd(double low, double high)
 {
 	double r = (double) rand() / (double) RAND_MAX;
 	return low + ((high - low) * r);

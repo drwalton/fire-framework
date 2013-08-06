@@ -29,7 +29,7 @@ void PhongLight::update()
 	if(manager) manager->update(this);
 }
 
-void SHLight::setCoeffts(std::vector<glm::vec4> _coeffts)
+void SHLight::setCoeffts(std::vector<glm::vec3> _coeffts)
 {
 	coeffts = _coeffts;
 	update();

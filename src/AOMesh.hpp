@@ -2,6 +2,7 @@
 #define AOMESH_HPP
 
 #include "Mesh.hpp"
+#include "Intersect.hpp"
 
 struct AOMeshVertex
 {
@@ -44,13 +45,18 @@ private:
 	void render();
 	void update(int dTime) {};
 
-	std::vector<Material>& mats;
+	LightShader* shader;
+
+	size_t numElems;
+
+	std::vector<Material> mats;
 
 	GLuint v_vbo;
 	GLuint e_vbo;
 	GLuint v_attrib;
 	GLuint n_attrib;
 	GLuint m_attrib;
+	GLuint occl_attrib;
 };
 
 #endif

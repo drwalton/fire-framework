@@ -3,11 +3,11 @@
 bool fileExists(const std::string& filename)
 {
 	std::ifstream file(filename);
-	return file ? true : false
+	return file ? true : false;
 }
 
 MeshData Mesh::loadSceneFile(
-	const std::string& filename, Material mat)
+	const std::string& filename, const Material& mat)
 {
 	Assimp::Importer importer;
 
@@ -76,9 +76,9 @@ MeshData Mesh::loadSceneFiles(
 {
 	std::vector<MeshData> dataVec;
 
-	for(unsigned i = 0; i < filename.size(); ++i)
+	for(unsigned i = 0; i < filenames.size(); ++i)
 	{
-		MeshData data = loadSceneFile(filename[i], mat[i]);
+		MeshData data = loadSceneFile(filenames[i], mats[i]);
 		dataVec.push_back(data);
 	}
 
@@ -112,16 +112,16 @@ MeshData Mesh::combineData(const std::vector<MeshData>& data)
 Mesh::Mesh(const std::string& filename, 
 	const Material& mat,
 	LightShader* shader)
-	:shader(shader)
+	:Renderable(false), shader(shader)
 {
 	MeshData data = loadSceneFile(filename, mat);
 	init(data);
 }
 
-Mesh(const std::vector<std::string>& filenames, 
+Mesh::Mesh(const std::vector<std::string>& filenames, 
 	const std::vector<Material>& mats,
 	LightShader* shader)
-	:shader(shader)
+	:Renderable(false), shader(shader)
 {
 	MeshData data = loadSceneFiles(filenames, mats);
 	init(data);
@@ -142,13 +142,13 @@ void Mesh::init(const MeshData& data)
 
 	glGenBuffers(1, &v_vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, v_vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(MeshVertex) * vertexBuffer.size(),
-		vertexBuffer.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(MeshVertex) * vertBuffer.size(),
+		vertBuffer.data(), GL_STATIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
     glGenBuffers(1, &e_vbo);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, e_vbo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLushort) * d.e.size(),
-		d.e.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLushort) * data.e.size(),
+		data.e.data(), GL_STATIC_DRAW);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
 	v_attrib = shader->getAttribLoc("vPosition");
