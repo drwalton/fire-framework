@@ -96,6 +96,7 @@ int init()
 {
 	glClearColor(1.0, 1.0, 1.0, 1.0);
 
+	/*
 	std::vector<glm::vec4> c = SH::shProject(10, 3, 
 		[] (double x, double y) -> glm::vec3 
 		{
@@ -113,24 +114,26 @@ int init()
 	std::cout << "Rotated:\n";
 	for(auto i = c.begin(); i != c.end(); ++i)
 		std::cout << (*i).x << "\n";
-
+	*/
 
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_DEPTH_TEST);
 
 	scene = new Scene();
-	
+	/*
 	ParticleShader* pShader = new ParticleShader(true, "ScrollTexFire");
 	Texture* flameTex = new Texture("bigFlame.png");
 	Texture* decayTex = new Texture("decay2.png");
 	AdvectParticlesCentroidLights* centreParticles = 
 		new AdvectParticlesCentroidLights(nSwirls, 10, 10, 1000, pShader, flameTex, decayTex);
 	centreParticles->translate(glm::vec3(0.0, -1.0, 1.5));
-	//scene->add(centreParticles);
+	scene->add(centreParticles);
 
 	AdvectParticlesRandLights* randParticles = new AdvectParticlesRandLights(nSwirls, 10, 2000, pShader, flameTex, decayTex);
 	randParticles->translate(glm::vec3(0.0, -1.0, -3.0));
-	//scene->add(randParticles);
+	
+	scene->add(randParticles);
+	*/
 
 	/*
 	AOShader* aoShader = new AOShader(false, "AOSolid");
@@ -161,7 +164,7 @@ int init()
 	*/
 
 
-
+	/*
 	SHShader* shShader = new SHShader(false, "PRTfrag");
 	
 	std::vector<DiffPRTMesh*> loadedPRT = DiffPRTMesh::loadFile(
@@ -194,7 +197,7 @@ int init()
 		(*i)->translate(glm::vec3(2.0, -0.5, 0.0));
 		scene->add(*i);
 	}
-
+	*/
 
 	/*
 	loadedPRT = DiffPRTMesh::loadFile(
@@ -241,6 +244,8 @@ int init()
 		scene->add(*i);
 	}
 	*/
+
+	/*
 	Shader* plotShader = new Shader(false, "SpherePlot");
 
 	plot = new SpherePlot(
@@ -264,15 +269,16 @@ int init()
 		}
 	);
 	scene->add(light);
+	*/
 
-	/*
+	
 	plotApproximations( 
 	[] (float theta, float phi) -> float
 	{
-		return patches(theta, phi, 0.5f);
+		return phi / (2 * PI);
 	},
 		8, 1.5f, glm::vec3(-7.0, 0.0, 0.0));
-	*/
+	
 	
 	//addSHArray(scene, glm::vec3(0.0f, -3.5, 0.0f), 7, 1.0f, 2.0f);
 
@@ -288,12 +294,12 @@ void display()
 	scene->update(deTime);
 	glm::mat4 rotation(1.0f);
 	//Look up/down
-	rotation = glm::rotate(glm::mat4(1.0), phi, glm::vec3(1.0, 0.0, 0.0));
+	//rotation = glm::rotate(glm::mat4(1.0), phi, glm::vec3(1.0, 0.0, 0.0));
 	//Spin around
-	rotation = glm::rotate(rotation,     theta, glm::vec3(0.0, 1.0, 0.0));
-	light->rotateCoeffts(rotation);
-	plot->setModelToWorld(rotation);
-	plot->translate(glm::vec3(0.0, 2.0, 0.0));
+	//rotation = glm::rotate(rotation,     theta, glm::vec3(0.0, 1.0, 0.0));
+	//light->rotateCoeffts(rotation);
+	//plot->setModelToWorld(rotation);
+	//plot->translate(glm::vec3(0.0, 2.0, 0.0));
 	scene->render();
 	glutSwapBuffers();
 	glutPostRedisplay();

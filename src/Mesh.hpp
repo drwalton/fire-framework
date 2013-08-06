@@ -1,159 +1,67 @@
-#ifndef MESH_H
-#define MESH_H
+#ifndef MESH_HPP
+#define MESH_HPP
 
-#include "GC.hpp"
-#include "SH.hpp"
-#include "Renderable.hpp"
-#include "Intersect.hpp"
-#include "Octree.hpp"
-
-#include <assimp/Importer.hpp>
-#include <assimp/scene.h>
-#include <assimp/postprocess.h>
-#include <GL/glew.h>
-#include <omp.h>
-
-#include <string>
 #include <vector>
-#include <exception>
-#include <fstream>
+#include <string>
+#include <iostream>
 
-class Solid;
-class Shader;
-class LightShader;
-class SHSHader;
+#include <glm.hpp>
+#include <GL/glew.h>
 
-enum MeshLoadMode : char {SEPARATE, COMBINED};
+#include "Scene.hpp"
 
-namespace
+struct MeshData
 {
-	struct MeshData
-	{
-		std::vector<glm::vec4> v; //Vertex positions
-		std::vector<glm::vec3> n; //Normals
-		std::vector<GLushort>  e; //Element indices
-		std::vector<GLuint>    m; //Material indices
-		std::vector<Material>  M; //Materials
-	};
+	std::vector<glm::vec4> v; //Vertices
+	std::vector<glm::vec3> n; //Norms
+	std::vector<GLushort > e; //Element indices
+	std::vector<Material > M; //Materials
+	std::vector<int      > m; //Material indices
+};
 
-	struct MeshVertex
-	{
-		glm::vec4 v; //Position
-		glm::vec3 n; //Norm
-		GLfloat   f; //Padding
-		unsigned  m; //Material index
-	};
+bool fileExists(const std::string& filename);
 
-	struct PRTMeshVertex
-	{
-		glm::vec4                 v; //Position
-		glm::vec4 s[GC::nSHCoeffts]; //Transfer func. coeffts
-	};
+struct MeshVertex
+{
+	glm::vec4 v; //Position
+	glm::vec3 n; //Norm
+	int       m; //Material index
+};
 
-	struct AOMeshVertex
-	{
-		glm::vec4     v; //Position
-		glm::vec3 bentN; //Bent normal
-		GLfloat    occl; //Occlusion coefft
-	};
-
-	std::vector<MeshData> loadFileData(
-		const std::string& filename, MeshLoadMode mode);
-	std::vector<MeshData> combineMeshData(const std::vector<MeshData>& data);
-	bool fileExists(const std::string& filename);
-
-	bool isNAN(float f);
-	bool isNAN(glm::vec3 v);
-}
-
-enum DiffPRTMode : char {UNSHADOWED, SHADOWED, INTERREFLECTED, NONE};
-
-class BadPRTModeException : public std::exception {};
-
-class MeshFileException : public std::exception {};
-
-/* Mesh
- * Supports loading & rendering of meshes loaded via the AssImp library.
- * In general, a file can contain multiple meshes. Thus, meshes should be 
- * loaded via Mesh::loadFile() which returns a vector of pointers to 
- * the loaded mesh objects.
- * **N.B.** Only the mesh itself (vertices, elements, norms) are loaded. 
- *          Textures, other attributes are ignored. 
- */
-class Mesh : public Solid
+class Mesh : public Renderable
 {
 public:
-	static std::vector<Mesh*> loadFile(
-		const std::string& filename, MeshLoadMode mode, LightShader* _shader);
+	Mesh(const std::string& filename, 
+		const Material& mat,
+		LightShader* shader);
+	Mesh(const std::vector<std::string>& filename, 
+		const std::vector<Material>& mat,
+		LightShader* shader);
 	void render();
 	void update(int dTime) {};
+
+	static MeshData loadSceneFile(
+		const std::string& filename, const Material& mat);
+
+	static MeshData loadSceneFiles(
+		const std::vector<std::string>& filenames, 
+		const std::vector<Material>& mats);
+
+	static MeshData combineData(
+		const std::vector<MeshData>& data);
 private:
-	Mesh(const MeshData& d, LightShader* _shader,
-		const std::vector<Material>& _materials);
+	void init(const MeshData& data);
 
 	size_t numElems;
+
+	std::vector<Material> mats;
+	std::vector<GLushort> matIndices;
+
 	GLuint v_vbo;
 	GLuint e_vbo;
 	GLuint v_attrib;
 	GLuint n_attrib;
 	GLuint m_attrib;
-};
-
-class DiffPRTMesh : public Solid
-{
-public:
-	static std::vector<DiffPRTMesh*> loadFile(
-		DiffPRTMode PRTmode,
-		MeshLoadMode loadMode,
-		const std::string& filename,
-		SHShader* _shader);
-	void render();
-	void update(int dTime) {};
-private:
-	DiffPRTMesh(const std::vector<PRTMeshVertex>& vertBuffer,
-		const std::vector<GLushort>& elemBuffer, SHShader* _shader);
-	static std::vector<PRTMeshVertex> computeVertBuffer(
-		const MeshData& d, DiffPRTMode mode);
-	static void performInterreflectionPass(
-		std::vector<PRTMeshVertex>& vertBuffer,
-		const MeshData& d);
-	static void writeMeshToFile(
-		std::ofstream& file,
-		const std::vector<PRTMeshVertex>& vertBuffer,
-		unsigned m,
-		const std::vector<MeshData>& data
-		);
-
-	size_t numElems;
-	GLuint v_vbo;
-	GLuint e_vbo;
-	GLuint v_attrib;
-	GLuint s_attrib;
-};
-
-class AOMesh : public Solid
-{
-public:
-	static std::vector<AOMesh*> loadFile(
-		const std::string& filename,
-		MeshLoadMode mode,
-		AOShader* _shader);
-	void render();
-	void update(int dTime) {};
-private:
-	AOMesh(const std::vector<AOMeshVertex>& vertBuffer,
-		const std::vector<GLushort>& elemBuffer,
-		AOShader* _shader);
-	static std::vector<AOMeshVertex> computeVertBuffer(
-		const MeshData& d);
-
-	size_t numElems;
-
-	GLuint v_vbo;
-	GLuint e_vbo;
-	GLuint v_attrib;
-	GLuint bentN_attrib;
-	GLuint occl_attrib;
 };
 
 #endif
