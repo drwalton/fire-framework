@@ -326,6 +326,8 @@ void AOMesh::renderOcclToImage(
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, width, height);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, render);
 
+	glViewport(0, 0, width, height);
+
 	// Create shader object
 	Shader occlShader(false, "AOBake", false, false);
 	GLuint tex_attrib = occlShader.getAttribLoc("vTexCoord");
@@ -380,6 +382,7 @@ void AOMesh::renderOcclToImage(
 
 	// Pull rendered image from GPU
 	std::vector<float> renderedData(width*height);
+	glPixelStorei(GL_PACK_ALIGNMENT, 1);
 	glReadPixels(0, 0, width, height, GL_RED, GL_FLOAT, renderedData.data());
 
 	std::vector<unsigned char> bakedImage(width * height * 3);
