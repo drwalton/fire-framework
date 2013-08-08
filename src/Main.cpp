@@ -71,18 +71,18 @@ int init()
 
 	scene = new Scene();
 
-	ParticleShader* pShader = new ParticleShader(true, "ScrollTexFire");
-	Texture* flameTex = new Texture("bigFlame.png");
-	Texture* decayTex = new Texture("decay2.png");
-	AdvectParticlesCentroidLights* centreParticles = 
-		new AdvectParticlesCentroidLights(nSwirls, 10, 10, 1000, pShader, flameTex, decayTex);
-	centreParticles->translate(glm::vec3(0.0, -1.0, 1.5));
-	scene->add(centreParticles);
+	//ParticleShader* pShader = new ParticleShader(true, "ScrollTexFire");
+	//Texture* flameTex = new Texture("bigFlame.png");
+	//Texture* decayTex = new Texture("decay2.png");
+	//AdvectParticlesCentroidLights* centreParticles = 
+		//new AdvectParticlesCentroidLights(nSwirls, 10, 10, 1000, pShader, flameTex, decayTex);
+	//centreParticles->translate(glm::vec3(0.0, -1.0, 1.5));
+	//scene->add(centreParticles);
 
-	AdvectParticlesRandLights* randParticles = new AdvectParticlesRandLights(nSwirls, 10, 2000, pShader, flameTex, decayTex);
-	randParticles->translate(glm::vec3(0.0, -1.0, -3.0));
+	//AdvectParticlesRandLights* randParticles = new AdvectParticlesRandLights(nSwirls, 10, 2000, pShader, flameTex, decayTex);
+	//randParticles->translate(glm::vec3(0.0, -1.0, -3.0));
 	
-	scene->add(randParticles);
+	//scene->add(randParticles);
 
 	Texture* slateTex = new Texture("alphabet.png");
 	
@@ -93,11 +93,11 @@ int init()
 	//bunny->uniformScale(8.0f);
 	//bunny->translate(glm::vec3(0.0f, -0.6f, 0.0f));
 
-	AOMesh::bake("betterteapot.obj", "blank.png", "blank.png", "blank.png", 1.0f, 10);
-	//AOMesh* rabbit = new AOMesh("betterteapot.obj.ao", lightShader);
-	//scene->add(rabbit);
-	//rabbit->translate(glm::vec3(0.0f, -1.0f, 0.0f));
-	//rabbit->uniformScale(1.0f);
+	AOMesh::bake("fineteapot.obj", "blank.png", "blank.png", "blank.png", 1.0f, 10);
+	AOMesh* rabbit = new AOMesh("fineteapot.obj.ao", lightShader);
+	scene->add(rabbit);
+	rabbit->translate(glm::vec3(0.0f, -1.0f, 0.0f));
+	rabbit->uniformScale(1.0f);
 
 	light = new SHLight(
 		[] (float theta, float phi) -> glm::vec3 

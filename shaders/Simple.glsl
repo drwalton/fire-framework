@@ -28,8 +28,6 @@ in vec4 worldPos;
 
 out vec4 fragColor;
 
-uniform mat4 worldToCamera;
-
 uniform float ambLight;
 
 uniform uint dirLightOn[maxDirLights];

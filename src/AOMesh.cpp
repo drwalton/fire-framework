@@ -172,7 +172,7 @@ void AOMesh::bake(
 					abs(mesh[i].n.z) < EPS))
 					mesh[i].n = glm::normalize(mesh[i].n);
 
-			vertOccl[i] /= PI * (sqrtNSamples * sqrtNSamples);
+			vertOccl[i] /= (0.5 * sqrtNSamples * sqrtNSamples);
 
 			completedVerts++;
 			if(tid == 0)
@@ -307,6 +307,11 @@ void AOMesh::renderOcclToImage(
 {
 	int width, height, channels;
 
+	float avgOccl = 0.0f;
+	for(auto o = vertOccl.begin(); o != vertOccl.end(); ++o)
+		avgOccl += *o;
+	avgOccl /= static_cast<float>(vertOccl.size());
+
 	unsigned char* ambData = SOIL_load_image
 		(
 			ambIm.c_str(),
@@ -350,10 +355,14 @@ void AOMesh::renderOcclToImage(
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLushort) * data.e.size(), data.e.data(), GL_STATIC_DRAW);
 	
 	// Rendering setup
-	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+	// Store current state
+	GLfloat clearCol[4];
+	GLboolean faceCull = GL_TRUE;
+	glGetFloatv(GL_COLOR_CLEAR_VALUE, clearCol);
+	glGetBooleanv(GL_CULL_FACE, &faceCull);
+	// Modify state
+	glClearColor(avgOccl, avgOccl, avgOccl, 1.0f);
 	glDisable(GL_CULL_FACE);
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	occlShader.use();
@@ -379,6 +388,10 @@ void AOMesh::renderOcclToImage(
 	glDeleteBuffers(1, &occl_vbo);
 	glDeleteBuffers(1, &elem_ebo);
 	glUseProgram(0);
+	//Restore old state
+	if(faceCull == GL_TRUE) glEnable(GL_CULL_FACE);
+	else glDisable(GL_CULL_FACE);
+	glClearColor(clearCol[0], clearCol[1], clearCol[2], clearCol[3]);
 
 	// Pull rendered image from GPU
 	std::vector<float> renderedData(width*height);
@@ -407,4 +420,6 @@ void AOMesh::renderOcclToImage(
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glDeleteFramebuffers(1, &frame);
 	glDeleteRenderbuffers(1, &render); 
+
+	// TODO: proper getting & resetting of all changed state.
 }

@@ -1,15 +1,24 @@
 -- Vertex
 #version 420
 
-in vec4	vPos;
-in vec3 bentN;
-in float occl;
+in vec4	vPosition;
+in vec3 vNorm;
+in uint vMatIndex;
+in float vOccl;
 
 out vec3 smoothNorm;
 out vec4 worldPos;
 out float smoothOccl;
+out vec4 ambient;
+out vec4 diffuse;
+out vec4 specular;
+out float exponent;
 
 uniform mat4 modelToWorld;
+uniform vec4 material_ambient[$maxMaterials$];
+uniform vec4 material_diffuse[$maxMaterials$];
+uniform vec4 material_specular[$maxMaterials$];
+uniform float material_exponent[$maxMaterials$];
 
 layout(std140) uniform cameraBlock
 {
@@ -20,9 +29,14 @@ layout(std140) uniform cameraBlock
 
 void main()
 {
-	smoothNorm = mat3(modelToWorld) * bentN; //!Not strictly accurate!
-	smoothOccl = occl;
-	worldPos = modelToWorld * vPos;
+	ambient = material_ambient[vMatIndex];
+	diffuse = material_diffuse[vMatIndex];
+	specular = material_specular[vMatIndex];
+	exponent = material_exponent[vMatIndex];
+
+	smoothNorm = mat3(modelToWorld) * vNorm; //!Not strictly accurate!
+	smoothOccl = vOccl;
+	worldPos = modelToWorld * vPosition;
 	gl_Position = worldToCamera * worldPos;
 }
 
@@ -32,6 +46,10 @@ void main()
 in vec3 smoothNorm;
 in vec4 worldPos;
 in float smoothOccl;
+in vec4 ambient;
+in vec4 diffuse;
+in vec4 specular;
+in float exponent;
 
 out vec4 fragColor;
 
@@ -55,14 +73,9 @@ layout(std140) uniform ambBlock
 	vec4 ambLight;
 };
 
-uniform vec4 material_ambient;
-uniform vec4 material_diffuse;
-uniform vec4 material_specular;
-uniform float material_exponent;
-
 void main()
 {
-	fragColor = material_ambient * smoothOccl * 4 * ambLight;
+	fragColor = ambient * ambLight;
 
 	vec3 norm = normalize(smoothNorm);
 
@@ -79,14 +92,14 @@ void main()
 			// Diffuse lighting
 			vec3 lightDir = normalize(vec3(lightPos[i]));
 			float nDotL = max(dot(lightDir, norm), 0.0);
-			fragColor += nDotL * material_diffuse * lightDiffuse[i];
+			fragColor += nDotL * diffuse * lightDiffuse[i];
 
 			// Specular (Phong) lighting
 			if(dot(lightDir, norm) > 0.0)
 			{
 				vec3 reflected = reflect(lightDir, norm);
-				fragColor += nDotL * pow(max(dot(reflected, view), 0.0), material_exponent) * 
-					material_specular * lightSpecular[i];
+				fragColor += smoothOccl * nDotL * pow(max(dot(reflected, view), 0.0), exponent) * 
+					specular * lightSpecular[i];
 			}
 		}
 
@@ -97,13 +110,13 @@ void main()
 			toLight = normalize(toLight);
 			float nDotL = max(dot(toLight, norm), 0.0);
 			// Diffuse lighting
-			fragColor += nDotL * material_diffuse * lightDiffuse[i] / denom;
+			fragColor += nDotL * diffuse * lightDiffuse[i] / denom;
 			// Specular (Phong) lighting
 			if(dot(toLight, norm) > 0.0)
 			{ 
 				vec3 reflected = reflect(toLight, norm);
-				fragColor += nDotL * max(pow(dot(reflected, view), material_exponent), 0.0) * 
-					material_specular * lightSpecular[i] / denom;
+				fragColor += smoothOccl * nDotL * max(pow(dot(reflected, view), exponent), 0.0) * 
+					specular * lightSpecular[i] / denom;
 			}
 		}
 	}

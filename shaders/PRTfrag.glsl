@@ -1,8 +1,8 @@
 -- Vertex
 #version 420
 
-in vec4 vPos;
-in vec4 transferCoeffts[$nSHCoeffts$];
+in vec4 vPosition;
+in vec3 vColor;
 
 uniform mat4 modelToWorld;
 
@@ -13,41 +13,22 @@ layout(std140) uniform cameraBlock
 	vec3 cameraDir;
 };
 
-out vec4 smoothCoeffts[$nSHCoeffts$];
+out vec4 smoothColor;
 
 void main()
 {
-	gl_Position = worldToCamera * modelToWorld * vPos;
-
-	
-
-	for(int c = 0; c < $nSHCoeffts$; ++c)
-		smoothCoeffts[c] = transferCoeffts[c];
+	gl_Position = worldToCamera * modelToWorld * vPosition;
+	smoothColor = vec4(vColor, 1.0);
 }
 
 -- Fragment
 #version 420
 
-in vec4 smoothCoeffts[$nSHCoeffts$];
-
-layout(std140) uniform SHBlock
-{
-	vec4 lightCoeffts[$nSHCoeffts$ * $maxSHLights$];
-};
+in vec4 smoothColor;
 
 out vec4 fragColor;
 
 void main()
 {
-	vec3 color = vec3(0.0, 0.0, 0.0);
-
-	for(int l = 0; l < $maxSHLights$; ++l)
-	{
-		for(int c = 0; c < $nSHCoeffts$; ++c)
-		{
-			color += smoothCoeffts[c].xyz * lightCoeffts[c + (l * $nSHCoeffts$)].xyz;
-		}
-	}
-
-	fragColor = vec4(color, 1.0);
+	fragColor = smoothColor;
 }
