@@ -97,10 +97,6 @@ void AOMesh::bake(
 	std::cout 
 		<< "Calculating occlusion (may take some time) ..." << std::endl;
 
-	Image ambIm(ambTex);
-	int width = ambIm.getWidth();
-	int height = ambIm.getHeight();
-
 	std::cout << "> Calculating per-vertex occlusion ..." << std::endl;
 
 	std::vector<float> vertOccl(data.v.size());
@@ -194,13 +190,10 @@ void AOMesh::bake(
 	} // end parallel
 	std::cout << " 100% complete" << std::endl;
 
-	Image occlIm(width, height);
-	AOMesh::renderOcclToImage(vertOccl, ambIm, occlIm, data);
-
-	occlIm.save(meshFilename + ".aoamb.tga", TGA);
+	AOMesh::renderOcclToImage(vertOccl, ambTex, meshFilename + ".aoamb.bmp", data);
 
 	writePrebakedFile(mesh, data.e,
-		meshFilename + ".aoamb.tga", diffTex, specTex, specExp,
+		meshFilename + ".aoamb.bmp", diffTex, specTex, specExp,
 		meshFilename + ".ao");
 }
 
@@ -308,11 +301,18 @@ void AOMesh::readPrebakedFile(
 
 void AOMesh::renderOcclToImage(
 	const std::vector<float>& vertOccl,
-	const Image& ambIm,
-	Image& occlIm,
+	const std::string& ambIm,
+	const std::string& bakedIm,
 	const MeshData& data)
 {
-	int width = ambIm.getWidth(); int height = ambIm.getHeight();
+	int width, height, channels;
+
+	unsigned char* ambData = SOIL_load_image
+		(
+			ambIm.c_str(),
+			&width, &height, &channels,
+			SOIL_LOAD_AUTO
+		);
 
 	// Create framebuffer
 	GLuint frame;
@@ -379,18 +379,28 @@ void AOMesh::renderOcclToImage(
 	glUseProgram(0);
 
 	// Pull rendered image from GPU
-	float* renderedData = static_cast<float*>(malloc(width * height * sizeof(float)));
-	glReadPixels(0, 0, width, height, GL_RED, GL_FLOAT, renderedData);
+	std::vector<float> renderedData(width*height);
+	glReadPixels(0, 0, width, height, GL_RED, GL_FLOAT, renderedData.data());
 
-	for(int u = 0; u < occlIm.getWidth(); ++u)
-		for(int v = 0; v < occlIm.getHeight(); ++v)
-		{
-			occlIm.setPixel(u, v, 
-				ambIm.getPixel(u, v) * renderedData[u + v*width]);
-		}
+	std::vector<unsigned char> bakedImage(width * height * 3);
+
+	for(int u = 0; u < width; ++u)
+		for(int v = 0; v < height; ++v)
+			for(int c = 0; c < 3; ++c)
+				bakedImage[(u + v*width)*3 + c] = static_cast<unsigned char>(
+					renderedData[u + v*width] * 
+					(static_cast<float>(ambData[(u + v*width)* channels + c]) / 255.0f)
+					* 255.0f);
+
+	SOIL_save_image
+		(
+			bakedIm.c_str(),
+			SOIL_SAVE_TYPE_BMP,
+			width, height, 3,
+			bakedImage.data()
+		);
 
 	// More cleanup
-	free(renderedData);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glDeleteFramebuffers(1, &frame);
 	glDeleteRenderbuffers(1, &render); 

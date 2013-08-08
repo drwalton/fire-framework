@@ -51,8 +51,8 @@ private:
 		const std::vector<GLushort>& elems);
 	static void renderOcclToImage(
 		const std::vector<float>& vertOccl,
-		const Image& ambIm,
-		Image& occlIm,
+		const std::string& ambIm,
+		const std::string& bakedIm,
 		const MeshData& data);
 
 	LightShader* shader;

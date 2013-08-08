@@ -55,10 +55,10 @@ public:
 	void setByte(int u, int v, PixelChannel channel, unsigned char byte);
 	void setPixel(int u, int v, const glm::vec4& pixel);
 
+	unsigned char* data;
+
 private:
 	int width; int height; int channels;
-
-	unsigned char* data;
 };
 
 #endif
