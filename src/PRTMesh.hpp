@@ -1,38 +1,34 @@
 #ifndef PRTMESH_HPP
 #define PRTMESH_HPP
 
-#include <vector>
-#include <string>
-
 #include <omp.h>
 
-#include <glm.hpp>
-
 #include "Mesh.hpp"
-#include "Scene.hpp"
 #include "Intersect.hpp"
 #include "SH.hpp"
 
 enum PRTMode : char {UNSHADOWED, SHADOWED, INTERREFLECTED, NONE};
 
+struct PRTMeshVertex
+{
+	glm::vec4 v; //Postion
+	glm::vec3 t; //Texture coord
+};
+
 class PRTMesh : public Renderable
 {
 public:
 	PRTMesh(
-		const std::string& filename,
-		const Material& material,
-		PRTMode mode, int sqrtNSamples,
-		int nBands,
-		Shader* shader,
-		int nBounces = 3);
+		const std::string& bakedFilename,
+		Shader* shader);
 
-	PRTMesh(
-		const std::vector<std::string>& filenames,
-		const std::vector<Material>& materials,
-		PRTMode mode, int sqrtNSamples,
-		int nBands,
-		Shader* shader,
-		int nBounces = 3);
+	static void bake(
+		PRTMode mode,
+		const std::string& meshFilename,
+		const std::string& diffTex,
+		int sqrtNSamples,
+		int nBounces = 3,
+		texCoordGenMode = DONOTGEN);
 
 	void render();
 	void update(int dTime) {};
@@ -44,12 +40,6 @@ private:
 		int nBands
 		);
 
-	void writePrebakedFile(
-		const std::vector<glm::vec4>& verts,
-		const std::vector<GLushort>& elems,
-	 	const std::vector<std::vector<glm::vec3>>& transfer,
-	 	const std::string& filename);
-
 	void readPrebakedFile(
 		std::vector<glm::vec4>& verts,
 		std::vector<GLushort>& elems,
@@ -57,34 +47,34 @@ private:
 	 	int nCoeffts,
 	 	const std::string& filename);
 
-	void init();
-
-	void bake(const MeshData& data,
-		PRTMode mode, int nBands, int sqrtNSamples,
-		std::vector<glm::vec4>& verts,
-		std::vector<std::vector<glm::vec3>>& transfer,
-		int nBounces);
-
-	void interreflect(
+	static void interreflect(
 		const MeshData& data,
 		int nBands, int sqrtNSamples, int nBounces,
 		const std::vector<glm::vec4>& verts,
 		std::vector<std::vector<glm::vec3>>& transfer);
 
+	static void writePrebakedFile(
+		const std::vector<AOMeshVertex>& mesh,
+		const std::vector<GLushort>& elems,
+		const std::vector<std::string>& coefftTex
+		const std::string& filename);
+
+	static void renderCoefftToImage(
+		const std::vector<glm::vec3>& coefft,
+		const std::string& image,
+		const MeshData& data);
+
+	void init();
+
 	Shader* shader;
+	size_t numElems;
 
-	std::vector<glm::vec4> verts;
-	std::vector<GLushort>  elems;
+	std::vector<Texture> coefftTex;
 
-	std::vector<std::vector<glm::vec3>> transfer;
-	std::vector<glm::vec3> colors;
-
-	GLuint verts_vbo;
-	GLuint elems_vbo;
-	GLuint colors_vbo;
-
-	GLuint vert_attrib;
-	GLuint color_attrib;
+	GLuint v_vbo;
+	GLuint e_ebo;
+	GLuint v_attrib;
+	GLuint t_attrib;
 };
 
 #endif
