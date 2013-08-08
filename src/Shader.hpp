@@ -27,9 +27,12 @@ struct Material
 class Shader
 {
 public:
-	Shader(bool hasGeomShader, const std::string& filename);
 	Shader(bool hasGeomShader, const std::string& filename,
-		std::vector<std::string> subs);
+		bool hasCamera = true, bool hasModelToWorld = true);
+	Shader(bool hasGeomShader, const std::string& filename,
+		std::vector<std::string> subs,
+		bool hasCamera = true, bool hasModelToWorld = true);
+	virtual ~Shader();
 	void use();
 	void setModelToWorld(const glm::mat4& _modelToWorld);
 	GLuint getAttribLoc(const std::string& name);
@@ -107,8 +110,10 @@ public:
 	LightShader(bool hasGeomShader, const std::string& filename,
 		std::vector<std::string> subs);
 
-	void setMaterial(unsigned index, const Material& material);
-	void setMaterials(const std::vector<Material>& _materials);
+	void setAmbTexUnit(GLuint ambTexUnit);
+	void setDiffTexUnit(GLuint diffTexUnit);
+	void setSpecTexUnit(GLuint specTexUnit);
+	void setSpecExp(float exponent);
 	void setWorldToCamera(const glm::mat4& _worldToCamera);
 private:
 	void init();
@@ -117,10 +122,10 @@ private:
 
 	GLuint ambBlock_i;
 
-	GLuint material_ambient_u;
-	GLuint material_diffuse_u;
-	GLuint material_specular_u;
-	GLuint material_exponent_u;
+	GLuint ambTex_u;
+	GLuint diffTex_u;
+	GLuint specTex_u;
+	GLuint specExp_u;
 };
 
 class SHShader : public Shader

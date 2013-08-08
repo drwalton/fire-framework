@@ -22,22 +22,29 @@ NoSuchException::NoSuchException(const std::string& name, Shader* const& shader)
 		<<"\" in shader source file \"" << shader->filename << "\".\n";
 }
 
-Shader::Shader(bool hasGeomShader, const std::string& filename)
+Shader::Shader(bool hasGeomShader, const std::string& filename,
+	bool hasCamera, bool hasModelToWorld)
 	:filename(filename)
 {
 	std::vector<std::string> subs;
 	id = compileShader(filename, hasGeomShader, true, subs);
-	modelToWorld_u = getUniformLoc("modelToWorld");
-	setupUniformBlock("cameraBlock");
+	if(hasModelToWorld) modelToWorld_u = getUniformLoc("modelToWorld");
+	if(hasCamera) setupUniformBlock("cameraBlock");
 }
 
 Shader::Shader(bool hasGeomShader, const std::string& filename,
-	std::vector<std::string> subs)
+	std::vector<std::string> subs,
+	bool hasCamera, bool hasModelToWorld)
 	:filename(filename)
 {
 	id = compileShader(filename, hasGeomShader, true, subs);
-	modelToWorld_u = getUniformLoc("modelToWorld");
-	setupUniformBlock("cameraBlock");
+	if(hasModelToWorld) modelToWorld_u = getUniformLoc("modelToWorld");
+	if(hasCamera) setupUniformBlock("cameraBlock");
+}
+
+Shader::~Shader()
+{
+	glDeleteProgram(id);
 }
 
 void Shader::use()
@@ -225,33 +232,39 @@ void LightShader::init()
 	setupUniformBlock("ambBlock");
 	setupUniformBlock("phongBlock");
 
-	material_ambient_u  = getUniformLoc("material_ambient");
-	material_diffuse_u  = getUniformLoc("material_diffuse");
-	material_specular_u = getUniformLoc("material_specular");
-	material_exponent_u = getUniformLoc("material_exponent");
+	ambTex_u  = getUniformLoc("ambTex");
+	diffTex_u = getUniformLoc("diffTex");
+	specTex_u = getUniformLoc("specTex");
+	specExp_u = getUniformLoc("specExp");
+
 	glUseProgram(0);
 }
 
-void LightShader::setMaterial(unsigned index, const Material& material)
+void LightShader::setAmbTexUnit(GLuint ambTexUnit)
 {
 	use();
-	glUniform4fv(material_ambient_u + index, 1, &(material.ambient.x));
-	glUniform4fv(material_diffuse_u + index, 1, &(material.diffuse.x));
-	glUniform4fv(material_specular_u + index, 1, &(material.specular.x));
-	glUniform1fv(material_exponent_u + index, 1, &(material.exponent));
+	glUniform1i(ambTex_u, ambTexUnit);
 	glUseProgram(0);
 }
 
-void LightShader::setMaterials(const std::vector<Material>& _materials)
+void LightShader::setDiffTexUnit(GLuint diffTexUnit)
 {
 	use();
-	for(unsigned i = 0; i < _materials.size(); ++i)
-	{
-		glUniform4fv(material_ambient_u + i, 1, &(_materials[i].ambient.x));
-		glUniform4fv(material_diffuse_u + i, 1, &(_materials[i].diffuse.x));
-		glUniform4fv(material_specular_u + i, 1, &(_materials[i].specular.x));
-		glUniform1fv(material_exponent_u + i, 1, &(_materials[i].exponent));
-	}
+	glUniform1i(diffTex_u, diffTexUnit);
+	glUseProgram(0);
+}
+
+void LightShader::setSpecTexUnit(GLuint specTexUnit)
+{
+	use();
+	glUniform1i(specTex_u, specTexUnit);
+	glUseProgram(0);
+}
+
+void LightShader::setSpecExp(float exponent)
+{
+	use();
+	glUniform1f(specExp_u, exponent);
 	glUseProgram(0);
 }
 

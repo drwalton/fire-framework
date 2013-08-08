@@ -67,3 +67,25 @@ glm::vec3 getTriangleRayIntersection(
 
 	return glm::vec3(u, v, t); // u, v in range - intersection.
 }
+
+bool pointInTriangle(const glm::vec2& point, 
+	const glm::vec2& ta, const glm::vec2& tb, const glm::vec2& tc,
+	float& s, float& t)
+{
+	glm::vec2 side1 = tb - ta;
+	glm::vec2 side2 = tc - ta;
+
+	glm::vec2 triPoint = point - ta;
+
+	s = glm::dot(side1, triPoint) / (side1.x*side1.x + side1.y*side1.y);
+	t = glm::dot(side2, triPoint) / (side2.x*side2.x + side2.y*side2.y);
+
+	if(0.0f <= s && s <= 1.0f && 0.0f <= t && t <= 1.0f && s + t <= 1.0f)
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}

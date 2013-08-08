@@ -3,7 +3,6 @@
 #include "Particles.hpp"
 #include "Mesh.hpp"
 #include "AOMesh.hpp"
-#include "PRTMesh.hpp"
 #include "SH.hpp"
 #include "SHMat.hpp"
 #include "SphereFunc.hpp"
@@ -66,6 +65,10 @@ int init()
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_DEPTH_TEST);
 
+	int tex;
+	glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &tex);
+	std::cout << "max tex units " << tex << "\n";
+
 	scene = new Scene();
 
 	ParticleShader* pShader = new ParticleShader(true, "ScrollTexFire");
@@ -81,27 +84,19 @@ int init()
 	
 	scene->add(randParticles);
 
-	Material greenMat;
+	Texture* slateTex = new Texture("slate.png");
+	
+	LightShader* lightShader = new LightShader(false, "Mesh");
 
-	greenMat.ambient = glm::vec4(0.0f, 0.1f, 0.0f, 1.0f);
-	greenMat.diffuse = glm::vec4(0.0f, 0.7f, 0.0f, 1.0f);
-	greenMat.specular = glm::vec4(0.2f, 0.2f, 0.2f, 1.0f);
-	greenMat.exponent = 1.0f;
+	Mesh* bunny = new Mesh("bunny.obj", slateTex, slateTex, slateTex, 1.0f, lightShader);
+	//scene->add(bunny);
+	bunny->uniformScale(8.0f);
+	bunny->translate(glm::vec3(0.0f, -0.6f, 0.0f));
 
-	AOShader* aoShader = new AOShader(false, "AOSolid");
-	LightShader* lightShader = new LightShader(false, "Solid");
-	SHShader* shShader = new SHShader(false, "PRTfrag");
-
-	Mesh* bunny = new Mesh("bunny.obj", greenMat, lightShader);
-	scene->add(bunny);
-
-	AOMesh* bunnyAO = new AOMesh("bunny.obj", greenMat, aoShader, 10);
-	bunnyAO->translate(glm::vec3(1.0f, 0.0f, 0.0f));
-	scene->add(bunnyAO);
-
-	PRTMesh* bunnyPRT = new PRTMesh("bunny.obj", greenMat, UNSHADOWED, 10, 3, shShader);
-	bunnyPRT->translate(glm::vec3(-1.0f, 0.0f, 0.0f));
-	scene->add(bunnyPRT);
+	//AOMesh::bake("teapot.obj", "blank.png", "blank.png", "blank.png", 1.0f, 10);
+	AOMesh* rabbit = new AOMesh("teapot.obj.ao", lightShader);
+	scene->add(rabbit);
+	rabbit->translate(glm::vec3(0.0f, -1.0f, 0.0f));
 
 	light = new SHLight(
 		[] (float theta, float phi) -> glm::vec3 

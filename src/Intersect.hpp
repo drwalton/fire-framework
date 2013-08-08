@@ -25,4 +25,8 @@ glm::vec3 getTriangleRayIntersection(
 	const glm::vec3& ta, const glm::vec3& tb, const glm::vec3& tc,
 	const glm::vec3& ro, const glm::vec3& rd);
 
+bool pointInTriangle(const glm::vec2& point, 
+	const glm::vec2& ta, const glm::vec2& tb, const glm::vec2& tc,
+	float& s, float& t);
+
 #endif

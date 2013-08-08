@@ -6,6 +6,8 @@
 #include <iostream>
 #include <fstream>
 #include <exception>
+#include <float.h>
+#include <omp.h>
 
 #include <glm.hpp>
 #include <GL/glew.h>
@@ -14,65 +16,71 @@
 #include <assimp\postprocess.h>
 
 #include "Scene.hpp"
+#include "Texture.hpp"
+#include "Intersect.hpp"
+
+bool fileExists(const std::string& filename);
+
+enum TexCoordGenMode : char {CYLINDRICAL, DONOTGEN};
 
 class MeshFileException : public std::exception {};
 
 struct MeshData
 {
-	std::vector<glm::vec4> v; //Vertices
-	std::vector<glm::vec3> n; //Norms
-	std::vector<GLushort > e; //Element indices
-	std::vector<Material > M; //Materials
-	std::vector<int      > m; //Material indices
+	std::vector<glm::vec4> v;
+	std::vector<glm::vec3> n;
+	std::vector<glm::vec2> t;
+	std::vector<GLushort > e;
 };
-
-bool fileExists(const std::string& filename);
 
 struct MeshVertex
 {
-	glm::vec4 v; //Position
-	glm::vec3 n; //Norm
-	int       m; //Material index
+	glm::vec4 v; // Position
+	glm::vec3 n; // Norm 
+	glm::vec2 t; // Tex coord
 };
 
 class Mesh : public Renderable
 {
 public:
-	Mesh(const std::string& filename, 
-		const Material& mat,
-		LightShader* shader);
-	Mesh(const std::vector<std::string>& filename, 
-		const std::vector<Material>& mat,
-		LightShader* shader);
+	Mesh(
+		const std::string& meshFilename,
+		Texture* ambTex,
+		Texture* diffTex,
+		Texture* specTex,
+		float exponent,
+		LightShader* shader,
+		TexCoordGenMode mode = DONOTGEN);
+
 	void render();
 	void update(int dTime) {};
 	Shader* getShader() {return shader;};
 
 	static MeshData loadSceneFile(
-		const std::string& filename, const Material& mat);
+		const std::string& filename,
+		TexCoordGenMode mode = DONOTGEN);
 
-	static MeshData loadSceneFiles(
-		const std::vector<std::string>& filenames, 
-		const std::vector<Material>& mats);
+	static MeshData combineData(const std::vector<MeshData>& data);
 
-	static MeshData combineData(
-		const std::vector<MeshData>& data);
-
+	static void genTexCoords(MeshData& data, TexCoordGenMode mode);
 private:
 	void init(const MeshData& data);
 
 	LightShader* shader;
-
 	size_t numElems;
 
-	std::vector<Material> mats;
-	std::vector<GLushort> matIndices;
+	Texture* ambTex;
+	Texture* diffTex;
+	Texture* specTex;
+	float specExp;
 
 	GLuint v_vbo;
 	GLuint e_vbo;
 	GLuint v_attrib;
 	GLuint n_attrib;
-	GLuint m_attrib;
+	GLuint t_attrib;
+
+	static void genTexCoordsCylindrical(MeshData& data);
 };
 
 #endif

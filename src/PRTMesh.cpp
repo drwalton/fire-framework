@@ -66,6 +66,7 @@ void PRTMesh::render()
 	shader->setModelToWorld(modelToWorld);
 
 	//Calculate vertex colors.
+	#pragma omp parallel for
 	for(int i = 0; i < static_cast<int>(transfer.size()); ++i)
 		colors[i] = scene->getSHLitColor(transfer[i]);
 
@@ -459,9 +460,9 @@ void PRTMesh::readPrebakedFile(
 
 	if(!file) throw(new MeshFileException);
 
-	char ignore[10];
+	char ignore[20];
 
-	file.getline(ignore, 10); //Throw the "Vertices" line.
+	file.getline(ignore, 20); //Throw the "Vertices" line.
 
 	float next;
 
@@ -478,14 +479,14 @@ void PRTMesh::readPrebakedFile(
 	}
 
 	file.clear();
-	file.getline(ignore, 10); //Throw the "Elements" line.
+	file.getline(ignore, 20); //Throw the "Elements" line.
 
 	int elem;
 	while(file >> elem)
 		elems.push_back(static_cast<GLushort>(elem));
 
 	file.clear();
-	file.getline(ignore, 10); //Throw the "Transfer Coeffts" line.
+	file.getline(ignore, 20); //Throw the "Transfer Coeffts" line.
 
 	for(auto v = verts.begin(); v != verts.end(); ++v)
 	{

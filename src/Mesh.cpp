@@ -7,7 +7,8 @@ bool fileExists(const std::string& filename)
 }
 
 MeshData Mesh::loadSceneFile(
-	const std::string& filename, const Material& mat)
+	const std::string& filename,
+	TexCoordGenMode mode)
 {
 	Assimp::Importer importer;
 
@@ -29,8 +30,6 @@ MeshData Mesh::loadSceneFile(
 
 		MeshData d;
 
-		d.M.push_back(mat);
-
 		std::cout << "> Mesh " << i << " of "
 			<< mesh->mNumVertices << " vertices, "
 			<< mesh->mNumFaces << " triangles.\n";
@@ -38,21 +37,36 @@ MeshData Mesh::loadSceneFile(
 		for(int j = 0; j < (int) mesh->mNumVertices; ++j)
 		{
 			//Vertices
-			glm::vec4 vert = glm::vec4(
+			glm::vec4 vert(
 				mesh->mVertices[j].x,
 				mesh->mVertices[j].y,
 				mesh->mVertices[j].z,
 				1.0);
 			d.v.push_back(vert);
 			//Norms
-			glm::vec3 norm = glm::vec3(
+			glm::vec3 norm(
 				mesh->mNormals[j].x,
 				mesh->mNormals[j].y,
 				mesh->mNormals[j].z);
 			d.n.push_back(norm);
-			//Material indices (all 0)
-			d.m.push_back(0);
 		}
+
+		if(mode != DONOTGEN)
+			genTexCoords(d, mode);
+
+		else if(mesh->HasTextureCoords(0))
+		{
+			for(int j = 0; j < (int) mesh->mNumVertices; ++j)
+			{
+				glm::vec2 tex(
+					mesh->mTextureCoords[0][j].x,
+					mesh->mTextureCoords[0][j].y);
+				d.t.push_back(tex);
+			}
+		}
+
+		else
+			genTexCoords(d, CYLINDRICAL);
 
 		for(int j = 0; j < (int) mesh->mNumFaces; ++j)
 		{
@@ -70,21 +84,6 @@ MeshData Mesh::loadSceneFile(
 	return mesh;
 }
 
-MeshData Mesh::loadSceneFiles(
-	const std::vector<std::string>& filenames, 
-	const std::vector<Material>& mats)
-{
-	std::vector<MeshData> dataVec;
-
-	for(unsigned i = 0; i < filenames.size(); ++i)
-	{
-		MeshData data = loadSceneFile(filenames[i], mats[i]);
-		dataVec.push_back(data);
-	}
-
-	return combineData(dataVec);
-}
-
 MeshData Mesh::combineData(const std::vector<MeshData>& data)
 {
 	MeshData comb;
@@ -92,7 +91,6 @@ MeshData Mesh::combineData(const std::vector<MeshData>& data)
 	for(auto d = data.begin(); d != data.end(); ++d)
 	{
 		GLushort elemBase = static_cast<GLushort>(comb.e.size());
-		GLushort matBase  = static_cast<GLushort>(comb.M.size());
 
 		for(auto v = d->v.begin(); v != d->v.end(); ++v)
 			comb.v.push_back(*v);
@@ -100,30 +98,36 @@ MeshData Mesh::combineData(const std::vector<MeshData>& data)
 			comb.n.push_back(*n);
 		for(auto e = d->e.begin(); e != d->e.end(); ++e)
 			comb.e.push_back(elemBase + *e);
-		for(auto m = d->m.begin(); m != d->m.end(); ++m)
-			comb.m.push_back(matBase + *m);
-		for(auto M = d->M.begin(); M != d->M.end(); ++M)
-			comb.M.push_back(*M);
+		for(auto t = d->t.begin(); t != d->t.end(); ++t)
+			comb.t.push_back(*t);
 	}
 
 	return comb;
 }
 
-Mesh::Mesh(const std::string& filename, 
-	const Material& mat,
-	LightShader* shader)
-	:Renderable(false), shader(shader)
+void Mesh::genTexCoords(MeshData& data, TexCoordGenMode mode)
 {
-	MeshData data = loadSceneFile(filename, mat);
-	init(data);
+	switch(mode)
+	{
+	case CYLINDRICAL:
+		genTexCoordsCylindrical(data);
+		break;
+	}
 }
 
-Mesh::Mesh(const std::vector<std::string>& filenames, 
-	const std::vector<Material>& mats,
-	LightShader* shader)
-	:Renderable(false), shader(shader)
+Mesh::Mesh(		
+	const std::string& meshFilename,
+	Texture* ambTex,
+	Texture* diffTex,
+	Texture* specTex,
+	float exponent,
+	LightShader* shader,
+	TexCoordGenMode mode)
+	:Renderable(false), shader(shader),
+	ambTex(ambTex), diffTex(diffTex),
+	specTex(specTex), specExp(exponent)
 {
-	MeshData data = loadSceneFiles(filenames, mats);
+	MeshData data = loadSceneFile(meshFilename, mode);
 	init(data);
 }
 
@@ -137,11 +141,14 @@ void Mesh::init(const MeshData& data)
 		MeshVertex vert;
 		vert.v = data.v[i];
 		vert.n = data.n[i];
-		vert.m = data.m[i];
+		vert.t = data.t[i];
 		vertBuffer.push_back(vert);
 	}
 
-	mats = data.M;
+	shader->setAmbTexUnit(ambTex->getTexUnit());
+	shader->setDiffTexUnit(diffTex->getTexUnit());
+	shader->setSpecTexUnit(specTex->getTexUnit());
+	shader->setSpecExp(specExp);
 
 	glGenBuffers(1, &v_vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, v_vbo);
@@ -156,7 +163,7 @@ void Mesh::init(const MeshData& data)
 
 	v_attrib = shader->getAttribLoc("vPosition");
 	n_attrib = shader->getAttribLoc("vNorm");
-	m_attrib = shader->getAttribLoc("vMatIndex");
+	t_attrib = shader->getAttribLoc("vTexCoord");
 }
 
 void Mesh::render()
@@ -164,20 +171,24 @@ void Mesh::render()
 	if(!scene) return;
 	
 	shader->setModelToWorld(modelToWorld);
-	static_cast<LightShader*>(shader)->setMaterials(mats);
+
+	shader->setAmbTexUnit(ambTex->getTexUnit());
+	shader->setDiffTexUnit(diffTex->getTexUnit());
+	shader->setSpecTexUnit(specTex->getTexUnit());
+	shader->setSpecExp(specExp);
 
 	shader->use();
 	glEnableVertexAttribArray(v_attrib);
 	glEnableVertexAttribArray(n_attrib);
-	glEnableVertexAttribArray(m_attrib);
+	glEnableVertexAttribArray(t_attrib);
 
 	glBindVertexBuffer(0, v_vbo, 0, sizeof(MeshVertex));
 	glVertexAttribFormat(v_attrib, 4, GL_FLOAT, GL_FALSE, 0);
 	glVertexAttribBinding(v_attrib, 0);
 	glVertexAttribFormat(n_attrib, 3, GL_FLOAT, GL_FALSE, offsetof(MeshVertex, n));
 	glVertexAttribBinding(n_attrib, 0);
-	glVertexAttribFormat(m_attrib, 1, GL_UNSIGNED_INT, GL_FALSE, offsetof(MeshVertex, m));
-	glVertexAttribBinding(m_attrib, 0);
+	glVertexAttribFormat(t_attrib, 2, GL_FLOAT, GL_FALSE, offsetof(MeshVertex, t));
+	glVertexAttribBinding(t_attrib, 0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, e_vbo);
@@ -188,7 +199,35 @@ void Mesh::render()
 
 	glDisableVertexAttribArray(v_attrib);
 	glDisableVertexAttribArray(n_attrib);
-	glDisableVertexAttribArray(m_attrib);
+	glDisableVertexAttribArray(t_attrib);
 
 	glUseProgram(0);
+}
+
+void Mesh::genTexCoordsCylindrical(MeshData& data)
+{
+	float highest = FLT_MIN;
+	float lowest =  FLT_MAX;
+	glm::vec2 center(0.0f);
+
+	for(auto v = data.v.begin(); v != data.v.end(); ++v)
+	{
+		if(highest < v->y) highest = v->y;
+		if(lowest  > v->y) lowest  = v->y;
+		center += glm::vec2(v->x, v->z);
+	}
+
+	center /= data.v.size();
+
+	float height = highest - lowest;
+
+	for(auto v = data.v.begin(); v != data.v.end(); ++v)
+	{
+		glm::vec2 texCoord;
+
+		texCoord.y = (v->y - lowest) / height;
+		texCoord.x = (atan2(v->z - center.y, v->x - center.x)  + PI) / (2.0f * PI);
+
+		data.t.push_back(texCoord);
+	}
 }
