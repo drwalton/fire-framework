@@ -1,9 +1,8 @@
 TODO
 =========
 
-0. Make PRT option on CPU !!! URGENT !!!
- * Maybe use additional flexibility to allow for projections at different no.s of bands
-     this will allow side-by-side comparison of results.
+0. Texture based PRT
+ * Needs to be implemented. Should use one tex for each coefft - rgb intensities at each texel.
 
 1. Model materials
  * Add a way to load multiple models, give them different materials & bake them together.
