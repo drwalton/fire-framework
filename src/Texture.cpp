@@ -59,8 +59,8 @@ ArrayTexture::ArrayTexture(const std::vector<std::string>& filenames)
 				SOIL_LOAD_AUTO
 			);
 
-		for(int u = 0; u < width; ++u)
-			for(int v = 0; v < height; ++v)
+		for(int v = 0; v < height; ++v)
+			for(int u = 0; u < width; ++u)
 			{
 				compiledImages.push_back(fileData[(u + v*height)*channels  ]);
 				compiledImages.push_back(fileData[(u + v*height)*channels+1]);
@@ -72,17 +72,15 @@ ArrayTexture::ArrayTexture(const std::vector<std::string>& filenames)
 
 	glGenTextures(1, &id);
 	glBindTexture(GL_TEXTURE_2D_ARRAY, id);
-	glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_RGB8, width, height, nLayers);
-	glTexSubImage3D(
-		GL_TEXTURE_2D_ARRAY, 0, 0, 0, 0, 
+	glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_RGB, width, height, nLayers);
+	glTexImage3D(
+		GL_TEXTURE_2D_ARRAY, 0, GL_RGB, 
 		width, height, nLayers, 
-		GL_RGB, GL_UNSIGNED_BYTE, 
+		0, GL_RGB, GL_UNSIGNED_BYTE, 
 		compiledImages.data());
 
 	glTexParameteri(GL_TEXTURE_2D_ARRAY,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D_ARRAY,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D_ARRAY,GL_TEXTURE_WRAP_S,GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D_ARRAY,GL_TEXTURE_WRAP_T,GL_CLAMP_TO_EDGE);
 }
 
 ArrayTexture::~ArrayTexture()

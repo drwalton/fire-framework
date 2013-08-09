@@ -39,4 +39,5 @@ void SHLight::rotateCoeffts(glm::mat4 _rotation)
 {
 	rotation = SHMat(_rotation, GC::nSHBands);
 	rotCoeffts = rotation * coeffts;
+	manager->update(this);
 }

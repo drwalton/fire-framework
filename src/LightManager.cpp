@@ -80,23 +80,51 @@ void PhongLightManager::updateBlock()
 }
 
 SHLightManager::SHLightManager()
-	:nLights(0)
 {
 	for(int i = 0; i < GC::maxSHLights; ++i)
 		lights[i] = nullptr;
+	for(int i = 0; i < GC::maxSHLights*GC::nSHCoeffts; ++i)
+		block.lightCoeffts[i] = glm::vec4(0.0f);
+	nLights = 0;
+
+	glGenBuffers(1, &block_ubo);
+	glBindBufferRange(GL_UNIFORM_BUFFER, Shader::getUBlockBindingIndex("SHBlock"),
+	block_ubo, 0, sizeof(block));
+	glBufferData(GL_UNIFORM_BUFFER, sizeof(block), &(block), GL_STREAM_DRAW);
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
 
 SHLight* SHLightManager::add(SHLight* l)
 {
 	/* Check light to be added is valid, not already in some manager */
-	if(nLights >= GC::maxSHLights || l == nullptr 
-		|| l->manager != nullptr || l->index != -1) return nullptr;
+	if(nLights >= GC::maxSHLights || l == nullptr
+	|| l->manager != nullptr || l->index != -1) return nullptr;
 	lights[nLights] = l;
 	/* Add light's data to uniform buffers */
+	for(int c = 0; c < GC::nSHCoeffts; ++c)
+		block.lightCoeffts[nLights*GC::nSHCoeffts + c] = 
+			glm::vec4(l->getCoeffts()[c].x, l->getCoeffts()[c].y, l->getCoeffts()[c].z, 1.0f);
 	l->index = nLights;
 	l->manager = this;
 	++nLights;
+	updateBlock();
+	return l;
+}
+
+SHLight* SHLightManager::update(SHLight* l)
+{
+	/* Check light is actually in manager before updating */
+	if(l->manager != this || l == nullptr) return nullptr;
+	/* Check light's index is valid */
+	if(l != lights[l->index] ||
+	l->index < 0 || l->index >= nLights)
+	return nullptr; //TODO: throw exception?
+	/* Update values in stored buffers */
+	for(int c = 0; c < GC::nSHCoeffts; ++c)
+		block.lightCoeffts[l->index*GC::nSHCoeffts + c] = 
+			glm::vec4(l->getCoeffts()[c].x, l->getCoeffts()[c].y, l->getCoeffts()[c].z, 1.0f);
+	updateBlock();
 	return l;
 }
 
@@ -106,27 +134,30 @@ SHLight* SHLightManager::remove(SHLight* l)
 	if(l->manager != this || l == nullptr) return nullptr;
 	/* Check light's index is valid */
 	if(l != lights[l->index] ||
-		l->index < 0 || l->index >= nLights)
-		return nullptr; //TODO: throw exception ?
+	l->index < 0 || l->index >= nLights)
+	return nullptr; //TODO: throw exception ?
 	/* Shift lights to fill gap left by removed light */
 	for(int i = l->index; i < nLights-1; ++i)
 	{
 		lights[i] = lights[i+1];
+		for(int c = 0; c < GC::nSHCoeffts; ++c)
+		block.lightCoeffts[i*GC::nSHCoeffts + c] =
+		block.lightCoeffts[(i+1)*GC::nSHCoeffts + c];
 	}
 	lights[nLights-1] = nullptr;
+	for(int c = 0; c < GC::nSHCoeffts; ++c)
+		block.lightCoeffts[(nLights)*GC::nSHCoeffts + c] =
+	glm::vec4(0.0f);
 	--nLights;
 	l->index = -1;
 	l->manager = nullptr;
+	updateBlock();
 	return l;
 }
 
-glm::vec3 SHLightManager::getSHLitColor(const std::vector<glm::vec3>& coeffts)
+void SHLightManager::updateBlock()
 {
-	glm::vec3 color(0.0f);
-	
-	for(int i = 0; i < nLights; ++i)
-		for(unsigned c = 0; c < coeffts.size(); ++c)
-			color += lights[i]->getCoeffts()[c] * coeffts[c];
-
-	return color;
+	glBindBuffer(GL_UNIFORM_BUFFER, block_ubo);
+	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(block), &(block));
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
