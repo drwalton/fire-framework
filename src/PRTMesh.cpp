@@ -10,11 +10,15 @@ PRTMesh::PRTMesh(
 	std::vector<std::string> coefftFilenames;
 
 	readPrebakedFile(mesh, elems, coefftFilenames, bakedFilename);
-
-	for(auto f = coefftFilenames.begin(); f != coefftFilenames.end(); ++f)
-		coefftTex.push_back(Texture(*f));
+	
+	arrTex = new ArrayTexture(coefftFilenames);
 
 	init(mesh, elems);
+}
+
+PRTMesh::~PRTMesh()
+{
+	delete arrTex;
 }
 
 void PRTMesh::bake(
@@ -574,8 +578,7 @@ void PRTMesh::init(
 	const std::vector<GLushort>& elems)
 {
 	numElems = elems.size();
-	for(unsigned i = 0; i < coefftTex.size(); ++i)
-		shader->setTexUnit(i, coefftTex[i].getTexUnit());
+	shader->setTexUnit(arrTex->getTexUnit());
 
 	glGenBuffers(1, &v_vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, v_vbo);
@@ -598,8 +601,7 @@ void PRTMesh::render()
 	
 	shader->setModelToWorld(modelToWorld);
 
-	for(unsigned i = 0; i < coefftTex.size(); ++i)
-		shader->setTexUnit(i, coefftTex[i].getTexUnit());
+	shader->setTexUnit(arrTex->getTexUnit());
 
 	shader->use();
 	glEnableVertexAttribArray(v_attrib);

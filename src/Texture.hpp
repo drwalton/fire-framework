@@ -6,6 +6,7 @@
 
 #include "SOIL.h"
 #include <string>
+#include <vector>
 #include <exception>
 #include <fstream>
 
@@ -23,42 +24,24 @@ public:
 	~Texture();
 	GLuint getTexUnit();
 	const std::string filename;
+	static GLuint genTexUnit();
 private:
 	GLuint texUnit;
 	GLuint id;
 	static GLuint nextTexUnit;
 };
 
-enum PixelChannel : int {RED = 0, GREEN = 1, BLUE = 2, ALPHA = 3};
-enum ImageFormat : char {TGA, BMP, DDS};
-
-/* Little wrapper around SOIL's image loading.
- *
- */
-class Image
+class ArrayTexture
 {
 public:
-	Image(const std::string& filename);
-	Image(int width, int height);
-	~Image();
-
-	void save(const std::string& filename, ImageFormat format = TGA);
-
-	const int getWidth()  const {return width; };
-	const int getHeight() const {return height;};
-	int getChannels() {return channels;};
-
-	unsigned char getPixel(int u, int v, PixelChannel channel);
-	glm::vec4 getPixel(int u, int v);
-	const glm::vec4 getPixel(int u, int v) const;
-	glm::vec4 getPixel(float u, float v); 
-	void setByte(int u, int v, PixelChannel channel, unsigned char byte);
-	void setPixel(int u, int v, const glm::vec4& pixel);
-
-	unsigned char* data;
-
+	ArrayTexture(const std::vector<std::string>& filenames);
+	~ArrayTexture();
+	GLuint getTexUnit() {return texUnit;};
+	const std::vector<std::string> filenames;
 private:
-	int width; int height; int channels;
+	size_t nLayers;
+	GLuint texUnit;
+	GLuint id;
 };
 
 #endif

@@ -422,4 +422,6 @@ void AOMesh::renderOcclToImage(
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glDeleteFramebuffers(1, &frame);
 	glDeleteRenderbuffers(1, &render); 
+
+	SOIL_free_image_data(ambData);
 }

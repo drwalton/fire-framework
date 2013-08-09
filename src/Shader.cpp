@@ -192,7 +192,7 @@ GLuint Shader::getUBlockBindingIndex(const std::string& name)
 	if (name.compare("cameraBlock") == 0) return 0;
 	if (name.compare("ambBlock")    == 0) return 1;
 	if (name.compare("phongBlock")  == 0) return 2;
-
+	if (name.compare("SHBlock")     == 0) return 3;
 	return -1; // Name not found
 }
 
@@ -306,32 +306,30 @@ void ParticleShader::setDecayTexUnit(GLuint _decayTexUnit)
 	glUseProgram(0);
 }
 
-SHShader::SHShader(bool hasGeomShader,  const std::string& filename, int nBands)
+SHShader::SHShader(bool hasGeomShader,  const std::string& filename)
 	:Shader(hasGeomShader, filename, SH_SUBS)
 {
-	init(nBands);
+	init();
 }
 
-SHShader::SHShader(bool hasGeomShader,  const std::string& filename, int nBands, 
+SHShader::SHShader(bool hasGeomShader,  const std::string& filename,
 	std::vector<std::string> subs)
 	:Shader(hasGeomShader, filename, subs)
 {
-	init(nBands);
+	init();
 }
 
-void SHShader::setTexUnit(int coefft, GLuint unit)
+void SHShader::setTexUnit(GLuint unit)
 {
 	use();
-	glUniform1i(texUnit_u[coefft], unit);
+	glUniform1i(texUnit_u, unit);
 	glUseProgram(0);
 }
 
-void SHShader::init(int nBands)
+void SHShader::init()
 {
-	texUnit_u.resize(nBands * nBands);
-	texUnit_u[0] = getUniformLoc("coefftTex");
-	for(unsigned i = 1; i < texUnit_u.size(); ++i)
-		texUnit_u[i] = texUnit_u[0] + i;
+	texUnit_u = getUniformLoc("coefftTex");
+	setupUniformBlock("SHBlock");
 }
 
 AOShader::AOShader(bool hasGeomShader,  const std::string& filename)

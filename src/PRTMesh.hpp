@@ -21,6 +21,7 @@ public:
 	PRTMesh(
 		const std::string& bakedFilename,
 		SHShader* shader);
+	~PRTMesh();
 
 	static void bake(
 		PRTMode mode,
@@ -83,7 +84,7 @@ private:
 	SHShader* shader;
 	size_t numElems;
 
-	std::vector<Texture> coefftTex;
+	ArrayTexture* arrTex;
 
 	GLuint v_vbo;
 	GLuint e_ebo;
