@@ -131,9 +131,13 @@ private:
 class SHShader : public Shader
 {
 public:
-	SHShader(bool hasGeomShader, const std::string& filename);
-	SHShader(bool hasGeomShader, const std::string& filename,
+	SHShader(bool hasGeomShader, const std::string& filename, int nBands);
+	SHShader(bool hasGeomShader, const std::string& filename, int nBands,
 		std::vector<std::string> subs);
+	void setTexUnit(int coefft, GLuint unit);
+private:
+	void init(int nBands);
+	std::vector<GLuint> texUnit_u;
 };
 
 class AOShader : public LightShader

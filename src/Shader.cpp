@@ -95,11 +95,10 @@ GLuint Shader::loadShader(const std::string& filename, int shaderType,
 	}
 
 	GLuint shaderObject = glCreateShader(shaderType);
+	std::string modSource(source);
 
 	if(subs.size() > 0)
 	{
-		std::string modSource(source);
-
 		for(auto i = subs.begin(); i != subs.end(); i += 2)
 			boost::replace_all(modSource, *i, *(i + 1));
 
@@ -128,7 +127,7 @@ GLuint Shader::loadShader(const std::string& filename, int shaderType,
 			GLchar messages[256];
 			glGetShaderInfoLog(shaderObject, sizeof(messages), 0, &messages[0]);
 			std::cout << "!! Compilation error:\n" << messages;
-			std::cout << "Loaded source:\n" << source;
+			std::cout << "Loaded source:\n" << ((subs.size() > 0) ? modSource : source);
 		}
 		return 0;
 	}
@@ -307,15 +306,32 @@ void ParticleShader::setDecayTexUnit(GLuint _decayTexUnit)
 	glUseProgram(0);
 }
 
-SHShader::SHShader(bool hasGeomShader,  const std::string& filename)
+SHShader::SHShader(bool hasGeomShader,  const std::string& filename, int nBands)
 	:Shader(hasGeomShader, filename, SH_SUBS)
 {
+	init(nBands);
 }
 
-SHShader::SHShader(bool hasGeomShader,  const std::string& filename, 
+SHShader::SHShader(bool hasGeomShader,  const std::string& filename, int nBands, 
 	std::vector<std::string> subs)
 	:Shader(hasGeomShader, filename, subs)
 {
+	init(nBands);
+}
+
+void SHShader::setTexUnit(int coefft, GLuint unit)
+{
+	use();
+	glUniform1i(texUnit_u[coefft], unit);
+	glUseProgram(0);
+}
+
+void SHShader::init(int nBands)
+{
+	texUnit_u.resize(nBands * nBands);
+	texUnit_u[0] = getUniformLoc("coefftTex");
+	for(unsigned i = 1; i < texUnit_u.size(); ++i)
+		texUnit_u[i] = texUnit_u[0] + i;
 }
 
 AOShader::AOShader(bool hasGeomShader,  const std::string& filename)

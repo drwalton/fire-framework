@@ -172,7 +172,7 @@ void AOMesh::bake(
 					abs(mesh[i].n.z) < EPS))
 					mesh[i].n = glm::normalize(mesh[i].n);
 
-			vertOccl[i] /= (0.5 * sqrtNSamples * sqrtNSamples);
+			vertOccl[i] /= (0.5f * sqrtNSamples * sqrtNSamples);
 
 			completedVerts++;
 			if(tid == 0)
@@ -237,6 +237,8 @@ void AOMesh::writePrebakedFile(
 	file << diffTex << std::endl;
 	file << specTex << std::endl;
 	file << specExp << std::endl;
+
+	file.close();
 }
 
 void AOMesh::readPrebakedFile(
@@ -382,8 +384,8 @@ void AOMesh::renderOcclToImage(
 
 	// Rendering cleanup
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-	glEnableVertexAttribArray(tex_attrib);
-	glEnableVertexAttribArray(occl_attrib);
+	glDisableVertexAttribArray(tex_attrib);
+	glDisableVertexAttribArray(occl_attrib);
 	glDeleteBuffers(1, &tex_vbo);
 	glDeleteBuffers(1, &occl_vbo);
 	glDeleteBuffers(1, &elem_ebo);
@@ -420,6 +422,4 @@ void AOMesh::renderOcclToImage(
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glDeleteFramebuffers(1, &frame);
 	glDeleteRenderbuffers(1, &render); 
-
-	// TODO: proper getting & resetting of all changed state.
 }

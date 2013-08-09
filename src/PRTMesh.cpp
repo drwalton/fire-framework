@@ -1,140 +1,41 @@
 #include "PRTMesh.hpp"
 
 PRTMesh::PRTMesh(
-	const std::string& filename,
-	const Material& material,
-	PRTMode mode, int sqrtNSamples,
-	int nBands,
-	Shader* shader, 
-	int nBounces)
+	const std::string& bakedFilename,
+	SHShader* shader)
 	:Renderable(false), shader(shader)
 {
-	std::string prebakedFilename = genPrebakedFilename(filename, mode, nBands);
+	std::vector<PRTMeshVertex> mesh;
+	std::vector<GLushort> elems;
+	std::vector<std::string> coefftFilenames;
 
-	if(fileExists(prebakedFilename))
-		readPrebakedFile(
-			verts, elems, 
-			transfer, nBands*nBands, 
-			prebakedFilename);
+	readPrebakedFile(mesh, elems, coefftFilenames, bakedFilename);
 
-	else
-	{
-		MeshData data = Mesh::loadSceneFile(filename, material);
-		verts = data.v;
-		elems = data.e;
-		bake(data, mode, nBands, sqrtNSamples, verts, transfer, nBounces);
-		writePrebakedFile(verts, elems, transfer, prebakedFilename);
-	}
+	for(auto f = coefftFilenames.begin(); f != coefftFilenames.end(); ++f)
+		coefftTex.push_back(Texture(*f));
 
-	init();
+	init(mesh, elems);
 }
 
-PRTMesh::PRTMesh(
-	const std::vector<std::string>& filenames,
-	const std::vector<Material>& materials,
-	PRTMode mode, int sqrtNSamples,
+void PRTMesh::bake(
+	PRTMode mode,
+	const std::string& meshFilename,
+	const std::string& diffTex,
+	int sqrtNSamples,
 	int nBands,
-	Shader* shader, 
-	int nBounces)
-	:Renderable(false), shader(shader)
+	int nBounces,
+	TexCoordGenMode texMode)
 {
-	std::string prebakedFilename = "";
-	for(auto n = filenames.begin(); n != filenames.end(); ++n)
-		prebakedFilename += *n;
-	prebakedFilename = genPrebakedFilename(prebakedFilename, mode, nBands);
+	MeshData data = Mesh::loadSceneFile(meshFilename, texMode);
+	std::vector<PRTMeshVertex> mesh(data.v.size());
+	std::vector<std::vector<glm::vec3>> transfer;
 
-	if(fileExists(prebakedFilename))
-		readPrebakedFile(
-			verts, elems, 
-			transfer, nBands*nBands, 
-			prebakedFilename);
+	int width, height, channels;
+	unsigned char* diffData = SOIL_load_image(
+		diffTex.c_str(),
+		&width, &height, &channels,
+		SOIL_LOAD_AUTO);
 
-	else
-	{
-		MeshData data = Mesh::loadSceneFiles(filenames, materials);
-		verts = data.v;
-		elems = data.e;
-		bake(data, mode, nBands, sqrtNSamples, verts, transfer, nBounces);
-		writePrebakedFile(verts, elems, transfer, prebakedFilename);
-	}
-
-	init();
-}
-
-void PRTMesh::render()
-{
-	shader->setModelToWorld(modelToWorld);
-
-	//Calculate vertex colors.
-	#pragma omp parallel for
-	for(int i = 0; i < static_cast<int>(transfer.size()); ++i)
-		colors[i] = scene->getSHLitColor(transfer[i]);
-
-	//Send new colors to GPU.
-	glBindBuffer(GL_ARRAY_BUFFER, colors_vbo);
-	glBufferSubData(GL_ARRAY_BUFFER, 0, 
-		sizeof(glm::vec3) * colors.size(), colors.data());
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-	//Render.
-	shader->use();
-
-	glEnableVertexAttribArray(vert_attrib);
-	glEnableVertexAttribArray(color_attrib);
-
-	glBindVertexBuffer(0, verts_vbo, 0, sizeof(glm::vec4));
-	glVertexAttribFormat(vert_attrib, 4, GL_FLOAT, GL_FALSE, 0);
-	glVertexAttribBinding(vert_attrib, 0);
-
-	glBindVertexBuffer(1, colors_vbo, 0, sizeof(glm::vec3));
-	glVertexAttribFormat(color_attrib, 3, GL_FLOAT, GL_FALSE, 0);
-	glVertexAttribBinding(color_attrib, 1);
-
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elems_vbo);
-
-	glDrawElements(GL_TRIANGLES, (GLsizei) elems.size(), GL_UNSIGNED_SHORT, 0);
-
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-	glDisableVertexAttribArray(vert_attrib);
-	glDisableVertexAttribArray(color_attrib);
-
-	glUseProgram(0);
-}
-
-void PRTMesh::init()
-{
-	for(unsigned i = 0; i < verts.size(); ++i)
-		colors.push_back(glm::vec3(0.0f));
-
-	glGenBuffers(1, &verts_vbo);
-	glBindBuffer(GL_ARRAY_BUFFER, verts_vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec4) * verts.size(),
-		verts.data(), GL_STATIC_DRAW);
-	glGenBuffers(1, &colors_vbo);
-	glBindBuffer(GL_ARRAY_BUFFER, colors_vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * colors.size(),
-		colors.data(), GL_DYNAMIC_DRAW);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-	glGenBuffers(1, &elems_vbo);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elems_vbo);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLushort) * elems.size(),
-		elems.data(), GL_STATIC_DRAW);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-	vert_attrib  = shader->getAttribLoc("vPosition");
-	color_attrib = shader->getAttribLoc("vColor");
-}
-
-void PRTMesh::bake(const MeshData& data,
-	PRTMode mode, int nBands, int sqrtNSamples,
-	std::vector<glm::vec4>& verts,
-	std::vector<std::vector<glm::vec3>>& transfer, 
-	int nBounces)
-{
 	int tid;
 	int completedVerts = 0;
 	int currPercent = 0;
@@ -150,11 +51,15 @@ void PRTMesh::bake(const MeshData& data,
 		//#pragma omp for
 		for(int i = 0; i < nVerts; ++i)
 		{
+			mesh[i].v = data.v[i];
+			mesh[i].t = data.t[i];
+
 			std::vector<glm::vec3> coeffts;
 
 			if(mode == UNSHADOWED)
 				coeffts = SH::shProject(sqrtNSamples, nBands, 
-					[&data, &i](float theta, float phi) -> glm::vec3 
+					[&data, &i, &diffData, &width, &height, &channels]
+					(float theta, float phi) -> glm::vec3 
 						{
 							glm::vec3 dir
 								(
@@ -165,19 +70,21 @@ void PRTMesh::bake(const MeshData& data,
 							dir = glm::normalize(dir);
 							glm::vec3 norm = glm::normalize(data.n[i]);
 
-							Material mat = data.M[data.m[i]];
-							glm::vec3 diffuse(mat.diffuse);
+							glm::vec3 surfColor = texLookup(
+								diffData, data.t[i],
+								width, height, channels);
 
 							float proj = glm::dot(dir, norm);
 							proj = (proj > 0.0f ? proj : 0.0f);
 
-							return diffuse * proj;
+							return proj * surfColor;
 						}
 					);
 
 			else // mode == SHADOWED || mode == INTERREFLECTED
 				coeffts = SH::shProject(sqrtNSamples, nBands, 
-					[&data, &i](float theta, float phi) -> glm::vec3 
+					[&data, &i, &diffData, &width, &height, &channels]
+					(float theta, float phi) -> glm::vec3 
 						{
 							bool intersect = false;
 
@@ -214,10 +121,11 @@ void PRTMesh::bake(const MeshData& data,
 							if(intersect) return glm::vec3(0.0, 0.0, 0.0);
 							// Light not occluded.
 
-							Material mat = data.M[data.m[i]];
-							glm::vec3 diffuse(mat.diffuse);
+							glm::vec3 surfColor = texLookup(
+								diffData, data.t[i],
+								width, height, channels);
 
-							return proj * diffuse;
+							return proj * surfColor;
 						}
 					);
 
@@ -243,16 +151,141 @@ void PRTMesh::bake(const MeshData& data,
 	if(mode == INTERREFLECTED)
 	{
 		std::cout << "Interreflection pass begins...\n";
-		interreflect(data, nBands, sqrtNSamples, nBounces, verts, transfer);
+		PRTMesh::interreflect(data, diffTex, nBands, sqrtNSamples, nBounces, transfer);
 	}
+
+	free(diffData);
+
+	std::vector<std::string> coefftFilenames;
+	std::string prebakedFilename = PRTMesh::genPrebakedFilename(meshFilename, mode, nBands);
+
+	PRTMesh::writeTransferToTextures(transfer, 
+		data, prebakedFilename, coefftFilenames, width, height);
+
+	PRTMesh::writePrebakedFile(mesh, data.e, coefftFilenames, prebakedFilename);
+}
+
+std::string PRTMesh::genPrebakedFilename(
+	const std::string& filename,
+	PRTMode mode,
+	int nBands)
+{
+	std::string prebakedFilename = filename + ".prt";
+
+	switch(mode)
+	{
+	case UNSHADOWED:
+		prebakedFilename += "u";
+		break;
+	case SHADOWED:
+		prebakedFilename += "s";
+		break;
+	case INTERREFLECTED:
+		prebakedFilename += "i";
+		break;
+	}
+
+	prebakedFilename += std::to_string(static_cast<long long>(nBands));
+
+	return prebakedFilename;
+}
+
+void PRTMesh::writePrebakedFile(
+	const std::vector<PRTMeshVertex>& mesh,
+	const std::vector<GLushort>& elems,
+	const std::vector<std::string>& coefftTex,
+	const std::string& filename)
+{
+	std::ofstream file(filename);
+
+	file << "Vertices" << std::endl;
+
+	for(auto v = mesh.begin(); v != mesh.end(); ++v)
+	{
+		file
+			<< v->v.x << " "
+			<< v->v.y << " "
+			<< v->v.z << " " 
+			<< v->v.w << std::endl;
+		file 
+			<< v->t.x << " "
+			<< v->t.y << std::endl;
+	}
+
+	file << "Elements" << std::endl;
+
+	for(auto e = elems.begin(); e != elems.end(); ++e)
+		file << *e << std::endl;
+
+	file << "Coefft Textures" << std::endl;
+
+	for(auto t = coefftTex.begin(); t != coefftTex.end(); ++t)
+		file << *t << std::endl;
+
+	file.close();
+}
+
+void PRTMesh::readPrebakedFile(
+	std::vector<PRTMeshVertex>& mesh,
+	std::vector<GLushort>& elems,
+	std::vector<std::string>& coefftFilenames,
+ 	const std::string& filename)
+{
+	std::ifstream file(filename);
+
+	if(!file) throw(new MeshFileException);
+
+	char ignore[30];
+
+	file.getline(ignore, 30); //Throw the "Vertices" line.
+
+	float next;
+
+	while(file >> next)
+	{
+		PRTMeshVertex vert;
+
+		vert.v.x = next;
+		file >> vert.v.y;
+		file >> vert.v.z;
+		file >> vert.v.w;
+
+		file >> vert.t.x;
+		file >> vert.t.y;
+
+		mesh.push_back(vert);
+	}
+
+	file.clear();
+	file.getline(ignore, 30); //Throw the "Elements" line.
+
+	int elem;
+	while(file >> elem)
+		elems.push_back(static_cast<GLushort>(elem));
+
+	file.clear();
+	file.getline(ignore, 30); //Throw the "Coefft Textures" line.
+
+	char coefftFilename[40];
+	while(file.getline(coefftFilename, 40))
+		coefftFilenames.push_back(std::string(coefftFilename));
+
+	numElems = elems.size();
+
+	file.close();
 }
 
 void PRTMesh::interreflect(
-	const MeshData& data,
+	const MeshData& data, const std::string& diffTex,
 	int nBands, int sqrtNSamples, int nBounces,
-	const std::vector<glm::vec4>& verts,
 	std::vector<std::vector<glm::vec3>>& transfer)
 {
+	int width, height, channels;
+	unsigned char* diffData = SOIL_load_image(
+		diffTex.c_str(),
+		&width, &height, &channels,
+		SOIL_LOAD_AUTO);
+
 	std::vector<std::vector<glm::vec3>> prevBounce(transfer);
 	std::vector<std::vector<glm::vec3>> currBounce(transfer.size());
 
@@ -266,9 +299,9 @@ void PRTMesh::interreflect(
 		int tid;
 		int completedVerts = 0;
 		int currPercent = 0;
-		int nVerts = static_cast<int>(verts.size());
+		int nVerts = static_cast<int>(data.v.size());
 
-		#pragma omp parallel private(tid)
+		#pragma omp parallel private(tid, currBounce, prevBounce)
 		{
 			tid = omp_get_thread_num();
 			#pragma omp for
@@ -336,11 +369,13 @@ void PRTMesh::interreflect(
 						float tu = closest.x;
 						float tv = closest.y;
 
-						// Find average diffuse color over triangle
-						glm::vec4 avgDiffuse = 
-							(1-(tu+tv)) * data.M[data.m[data.e[closestTri]]].diffuse +
-							tu * data.M[data.m[data.e[closestTri + 1]]].diffuse +
-							tv * data.M[data.m[data.e[closestTri + 2]]].diffuse;
+						glm::vec2 intersectTexPos = 
+							(1-(tu+tv)) * data.t[closestTri  ] +
+							tu          * data.t[closestTri+1] +
+							tv          * data.t[closestTri+2];
+
+						glm::vec3 intersectColor = texLookup(
+							diffData, intersectTexPos, width, height, channels);
 
 						for(int c = 0; c < nBands*nBands; ++c)
 						{
@@ -350,7 +385,7 @@ void PRTMesh::interreflect(
 								tv * prevBounce[data.e[closestTri + 2]][c]);
 
 							currBounce[i][c] += 
-								glm::dot(data.n[i], dir) * glm::vec3(avgDiffuse) * avgPrevBounce;
+								glm::dot(data.n[i], dir) * intersectColor * avgPrevBounce;
 						}
 					}
 
@@ -382,125 +417,209 @@ void PRTMesh::interreflect(
 		} // end parallel
 		std::cout << " 100% complete" << std::endl;
 	} // end bounces
+
+	free(diffData);
 }
 
-std::string PRTMesh::genPrebakedFilename(
-	const std::string& filename,
-	PRTMode mode,
-	int nBands
-	)
+void PRTMesh::renderCoefftToTexture(
+	const std::vector<glm::vec3>& coefft,
+	const std::string& texFilename,
+	const MeshData& data,
+	int width, int height)
 {
-	std::string prebakedFilename = filename + ".prt";
+	glm::vec3 avgCoefft  = glm::vec3(0.0f);
+	for(auto c = coefft.begin(); c != coefft.end(); ++c)
+		avgCoefft += *c;
+	avgCoefft /= static_cast<float>(coefft.size());
 
-	switch(mode)
-	{
-	case UNSHADOWED:
-		prebakedFilename += "u";
-		break;
-	case SHADOWED:
-		prebakedFilename += "s";
-		break;
-	case INTERREFLECTED:
-		prebakedFilename += "i";
-		break;
-	}
+	std::vector<unsigned char> texData(width * height * 3);
 
-	prebakedFilename += std::to_string(static_cast<long long>(nBands));
+	// Create framebuffer
+	GLuint frame;
+	glGenFramebuffers(1, &frame);
+	glBindFramebuffer(GL_FRAMEBUFFER, frame);
 
-	return prebakedFilename;
+	// Create renderbuffer and attach to framebuffer
+	GLuint render;
+	glGenRenderbuffers(1, &render);
+	glBindRenderbuffer(GL_RENDERBUFFER, render);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, width, height);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, render);
+
+	glViewport(0, 0, width, height);
+
+	// Create shader object
+	Shader coefftShader(false, "PRTBake", false, false);
+	GLuint tex_attrib = coefftShader.getAttribLoc("vTexCoord");
+	GLuint coefft_attrib = coefftShader.getAttribLoc("vCoefft");
+
+	// Pass data to GPU
+	GLuint tex_vbo;
+	glGenBuffers(1, &tex_vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, tex_vbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2) * data.t.size(), data.t.data(), GL_STATIC_DRAW);
+	GLuint coefft_vbo;
+	glGenBuffers(1, &coefft_vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, coefft_vbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * coefft.size(), coefft.data(), GL_STATIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	GLuint elem_ebo;
+	glGenBuffers(1, &elem_ebo);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elem_ebo);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLushort) * data.e.size(), data.e.data(), GL_STATIC_DRAW);
+	
+	// Rendering setup
+	// Store current state
+	GLfloat clearCol[4];
+	GLboolean faceCull = GL_TRUE;
+	glGetFloatv(GL_COLOR_CLEAR_VALUE, clearCol);
+	glGetBooleanv(GL_CULL_FACE, &faceCull);
+	// Modify state
+	glClearColor(avgCoefft.x, avgCoefft.y, avgCoefft.z, 1.0f);
+	glDisable(GL_CULL_FACE);
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	coefftShader.use();
+	glEnableVertexAttribArray(tex_attrib);
+	glEnableVertexAttribArray(coefft_attrib);
+
+	glBindVertexBuffer(0, tex_vbo, 0, sizeof(glm::vec2));
+	glVertexAttribFormat(tex_attrib, 2, GL_FLOAT, GL_FALSE, 0);
+	glVertexAttribBinding(tex_attrib, 0);
+	glBindVertexBuffer(1, coefft_vbo, 0, sizeof(glm::vec3));
+	glVertexAttribFormat(coefft_attrib, 3, GL_FLOAT, GL_FALSE, 0);
+	glVertexAttribBinding(coefft_attrib, 1);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	// Render
+	glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(data.e.size()), GL_UNSIGNED_SHORT, 0);
+
+	// Rendering cleanup
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	glDisableVertexAttribArray(tex_attrib);
+	glDisableVertexAttribArray(coefft_attrib);
+	glDeleteBuffers(1, &tex_vbo);
+	glDeleteBuffers(1, &coefft_vbo);
+	glDeleteBuffers(1, &elem_ebo);
+	glUseProgram(0);
+	//Restore old state
+	if(faceCull == GL_TRUE) glEnable(GL_CULL_FACE);
+	else glDisable(GL_CULL_FACE);
+	glClearColor(clearCol[0], clearCol[1], clearCol[2], clearCol[3]);
+
+	// Pull rendered image from GPU
+	glPixelStorei(GL_PACK_ALIGNMENT, 1);
+	glReadPixels(0, 0, width, height, GL_RGB, GL_BYTE, texData.data());
+
+	SOIL_save_image
+		(
+			texFilename.c_str(),
+			SOIL_SAVE_TYPE_BMP,
+			width, height, 3,
+			texData.data()
+		);
+
+	// More cleanup
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glDeleteFramebuffers(1, &frame);
+	glDeleteRenderbuffers(1, &render); 
 }
 
-void PRTMesh::writePrebakedFile(
-	const std::vector<glm::vec4>& verts,
-	const std::vector<GLushort>& elems,
- 	const std::vector<std::vector<glm::vec3>>& transfer,
- 	const std::string& filename)
+void PRTMesh::writeTransferToTextures(
+	const std::vector<std::vector<glm::vec3>>& transfer,
+	const MeshData& data,
+	const std::string& prebakedFilename,
+	std::vector<std::string>& coefftFilenames,
+	int width, int height)
 {
-	std::ofstream file(filename);
-
-	file << "Vertices" << std::endl;
-
-	for(auto v = verts.begin(); v != verts.end(); ++v)
-		file
-			<< v->x << " "
-			<< v->y << " "
-			<< v->z << " " 
-			<< v->w << std::endl;
-
-	file << "Elements" << std::endl;
-
-	for(auto e = elems.begin(); e != elems.end(); ++e)
-		file << *e << std::endl;
-
-	file << "Transfer Coeffts" << std::endl;
-
-	for(auto v = transfer.begin(); v != transfer.end(); ++v)
+	for(unsigned c = 0; c < transfer[0].size(); ++c)
 	{
-		for(auto c = v->begin(); c != v->end(); ++c)
-		{
-			file 
-				<< c->x << " "
-				<< c->y << " "
-				<< c->z << " ";
-		}
-		file << std::endl;
+		std::string texName = prebakedFilename + ".coefft" +
+			std::to_string(static_cast<long long>(c)) + ".bmp";
+		coefftFilenames.push_back(texName);
 	}
 
-	file.close();
+	for(unsigned i = 0; i < coefftFilenames.size(); ++i)
+	{
+		std::vector<glm::vec3> currCoefft;
+		for(auto v = transfer.begin(); v != transfer.end(); ++v)
+			currCoefft.push_back((*v)[i]);
+
+		renderCoefftToTexture(
+			currCoefft,
+			coefftFilenames[i],
+			data, width, height);
+	}
 }
 
-void PRTMesh::readPrebakedFile(
-	std::vector<glm::vec4>& verts,
-	std::vector<GLushort>& elems,
- 	std::vector<std::vector<glm::vec3>>& transfer,
- 	int nCoeffts,
- 	const std::string& filename)
+glm::vec3 PRTMesh::texLookup(
+	unsigned char* image, 
+	const glm::vec2& uv,
+	int width, int height, int channels)
 {
-	std::ifstream file(filename);
+	int u = static_cast<int>(uv.x * width );
+	int v = static_cast<int>(uv.y * height);
 
-	if(!file) throw(new MeshFileException);
+	int index = (u + v*width)*channels;
+	float r = static_cast<float>(image[index    ]) / 255.0f;
+	float g = static_cast<float>(image[index + 1]) / 255.0f;
+	float b = static_cast<float>(image[index + 2]) / 255.0f;
 
-	char ignore[20];
+	return glm::vec3(r, g, b);
+}
 
-	file.getline(ignore, 20); //Throw the "Vertices" line.
+void PRTMesh::init(
+	const std::vector<PRTMeshVertex>& mesh,
+	const std::vector<GLushort>& elems)
+{
+	numElems = elems.size();
+	for(unsigned i = 0; i < coefftTex.size(); ++i)
+		shader->setTexUnit(i, coefftTex[i].getTexUnit());
 
-	float next;
+	glGenBuffers(1, &v_vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, v_vbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(PRTMeshVertex) * mesh.size(),
+		mesh.data(), GL_STATIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glGenBuffers(1, &e_ebo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, e_ebo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLushort) * elems.size(),
+		elems.data(), GL_STATIC_DRAW);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-	while(file >> next)
-	{
-		glm::vec4 vert;
+	v_attrib = shader->getAttribLoc("vPosition");
+	t_attrib = shader->getAttribLoc("vTexCoord");
+}
 
-		vert.x = next;
-		file >> vert.y;
-		file >> vert.z;
-		file >> vert.w;
+void PRTMesh::render()
+{
+	if(!scene) return;
+	
+	shader->setModelToWorld(modelToWorld);
 
-		verts.push_back(vert);
-	}
+	for(unsigned i = 0; i < coefftTex.size(); ++i)
+		shader->setTexUnit(i, coefftTex[i].getTexUnit());
 
-	file.clear();
-	file.getline(ignore, 20); //Throw the "Elements" line.
+	shader->use();
+	glEnableVertexAttribArray(v_attrib);
+	glEnableVertexAttribArray(t_attrib);
 
-	int elem;
-	while(file >> elem)
-		elems.push_back(static_cast<GLushort>(elem));
+	glBindVertexBuffer(0, v_vbo, 0, sizeof(PRTMeshVertex));
+	glVertexAttribFormat(v_attrib, 4, GL_FLOAT, GL_FALSE, 0);
+	glVertexAttribBinding(v_attrib, 0);
+	glVertexAttribFormat(t_attrib, 2, GL_FLOAT, GL_FALSE, offsetof(PRTMeshVertex, t));
+	glVertexAttribBinding(t_attrib, 0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-	file.clear();
-	file.getline(ignore, 20); //Throw the "Transfer Coeffts" line.
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, e_ebo);
 
-	for(auto v = verts.begin(); v != verts.end(); ++v)
-	{
-		std::vector<glm::vec3> coeffts;
+	glDrawElements(GL_TRIANGLES, (GLsizei) numElems, GL_UNSIGNED_SHORT, 0);
 
-		for(int i = 0; i < nCoeffts; ++i)
-		{
-			glm::vec3 coefft;
-			file >> coefft.x;
-			file >> coefft.y;
-			file >> coefft.z;
-			coeffts.push_back(coefft);
-		}
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-		transfer.push_back(coeffts);
-	}
+	glDisableVertexAttribArray(v_attrib);
+	glDisableVertexAttribArray(t_attrib);
+
+	glUseProgram(0);
 }

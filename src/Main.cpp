@@ -3,6 +3,7 @@
 #include "Particles.hpp"
 #include "Mesh.hpp"
 #include "AOMesh.hpp"
+#include "PRTMesh.hpp"
 #include "SH.hpp"
 #include "SHMat.hpp"
 #include "SphereFunc.hpp"
@@ -93,11 +94,17 @@ int init()
 	//bunny->uniformScale(8.0f);
 	//bunny->translate(glm::vec3(0.0f, -0.6f, 0.0f));
 
-	AOMesh::bake("fineteapot.obj", "blank.png", "blank.png", "blank.png", 1.0f, 10);
-	AOMesh* rabbit = new AOMesh("fineteapot.obj.ao", lightShader);
-	scene->add(rabbit);
-	rabbit->translate(glm::vec3(0.0f, -1.0f, 0.0f));
-	rabbit->uniformScale(1.0f);
+	//AOMesh::bake("rabbitfine.obj", "blank.png", "blank.png", "blank.png", 1.0f, 10);
+	//AOMesh* rabbit = new AOMesh("rabbitfine.obj.ao", lightShader);
+	//scene->add(rabbit);
+	//rabbit->translate(glm::vec3(0.0f, -1.0f, 0.0f));
+	//rabbit->uniformScale(1.0f);
+
+	SHShader* shShader = new SHShader(false, "diffPRT", 3);
+
+	//PRTMesh::bake(UNSHADOWED, "teapotmk2.obj", "blank.png", 10, 3);
+	PRTMesh* teapot = new PRTMesh("teapotmk2.obj.prtu3", shShader);
+	scene->add(teapot);
 
 	light = new SHLight(
 		[] (float theta, float phi) -> glm::vec3 
@@ -124,7 +131,7 @@ void display()
 	//Look up/down
 	rotation = glm::rotate(glm::mat4(1.0), phi, glm::vec3(1.0, 0.0, 0.0));
 	//Spin around
-	rotation = glm::rotate(rotation,     theta, glm::vec3(0.0, 1.0, 0.0));
+	rotation = glm::rotate(rotation, theta, glm::vec3(0.0, 1.0, 0.0));
 	light->rotateCoeffts(rotation);
 	scene->render();
 	glutSwapBuffers();
