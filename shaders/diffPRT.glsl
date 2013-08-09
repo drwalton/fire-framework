@@ -28,7 +28,7 @@ in vec2 smoothTex;
 
 out vec4 fragColor;
 
-uniform sampler2D coefftTex[$nSHCoeffts$];
+uniform sampler2DArray coefftTex;
 
 layout(std140) uniform SHBlock
 {
@@ -42,8 +42,8 @@ void main()
 	for(int l = 0; l < $maxSHLights$; ++l)
 		for(int i = 0; i < $nSHCoeffts$; ++i)
 		{
-			color += vec3(texture2D(coefftTex[i], smoothTex)) * 
-				vec3(lightCoeffts[i + l*$maxSHLights$]);
+			color += vec3(texture(coefftTex, vec3(smoothTex.x, (1.0 - smoothTex.y), i))) * 
+				vec3(lightCoeffts[i + l*$nSHCoeffts$]);
 		}
 
 	fragColor = vec4(color, 1.0);

@@ -62,9 +62,9 @@ ArrayTexture::ArrayTexture(const std::vector<std::string>& filenames)
 		for(int v = 0; v < height; ++v)
 			for(int u = 0; u < width; ++u)
 			{
-				compiledImages.push_back(fileData[(u + v*height)*channels  ]);
-				compiledImages.push_back(fileData[(u + v*height)*channels+1]);
-				compiledImages.push_back(fileData[(u + v*height)*channels+2]);
+				compiledImages.push_back(fileData[(u + v*width)*channels    ]);
+				compiledImages.push_back(fileData[(u + v*width)*channels + 1]);
+				compiledImages.push_back(fileData[(u + v*width)*channels + 2]);
 			}
 
 		SOIL_free_image_data(fileData);
@@ -73,6 +73,7 @@ ArrayTexture::ArrayTexture(const std::vector<std::string>& filenames)
 	glGenTextures(1, &id);
 	glBindTexture(GL_TEXTURE_2D_ARRAY, id);
 	glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_RGB, width, height, nLayers);
+
 	glTexImage3D(
 		GL_TEXTURE_2D_ARRAY, 0, GL_RGB, 
 		width, height, nLayers, 

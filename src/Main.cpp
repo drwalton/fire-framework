@@ -87,7 +87,7 @@ int init()
 
 	//Texture* slateTex = new Texture("alphabet.png");
 	
-	//LightShader* lightShader = new LightShader(false, "Mesh");
+	LightShader* lightShader = new LightShader(false, "Mesh");
 
 	//Mesh* bunny = new Mesh("rabbit.obj", slateTex, slateTex, slateTex, 1.0f, lightShader);
 	//scene->add(bunny);
@@ -95,7 +95,7 @@ int init()
 	//bunny->translate(glm::vec3(0.0f, -0.6f, 0.0f));
 
 	//AOMesh::bake("rabbitfine.obj", "blank.png", "blank.png", "blank.png", 1.0f, 10);
-	//AOMesh* rabbit = new AOMesh("rabbitfine.obj.ao", lightShader);
+	//AOMesh* rabbit = new AOMesh("teapotmk2.obj.ao", lightShader);
 	//scene->add(rabbit);
 	//rabbit->translate(glm::vec3(0.0f, -1.0f, 0.0f));
 	//rabbit->uniformScale(1.0f);
