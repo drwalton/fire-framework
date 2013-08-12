@@ -11,8 +11,6 @@
 #include <glm.hpp>
 #include <GL/glut.h>
 
-#include <iomanip>
-
 /* This file will contain the construction and rendering of the scene
  * I am working on right now. 
  */
@@ -21,8 +19,6 @@ int init();
 void display();
 void reshape (int, int);
 void keyboard(unsigned char, int, int);
-void printInfo();
-void rotate();
 
 void addSHArray(Scene* scene, glm::vec3 pos, int nBands, float scale, float spacing);
 
@@ -34,13 +30,7 @@ float phi = 0.0f;
 
 Scene* scene;
 SHLight* light;
-SpherePlot* reProjected;
-SpherePlot* shRotated;
-std::vector<glm::vec3> proj;
-std::vector<glm::vec3> reProj;
-std::vector<glm::vec3> rotProj;
-glm::mat4 rotation;
-SHMat shRotation(GC::nSHBands);
+SpherePlot* plot;
 
 const int k = 5;
 
@@ -68,50 +58,79 @@ int main(int argc, char** argv)
 	delete scene;
 }
 
+// Called by glutInit().
 int init()
 {
-	glClearColor(0.8f, 0.8f, 1.0f, 1.0f);
+	glClearColor(0.8, 0.8, 1.0, 1.0);
 
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_DEPTH_TEST);
 
+	int tex;
+	glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &tex);
+	std::cout << "max tex units " << tex << "\n";
+
 	scene = new Scene();
 
-	Shader* plotShader = new Shader(false, "SpherePlot");
+	//ParticleShader* pShader = new ParticleShader(true, "ScrollTexFire");
+	//Texture* flameTex = new Texture("bigFlame.png");
+	//Texture* decayTex = new Texture("decay2.png");
+	//AdvectParticlesCentroidLights* centreParticles = 
+		//new AdvectParticlesCentroidLights(nSwirls, 10, 10, 1000, pShader, flameTex, decayTex);
+	//centreParticles->translate(glm::vec3(0.0, -1.0, 1.5));
+	//scene->add(centreParticles);
 
-	proj = SH::shProject(20, GC::nSHBands, 
-	[] (float theta, float phi) -> glm::vec3 
-	{
-		return glm::vec3(pulse(theta, phi, glm::vec3(1.0f, 0.0f, 0.0f), 4.0f, 1.0f));
-	}
+	//AdvectParticlesRandLights* randParticles = new AdvectParticlesRandLights(nSwirls, 10, 2000, pShader, flameTex, decayTex);
+	//randParticles->translate(glm::vec3(0.0, -1.0, -3.0));
+	
+	//scene->add(randParticles);
+
+	//Texture* slateTex = new Texture("alphabet.png");
+	
+	LightShader* lightShader = new LightShader(false, "Mesh");
+
+	//Mesh* bunny = new Mesh("rabbit.obj", slateTex, slateTex, slateTex, 1.0f, lightShader);
+	//scene->add(bunny);
+	//bunny->uniformScale(8.0f);
+	//bunny->translate(glm::vec3(0.0f, -0.6f, 0.0f));
+
+	//AOMesh::bake("stanford.obj", "stanford.obj", "blank.png", "blank.png", "blank.png", 1.0f, 40);
+	//AOMesh* rabbit = new AOMesh("stanford.obj.ao", lightShader);
+	//scene->add(rabbit);
+	//rabbit->translate(glm::vec3(0.0f, -1.0f, 0.0f));
+	//rabbit->uniformScale(1.0f);
+
+	SHShader* shShader = new SHShader(false, "diffPRT");
+
+	//PRTMesh::bake(SHADOWED, "stanford.obj", "stanford.obj", "blank.png", 40, 5);
+	PRTMesh* teapot = new PRTMesh("stanford.obj.prtu5", shShader);
+	scene->add(teapot);
+
+	light = new SHLight(
+		[] (float theta, float phi) -> glm::vec3 
+		{
+			//float val = 0.2f;
+			float val = pulse(theta, phi, glm::vec3(1.0f, 0.0f, 0.0f), 4.0f, 3.0f);
+
+			return glm::vec3(val, val, val);
+		}
 	);
-
-	reProj = proj; rotProj = proj;
-
-	reProjected = new SpherePlot(
-		[] (float theta, float phi) -> 
-		float {return SH::evaluate(reProj, theta, phi).x;},
-		40, plotShader);
-
-	shRotated = new SpherePlot(
-		[] (float theta, float phi) -> 
-		float {return SH::evaluate(rotProj, theta, phi).x;},
-		40, plotShader);
-
-	reProjected->translate(glm::vec3(-1.5f, 0.0f, 0.0f));
-	shRotated->translate(glm::vec3(1.5f, 0.0f, 0.0f));
-
-	scene->add(shRotated); scene->add(reProjected);
+	scene->add(light);
 
 	return 1;
 }
 
+// Perform rendering and updates here.
 void display()
 {
 	deTime = glutGet(GLUT_ELAPSED_TIME) - eTime;
 	eTime = glutGet(GLUT_ELAPSED_TIME);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	scene->update(deTime);
+	glm::mat4 rotation(1.0f);
+	rotation = glm::rotate(glm::mat4(1.0), phi, glm::vec3(1.0, 0.0, 0.0));
+	rotation = glm::rotate(rotation, theta, glm::vec3(0.0, 1.0, 0.0));
+	light->rotateCoeffts(rotation);
 	scene->render();
 	glutSwapBuffers();
 	glutPostRedisplay();
@@ -133,86 +152,20 @@ void keyboard(unsigned char key, int x, int y)
     switch (key)
     {
 	case 't':
-		theta += 3.6f;
-		rotate();
+		theta += 1.6f;
 		break;
 	case 'g':
-		theta -= 3.6f;
-		rotate();
+		theta -= 1.6f;
 		break;
 	case 'f':
-		phi -= 3.6f;
-		rotate();
+		phi -= 1.6f;
 		break;
 	case 'h':
-		phi += 3.6f;
-		rotate();
+		phi += 1.6f;
 		break;
-	case 'p':
-		printInfo();
-		rotate();
-		break;
+
     case 27:
         exit(0);
         return;
     }
-}
-
-void printInfo()
-{
-	std::cout << std::fixed << std::setprecision(2) << std::setw(5);
-	std::cout << "Projection of rotation:\n";
-	for(auto i = proj.begin(); i != proj.end(); ++i)
-		std::cout << i->x << " ";
-	std::cout << "\n";
-	std::cout << "SH rotated projection:\n";
-	for(auto i = rotProj.begin(); i != rotProj.end(); ++i)
-		std::cout << i->x << " ";
-	std::cout << "\n";
-	std::cout << "Rotation Matrix:\n";
-	for(int i = 0; i < 3; ++i)
-	{
-		for(int j = 0; j < 3; ++j)
-			std::cout << rotation[j][i] << " ";
-		std::cout << "\n";
-	}
-	std::cout << "SH Rotation Matrix:\n";
-	shRotation.print();
-}
-
-void rotate()
-{
-	rotation = glm::mat4(1.0f);
-	rotation = glm::rotate(glm::mat4(1.0), phi, glm::vec3(1.0, 0.0, 0.0));
-	rotation = glm::rotate(rotation, theta, glm::vec3(0.0, 1.0, 0.0));
-
-	reProj = SH::shProject(20, GC::nSHBands, 
-	[] (float theta, float phi) -> glm::vec3 
-	{
-		glm::vec3 dir
-			(
-			sin(theta) * cos(phi),
-			sin(theta) * sin(phi),
-			cos(theta)
-			);
-		dir = glm::mat3(rotation) * dir;
-		theta = acos(dir.z);
-		phi = atan2(dir.y, dir.x);
-		return glm::vec3(pulse(theta, phi, glm::vec3(1.0f, 0.0f, 0.0f), 4.0f, 1.0f));
-	}
-	);
-
-	shRotation = SHMat(rotation, GC::nSHBands);
-
-	rotProj = shRotation * proj;
-
-	reProjected->replot(
-		[] (float theta, float phi) -> 
-		float {return SH::evaluate(reProj, theta, phi).x;}, 40);
-
-	shRotated->replot(		
-		[] (float theta, float phi) -> 
-		float {return SH::evaluate(rotProj, theta, phi).x;}, 40);
-
-	display();
 }
