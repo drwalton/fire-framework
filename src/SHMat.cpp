@@ -79,7 +79,7 @@ void SHMat::init(const glm::mat3& rotation, int nBands)
 	blocks.reserve(nBands);
 
 	blocks.push_back(Matrix<float>(1, 1.0f));
-	blocks.push_back(R_o);
+	blocks.push_back(R);
 
 	for(int l = 2; l < nBands; ++l)
 	{
