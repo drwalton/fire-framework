@@ -65,7 +65,7 @@ void SHMat::init(const glm::mat3& rotation, int nBands)
 {
 	Matrix<float> R_o(rotation);
 	/* Rearrange coeffts of R */
-	Matrix<float> R((unsigned)3,(unsigned)3);
+	Matrix<float> R(3,3);
 	R(0,0) = R_o(1,1);
 	R(0,1) = R_o(1,2);
 	R(0,2) = R_o(1,0);
@@ -76,6 +76,20 @@ void SHMat::init(const glm::mat3& rotation, int nBands)
 	R(2,1) = R_o(0,2);
 	R(2,2) = R_o(0,0);
 
+	for(int i = 0; i < 3; ++i)
+	{
+		for(int j = 0; j < 3; ++j)
+			std::cout << R(i, j) << " ";
+		std::cout << "\n";
+	}
+
+	for(int i = 0; i < 3; ++i)
+	{
+		for(int j = 0; j < 3; ++j)
+			std::cout << R_o(i, j) << " ";
+		std::cout << "\n";
+	}
+
 	blocks.reserve(nBands);
 
 	blocks.push_back(Matrix<float>(1, 1.0f));
@@ -83,7 +97,7 @@ void SHMat::init(const glm::mat3& rotation, int nBands)
 
 	for(int l = 2; l < nBands; ++l)
 	{
-		Matrix<float> mat((unsigned)2*l + 1, (unsigned)2*l + 1);
+		Matrix<float> mat(2*l + 1, 2*l + 1);
 
 		for(int m = -l; m <= l; ++m)
 			for(int n = -l; n <= l; ++n)
@@ -173,11 +187,11 @@ float SHMat::V(int l, int m, int n, const Matrix<float>& R)
 	if(m == 0)
 		return P(1, l, 1, n, R) * P(-1, l, -1, n, R);
 	else if(m > 0)
-		return P(1, l, m-1, n, R) * 
-			sqrt(1.0f + del(m,1)) - P(-1, l, -m+1, n, R) * (1.0f - del(m,1));
+		return (P(1, l, m-1, n, R) * sqrt(1.0f + del(m,1))) - 
+			(P(-1, l, (-m)+1, n, R) * (1.0f - del(m,1)));
 	else //m < 0
 		return P(1, l, m+1, n, R) * (1.0f + del(m,-1)) + 
-			P(-1, l, -m-1, n, R) * sqrt(1.0f - del(m,-1)); 
+			P(-1, l, (-m)-1, n, R) * sqrt(1.0f - del(m,-1)); 
 }
 
 float SHMat::W(int l, int m, int n, const Matrix<float>& R)
