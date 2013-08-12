@@ -76,22 +76,6 @@ void SHMat::init(const glm::mat3& rotation, int nBands)
 	R(2,1) = R_o(0,2);
 	R(2,2) = R_o(0,0);
 
-	for(int i = 0; i < 3; ++i)
-	{
-		for(int j = 0; j < 3; ++j)
-			std::cout << R_o(i, j) << " ";
-		std::cout << "\n";
-	}
-	std::cout << "\n";
-	for(int i = 0; i < 3; ++i)
-	{
-		for(int j = 0; j < 3; ++j)
-			std::cout << R(i, j) << " ";
-		std::cout << "\n";
-	}
-
-
-
 	blocks.reserve(nBands);
 
 	blocks.push_back(Matrix<float>(1, 1.0f));
@@ -121,9 +105,9 @@ float SHMat::M(int l, int m, int n, const Matrix<float>& R)
 	float _v = v(l,m,n);
 	float _w = w(l,m,n);
 
-	if(_u) _u *= U(l,m,n,R);
-	if(_v) _v *= V(l,m,n,R);
-	if(_w) _w *= W(l,m,n,R);
+	if(_u > EPS || _u < -EPS) _u *= U(l,m,n,R);
+	if(_v > EPS || _v < -EPS) _v *= V(l,m,n,R);
+	if(_w > EPS || _w < -EPS) _w *= W(l,m,n,R);
 
 	return _u + _v + _w;
 }
@@ -157,11 +141,11 @@ float SHMat::v(int l, int m, int n)
 	float den;
 
 	if(n == l || n == -l)
-		den = static_cast<float>((2 * l) * (2*l - 1));
+		den = static_cast<float>((2*l) * (2*l - 1));
 	else
 		den = static_cast<float>((l + n) * (l - n));
 
-	return 0.5f * sqrt(num / den) * (1.0f - 2*del(m,0));
+	return 0.5f * sqrt(num / den) * (1.0f - 2.0f*del(m,0));
 }
 
 float SHMat::w(int l, int m, int n)
@@ -172,7 +156,7 @@ float SHMat::w(int l, int m, int n)
 	float den;
 
 	if(n == l || n == -l)
-		den = static_cast<float>((2 * l) * (2*l - 1));
+		den = static_cast<float>((2*l) * (2*l - 1));
 	else
 		den = static_cast<float>((l + n) * (l - n));
 
@@ -192,15 +176,15 @@ float SHMat::V(int l, int m, int n, const Matrix<float>& R)
 		return (P(1, l, m-1, n, R) * sqrt(1.0f + del(m,1))) - 
 			(P(-1, l, (-m)+1, n, R) * (1.0f - del(m,1)));
 	else //m < 0
-		return P(1, l, m+1, n, R) * (1.0f + del(m,-1)) + 
-			P(-1, l, (-m)-1, n, R) * sqrt(1.0f - del(m,-1)); 
+		return P(1, l, m+1, n, R) * (1.0f - del(m,-1)) + 
+			P(-1, l, (-m)-1, n, R) * sqrt(1.0f + del(m,-1)); 
 }
 
 float SHMat::W(int l, int m, int n, const Matrix<float>& R)
 {
 	/* Shouldn't be called with m == 0 */
 	if(m == 0)
-		return 0.0f;
+		throw(new MatDimException);
 	else if(m > 0)
 		return P(1, l, m+1, n, R) + P(-1, l, -m-1, n, R);
 	else //m < 0

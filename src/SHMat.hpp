@@ -2,6 +2,7 @@
 #define SHMAT_HPP
 
 #include "Matrix.hpp"
+#include "GC.hpp"
 
 /* SHMat
  * Stores SH rotation (block diagonal sparse) matrices.

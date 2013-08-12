@@ -34,9 +34,10 @@ float phi = 0.0f;
 
 Scene* scene;
 SHLight* light;
-SpherePlot* worldRotated;
+SpherePlot* reProjected;
 SpherePlot* shRotated;
 std::vector<glm::vec3> proj;
+std::vector<glm::vec3> reProj;
 std::vector<glm::vec3> rotProj;
 glm::mat4 rotation;
 SHMat shRotation(GC::nSHBands);
@@ -85,20 +86,22 @@ int init()
 	}
 	);
 
-	worldRotated = new SpherePlot(
+	reProj = proj; rotProj = proj;
+
+	reProjected = new SpherePlot(
 		[] (float theta, float phi) -> 
-		float {return SH::evaluate(proj, theta, phi).x;},
-		50, plotShader);
+		float {return SH::evaluate(reProj, theta, phi).x;},
+		40, plotShader);
 
 	shRotated = new SpherePlot(
 		[] (float theta, float phi) -> 
-		float {return SH::evaluate(proj, theta, phi).x;},
-		50, plotShader);
+		float {return SH::evaluate(rotProj, theta, phi).x;},
+		40, plotShader);
 
-	worldRotated->translate(glm::vec3(-1.5f, 0.0f, 0.0f));
+	reProjected->translate(glm::vec3(-1.5f, 0.0f, 0.0f));
 	shRotated->translate(glm::vec3(1.5f, 0.0f, 0.0f));
 
-	scene->add(shRotated); scene->add(worldRotated);
+	scene->add(shRotated); scene->add(reProjected);
 
 	return 1;
 }
@@ -130,19 +133,19 @@ void keyboard(unsigned char key, int x, int y)
     switch (key)
     {
 	case 't':
-		theta += 1.6f;
+		theta += 3.6f;
 		rotate();
 		break;
 	case 'g':
-		theta -= 1.6f;
+		theta -= 3.6f;
 		rotate();
 		break;
 	case 'f':
-		phi -= 1.6f;
+		phi -= 3.6f;
 		rotate();
 		break;
 	case 'h':
-		phi += 1.6f;
+		phi += 3.6f;
 		rotate();
 		break;
 	case 'p':
@@ -158,11 +161,11 @@ void keyboard(unsigned char key, int x, int y)
 void printInfo()
 {
 	std::cout << std::fixed << std::setprecision(2) << std::setw(5);
-	std::cout << "Original Projection:\n";
+	std::cout << "Projection of rotation:\n";
 	for(auto i = proj.begin(); i != proj.end(); ++i)
 		std::cout << i->x << " ";
 	std::cout << "\n";
-	std::cout << "Rotated projection:\n";
+	std::cout << "SH rotated projection:\n";
 	for(auto i = rotProj.begin(); i != rotProj.end(); ++i)
 		std::cout << i->x << " ";
 	std::cout << "\n";
@@ -183,14 +186,32 @@ void rotate()
 	rotation = glm::rotate(glm::mat4(1.0), phi, glm::vec3(1.0, 0.0, 0.0));
 	rotation = glm::rotate(rotation, theta, glm::vec3(0.0, 1.0, 0.0));
 
-	worldRotated->setModelToWorld(rotation);
-	worldRotated->translate(glm::vec3(-1.5f, 0.0f, 0.0f));
+	reProj = SH::shProject(20, GC::nSHBands, 
+	[] (float theta, float phi) -> glm::vec3 
+	{
+		glm::vec3 dir
+			(
+			sin(theta) * cos(phi),
+			sin(theta) * sin(phi),
+			cos(theta)
+			);
+		dir = glm::mat3(rotation) * dir;
+		theta = acos(dir.z);
+		phi = atan2(dir.y, dir.x);
+		return glm::vec3(pulse(theta, phi, glm::vec3(1.0f, 0.0f, 0.0f), 4.0f, 1.0f));
+	}
+	);
 
 	shRotation = SHMat(rotation, GC::nSHBands);
 
 	rotProj = shRotation * proj;
 
+	reProjected->replot(
+		[] (float theta, float phi) -> 
+		float {return SH::evaluate(reProj, theta, phi).x;}, 40);
+
 	shRotated->replot(		
 		[] (float theta, float phi) -> 
 		float {return SH::evaluate(rotProj, theta, phi).x;}, 40);
+	display();
 }
