@@ -122,7 +122,6 @@ void display()
 	eTime = glutGet(GLUT_ELAPSED_TIME);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	scene->update(deTime);
-	glm::mat4 rotation(1.0f);
 	scene->render();
 	glutSwapBuffers();
 	glutPostRedisplay();

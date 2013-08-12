@@ -11,8 +11,6 @@
 #include <glm.hpp>
 #include <GL/glut.h>
 
-#include <iomanip>
-
 /* This file will contain the construction and rendering of the scene
  * I am working on right now. 
  */
@@ -22,7 +20,6 @@ void display();
 void reshape (int, int);
 void keyboard(unsigned char, int, int);
 void printInfo();
-void rotate();
 
 void addSHArray(Scene* scene, glm::vec3 pos, int nBands, float scale, float spacing);
 
@@ -109,6 +106,22 @@ void display()
 	eTime = glutGet(GLUT_ELAPSED_TIME);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	scene->update(deTime);
+
+	rotation = glm::mat4(1.0f);
+	rotation = glm::rotate(glm::mat4(1.0), phi, glm::vec3(1.0, 0.0, 0.0));
+	rotation = glm::rotate(rotation, theta, glm::vec3(0.0, 1.0, 0.0));
+
+	worldRotated->setModelToWorld(rotation);
+	worldRotated->translate(glm::vec3(-1.5f, 0.0f, 0.0f));
+
+	shRotation = SHMat(rotation, GC::nSHBands);
+
+	rotProj = shRotation * proj;
+
+	shRotated->replot(		
+		[] (float theta, float phi) -> 
+		float {return SH::evaluate(rotProj, theta, phi).x;}, 40);
+
 	scene->render();
 	glutSwapBuffers();
 	glutPostRedisplay();
@@ -131,23 +144,18 @@ void keyboard(unsigned char key, int x, int y)
     {
 	case 't':
 		theta += 1.6f;
-		rotate();
 		break;
 	case 'g':
 		theta -= 1.6f;
-		rotate();
 		break;
 	case 'f':
 		phi -= 1.6f;
-		rotate();
 		break;
 	case 'h':
 		phi += 1.6f;
-		rotate();
 		break;
 	case 'p':
 		printInfo();
-		rotate();
 		break;
     case 27:
         exit(0);
@@ -157,7 +165,6 @@ void keyboard(unsigned char key, int x, int y)
 
 void printInfo()
 {
-	std::cout << std::fixed << std::setprecision(2) << std::setw(5);
 	std::cout << "Original Projection:\n";
 	for(auto i = proj.begin(); i != proj.end(); ++i)
 		std::cout << i->x << " ";
@@ -175,22 +182,4 @@ void printInfo()
 	}
 	std::cout << "SH Rotation Matrix:\n";
 	shRotation.print();
-}
-
-void rotate()
-{
-	rotation = glm::mat4(1.0f);
-	rotation = glm::rotate(glm::mat4(1.0), phi, glm::vec3(1.0, 0.0, 0.0));
-	rotation = glm::rotate(rotation, theta, glm::vec3(0.0, 1.0, 0.0));
-
-	worldRotated->setModelToWorld(rotation);
-	worldRotated->translate(glm::vec3(-1.5f, 0.0f, 0.0f));
-
-	shRotation = SHMat(rotation, GC::nSHBands);
-
-	rotProj = shRotation * proj;
-
-	shRotated->replot(		
-		[] (float theta, float phi) -> 
-		float {return SH::evaluate(rotProj, theta, phi).x;}, 40);
 }

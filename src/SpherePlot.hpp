@@ -82,8 +82,8 @@ std::vector<SphereSample> SpherePlot::takeSamples(
 {
 	std::vector<SphereSample> samples;
 
-	double sqrWidth = 1 / (double) sqrtNSamples;
-	double u, v, theta, phi;	 
+	float sqrWidth = 1 / (float) sqrtNSamples;
+	float u, v, theta, phi;	 
 
 	for(unsigned i = 0; i < sqrtNSamples + 1; ++i)
 		for(unsigned j = 0; j < sqrtNSamples; ++j)
@@ -91,7 +91,7 @@ std::vector<SphereSample> SpherePlot::takeSamples(
 			u = (i * sqrWidth);
 			v = (j * sqrWidth);
 			theta = acos((2 * u) - 1);
-			phi = 2 * PI_d * v;
+			phi = 2 * PI * v;
 
 			SphereSample s;
 			s.theta = theta; s.phi = phi;

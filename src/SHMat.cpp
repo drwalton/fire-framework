@@ -79,7 +79,7 @@ void SHMat::init(const glm::mat3& rotation, int nBands)
 	blocks.reserve(nBands);
 
 	blocks.push_back(Matrix<float>(1, 1.0f));
-	blocks.push_back(R);
+	blocks.push_back(R_o);
 
 	for(int l = 2; l < nBands; ++l)
 	{
@@ -95,7 +95,11 @@ void SHMat::init(const glm::mat3& rotation, int nBands)
 
 float SHMat::M(int l, int m, int n, const Matrix<float>& R)
 {
+	if(m > l || n > l || -m > l || -n > l) throw(new MatDimException);
+
 	if(l == 0) return 1.0f;
+
+	if(l == 1) return R.i(m,n);
 
 	float _u = u(l,m,n);
 	float _v = v(l,m,n);
@@ -120,34 +124,43 @@ float SHMat::P(int i, int l, int m, int n, const Matrix<float>& R)
 
 float SHMat::u(int l, int m, int n)
 {
+	float num = static_cast<float>((l + m) * (l - m));
+	float den;
 	if(n == l || n == -l)
-		return sqrt((float) ((l + m) * (l - m)) / ((2*l) * (2*l - 1)));
+		den = static_cast<float>((2*l) * (2*l - 1));
 	else 
-		return sqrt((float)( ((l + m) * (l - m)) / ((l + n) * (l - n))));
+		den = static_cast<float>((l + n) * (l - n));
+	return sqrt(num / den);
 }
 
 float SHMat::v(int l, int m, int n)
 {
-	float num = (1 + del(m,0)) * (l + abs(m) - 1) * (l + abs(m)), den;
+	float num = (1.0f + del(m,0)) * 
+		(static_cast<float>(l) + abs(m) - 1.0f) * 
+		(static_cast<float>(l) + abs(m));
+	float den;
 
 	if(n == l || n == -l)
-		den = (float) (2 * l) * (2*l - 1);
+		den = static_cast<float>((2 * l) * (2*l - 1));
 	else
-		den = (float) (l + n) * (l - n);
+		den = static_cast<float>((l + n) * (l - n));
 
-	return (float) 0.5f * sqrt(num / den) * (1 - 2*del(m,0));
+	return 0.5f * sqrt(num / den) * (1.0f - 2*del(m,0));
 }
 
 float SHMat::w(int l, int m, int n)
 {
-	float num = (l - abs(m) - 1) * (l - abs(m)), den;
+	float num = static_cast<float>(
+		(static_cast<float>(l) - abs(m) - 1.0f) * 
+		(static_cast<float>(l) - abs(m)));
+	float den;
 
 	if(n == l || n == -l)
-		den = (float) (2 * l) * (2*l - 1);
+		den = static_cast<float>((2 * l) * (2*l - 1));
 	else
-		den = (float) (l + n) * (l - n);
+		den = static_cast<float>((l + n) * (l - n));
 
-	return (float) -0.5 * sqrt(num / den) * (1 - del(m,0));
+	return -0.5f * sqrt(num / den) * (1.0f - del(m,0));
 }
 
 float SHMat::U(int l, int m, int n, const Matrix<float>& R)
@@ -161,17 +174,17 @@ float SHMat::V(int l, int m, int n, const Matrix<float>& R)
 		return P(1, l, 1, n, R) * P(-1, l, -1, n, R);
 	else if(m > 0)
 		return P(1, l, m-1, n, R) * 
-			sqrt(1 + del(m,1)) - P(-1, l, -m+1, n, R) * (1 - del(m,1));
+			sqrt(1.0f + del(m,1)) - P(-1, l, -m+1, n, R) * (1.0f - del(m,1));
 	else //m < 0
-		return P(1, l, m+1, n, R) * (1 + del(m,-1)) + 
-			P(-1, 1, -m-1, n, R) * sqrt(1 - del(m,-1)); 
+		return P(1, l, m+1, n, R) * (1.0f + del(m,-1)) + 
+			P(-1, l, -m-1, n, R) * sqrt(1.0f - del(m,-1)); 
 }
 
 float SHMat::W(int l, int m, int n, const Matrix<float>& R)
 {
 	/* Shouldn't be called with m == 0 */
 	if(m == 0)
-		return 0;
+		return 0.0f;
 	else if(m > 0)
 		return P(1, l, m+1, n, R) + P(-1, l, -m-1, n, R);
 	else //m < 0

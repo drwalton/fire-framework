@@ -24,8 +24,10 @@ private:
 
 	void init(const glm::mat3& rotation, int nBands);
 
-	static inline float del(int a, int b) { return a==b ? 1.0f : 0.0f; }
-	static inline float abs(int a) { return a >= 0 ? (float) a : (float) -a; }
+	static inline float del(int a, int b) 
+		{ return a==b ? 1.0f : 0.0f; };
+	static inline float abs(int a) 
+		{ return a >= 0 ? static_cast<float>(a) : static_cast<float>(-a); };
 
 	static float M(int l, int m, int n, const Matrix<float>& R);
 	static float P(int i, int l, int m, int n, const Matrix<float>& R);
