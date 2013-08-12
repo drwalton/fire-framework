@@ -25,7 +25,8 @@ public:
 
 	static void bake(
 		PRTMode mode,
-		const std::string& meshFilename,
+		const std::string& coarseMeshFilename,
+		const std::string& fineMeshFilename,
 		const std::string& diffTex,
 		int sqrtNSamples,
 		int nBands,
@@ -49,7 +50,8 @@ private:
 	 	const std::string& filename);
 
 	static void interreflect(
-		const MeshData& data, const std::string& diffTex,
+		const MeshData& coarseData, const MeshData& fineData,
+		const std::string& diffTex,
 		int nBands, int sqrtNSamples, int nBounces,
 		std::vector<std::vector<glm::vec3>>& transfer);
 

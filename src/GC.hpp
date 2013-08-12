@@ -12,7 +12,7 @@ namespace GC
 	const int maxMaterials = 4;
 
 	/* SH Lighting */
-	const int nSHBands = 3;
+	const int nSHBands = 5;
 	const int nSHCoeffts = nSHBands * nSHBands;
 	const int sqrtSHSamples = 10;
 	const int nSHSamples = sqrtSHSamples * sqrtSHSamples;

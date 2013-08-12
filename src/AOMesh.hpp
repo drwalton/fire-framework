@@ -21,7 +21,8 @@ public:
 		LightShader* shader);
 
 	static void bake(
-		const std::string& meshFilename,
+		const std::string& coarseMeshFilename,
+		const std::string& fineMeshFilename,
 		const std::string& ambTex,
 		const std::string& diffTex,
 		const std::string& specTex,

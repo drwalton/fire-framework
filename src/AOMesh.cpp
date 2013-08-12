@@ -78,7 +78,8 @@ void AOMesh::render()
 }
 
 void AOMesh::bake(
-	const std::string& meshFilename,
+	const std::string& coarseMeshFilename,
+	const std::string& fineMeshFilename,
 	const std::string& ambTex,
 	const std::string& diffTex,
 	const std::string& specTex,
@@ -86,20 +87,83 @@ void AOMesh::bake(
 	int sqrtNSamples,
 	TexCoordGenMode mode)
 {
-	MeshData data = Mesh::loadSceneFile(meshFilename, mode);
-	std::vector<AOMeshVertex> mesh(data.v.size());
+	MeshData coarseData = Mesh::loadSceneFile(coarseMeshFilename, mode);
+	MeshData fineData = Mesh::loadSceneFile(fineMeshFilename, mode);
+	std::vector<AOMeshVertex> mesh(coarseData.v.size());
 
 	int tid;
 	int completedVerts = 0;
 	int currPercent = 0;
-	int nVerts = static_cast<int>(data.v.size());
+	int nVerts = static_cast<int>(fineData.v.size());
+
+	std::cout
+		<< "> Calculating bent normals..." << std::endl;
+
+	#pragma omp parallel for
+	for(int i = 0; i < static_cast<int>(coarseData.v.size()); ++i)
+	{
+		mesh[i].v = coarseData.v[i];
+		mesh[i].t = coarseData.t[i];
+		mesh[i].n = glm::vec3(0.0f);
+
+		for(int x = 0; x < sqrtNSamples; ++x)
+			for(int y = 0; y < sqrtNSamples; ++y)
+			{
+				float sqrSize = 1.0f / sqrtNSamples;
+				float u = (x * sqrSize);
+				float v = (y * sqrSize);
+				if(GC::jitterSamples)
+				{
+					u += randf(0, sqrSize);
+					v += randf(0, sqrSize);
+				}
+
+				float theta = acos((2 * u) - 1);
+				float phi = (2 * PI * v);
+
+				glm::vec3 dir
+					(
+					sin(theta) * cos(phi),
+					sin(theta) * sin(phi),
+					cos(theta)
+					); 
+
+				/* Continue if dir is not in hemisphere around norm */
+				if(glm::dot(dir, coarseData.n[i]) < 0.0f) continue;
+
+				/* Check for intersection with coarse mesh */
+				bool intersect = false;
+
+				for(unsigned t = 0; t < coarseData.e.size(); t += 3)
+				{
+					// Find triangle vertices
+					glm::vec3 ta = glm::vec3(coarseData.v[coarseData.e[t]]);
+					glm::vec3 tb = glm::vec3(coarseData.v[coarseData.e[t+1]]);
+					glm::vec3 tc = glm::vec3(coarseData.v[coarseData.e[t+2]]);
+
+					if(triangleRayIntersect(ta, tb, tc, glm::vec3(fineData.v[i]), dir))
+					{
+						intersect = true;
+						break; // No need to check other triangles.
+					}
+				}
+
+				if(!intersect)
+					mesh[i].n += dir;
+			} // end for x, y
+
+		/* Normalize if non-zero (avoid divide by zero!) */
+		if(!(abs(mesh[i].n.x) < EPS && 
+				abs(mesh[i].n.x) < EPS && 
+				abs(mesh[i].n.z) < EPS))
+				mesh[i].n = glm::normalize(mesh[i].n);
+	}
 
 	std::cout 
-		<< "Calculating occlusion (may take some time) ..." << std::endl;
+		<< "> Calculating occlusion (may take some time) ..." << std::endl;
 
-	std::cout << "> Calculating per-vertex occlusion ..." << std::endl;
-
-	std::vector<float> vertOccl(data.v.size());
+	std::vector<float> fineOccl(fineData.v.size());
+	std::vector<glm::vec2> fineTex(fineData.t.size());
 
 	#pragma omp parallel private(tid)
 	{
@@ -107,12 +171,10 @@ void AOMesh::bake(
 
 		//Calculate per vert occl and bent norms
 		#pragma omp for
-		for(int i = 0; i < static_cast<int>(data.v.size()); ++i)
+		for(int i = 0; i < static_cast<int>(fineData.v.size()); ++i)
 		{
-			vertOccl[i] = 0.0f;
-			mesh[i].n = glm::vec3(0.0f);
-			mesh[i].v = data.v[i];
-			mesh[i].t = data.t[i];
+			fineOccl[i] = 0.0f;
+			fineTex[i] = fineData.t[i];
 
 			float sqrSize = 1.0f / sqrtNSamples;
 
@@ -121,6 +183,7 @@ void AOMesh::bake(
 			for(int x = 0; x < sqrtNSamples; ++x)
 				for(int y = 0; y < sqrtNSamples; ++y)
 				{
+					float sqrSize = 1.0f / sqrtNSamples;
 					float u = (x * sqrSize);
 					float v = (y * sqrSize);
 					if(GC::jitterSamples)
@@ -140,19 +203,19 @@ void AOMesh::bake(
 						); 
 
 					/* Continue if dir is not in hemisphere around norm */
-					if(glm::dot(dir, data.n[i]) < 0.0f) continue;
+					if(glm::dot(dir, fineData.n[i]) < 0.0f) continue;
 
-					/* Check for intersection */
+					/* Check for intersection with coarse mesh */
 					bool intersect = false;
 
-					for(unsigned t = 0; t < data.e.size(); t += 3)
+					for(unsigned t = 0; t < coarseData.e.size(); t += 3)
 					{
 						// Find triangle vertices
-						glm::vec3 ta = glm::vec3(data.v[data.e[t]]);
-						glm::vec3 tb = glm::vec3(data.v[data.e[t+1]]);
-						glm::vec3 tc = glm::vec3(data.v[data.e[t+2]]);
+						glm::vec3 ta = glm::vec3(coarseData.v[coarseData.e[t]]);
+						glm::vec3 tb = glm::vec3(coarseData.v[coarseData.e[t+1]]);
+						glm::vec3 tc = glm::vec3(coarseData.v[coarseData.e[t+2]]);
 
-						if(triangleRayIntersect(ta, tb, tc, glm::vec3(data.v[i]), dir))
+						if(triangleRayIntersect(ta, tb, tc, glm::vec3(fineData.v[i]), dir))
 						{
 							intersect = true;
 							break; // No need to check other triangles.
@@ -161,18 +224,11 @@ void AOMesh::bake(
 
 					if(!intersect)
 					{
-						mesh[i].n += dir;
-						vertOccl[i] += 1.0f;
+						fineOccl[i] += 1.0f;
 					}
-				}
+				} // end for x, y
 
-			/* Normalize bent norm and occlusion coefft */
-			if(!(abs(mesh[i].n.x) < EPS && 
-					abs(mesh[i].n.x) < EPS && 
-					abs(mesh[i].n.z) < EPS))
-					mesh[i].n = glm::normalize(mesh[i].n);
-
-			vertOccl[i] /= (0.5f * sqrtNSamples * sqrtNSamples);
+			fineOccl[i] /= (0.5f * sqrtNSamples * sqrtNSamples);
 
 			completedVerts++;
 			if(tid == 0)
@@ -190,12 +246,13 @@ void AOMesh::bake(
 	} // end parallel
 	std::cout << " 100% complete" << std::endl;
 
-	AOMesh::renderOcclToImage(vertOccl, ambTex, meshFilename + ".aoamb.bmp", data);
+	AOMesh::renderOcclToImage(fineOccl, ambTex, coarseMeshFilename + ".aoamb.bmp", fineData);
 
-	writePrebakedFile(mesh, data.e,
-		meshFilename + ".aoamb.bmp", diffTex, specTex, specExp,
-		meshFilename + ".ao");
+	writePrebakedFile(mesh, coarseData.e,
+		coarseMeshFilename + ".aoamb.bmp", diffTex, specTex, specExp,
+		coarseMeshFilename + ".ao");
 }
+
 
 void AOMesh::writePrebakedFile(
 		const std::vector<AOMeshVertex>& mesh,

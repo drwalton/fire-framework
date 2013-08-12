@@ -61,7 +61,7 @@ int main(int argc, char** argv)
 // Called by glutInit().
 int init()
 {
-	glClearColor(1.0, 1.0, 1.0, 1.0);
+	glClearColor(0.8, 0.8, 1.0, 1.0);
 
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_DEPTH_TEST);
@@ -94,16 +94,16 @@ int init()
 	//bunny->uniformScale(8.0f);
 	//bunny->translate(glm::vec3(0.0f, -0.6f, 0.0f));
 
-	//AOMesh::bake("rabbitfine.obj", "blank.png", "blank.png", "blank.png", 1.0f, 10);
-	//AOMesh* rabbit = new AOMesh("teapotmk2.obj.ao", lightShader);
+	//AOMesh::bake("stanford.obj", "stanford.obj", "blank.png", "blank.png", "blank.png", 1.0f, 40);
+	//AOMesh* rabbit = new AOMesh("stanford.obj.ao", lightShader);
 	//scene->add(rabbit);
 	//rabbit->translate(glm::vec3(0.0f, -1.0f, 0.0f));
 	//rabbit->uniformScale(1.0f);
 
 	SHShader* shShader = new SHShader(false, "diffPRT");
 
-	//PRTMesh::bake(UNSHADOWED, "teapotmk2.obj", "blank.png", 10, 3);
-	PRTMesh* teapot = new PRTMesh("teapotmk2.obj.prtu3", shShader);
+	//PRTMesh::bake(SHADOWED, "stanford.obj", "stanford.obj", "blank.png", 40, 5);
+	PRTMesh* teapot = new PRTMesh("stanford.obj.prtu5", shShader);
 	scene->add(teapot);
 
 	light = new SHLight(
@@ -127,12 +127,11 @@ void display()
 	eTime = glutGet(GLUT_ELAPSED_TIME);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	scene->update(deTime);
-	glm::mat4 rotation(1.0f);
-	//Look up/down
-	rotation = glm::rotate(glm::mat4(1.0), phi, glm::vec3(1.0, 0.0, 0.0));
-	//Spin around
-	rotation = glm::rotate(rotation, theta, glm::vec3(0.0, 1.0, 0.0));
-	light->rotateCoeffts(rotation);
+	//glm::mat4 rotation(1.0f);
+	//rotation = glm::rotate(glm::mat4(1.0), phi, glm::vec3(1.0, 0.0, 0.0));
+	//rotation = glm::rotate(rotation, theta, glm::vec3(0.0, 1.0, 0.0));
+	//light->rotateCoeffts(rotation);
+	light->rotateCoeffts(glm::lookAt(glm::vec3(0.0, 0.0, 0.0), glm::vec3(scene->camera->getBlock().cameraPos), glm::vec3(0.0, 1.0, 0.0)));
 	scene->render();
 	glutSwapBuffers();
 	glutPostRedisplay();
