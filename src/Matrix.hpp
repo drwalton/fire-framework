@@ -185,7 +185,9 @@ const T& Matrix<T>::i(int i, int j) const
 	/* Even dimensioned matrices have no central entry */
 	if(r % 2 == 0 || c % 2 == 0)
 		throw new MatDimException;
-	return data[i + ((r-1)/2)][j + ((c-1)/2)];
+	int u = i + ((r-1)/2);
+	int v = j + ((c-1)/2);
+	return (*this)(u,v);
 }
 
 template <typename T>
