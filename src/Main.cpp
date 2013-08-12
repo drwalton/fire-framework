@@ -213,5 +213,6 @@ void rotate()
 	shRotated->replot(		
 		[] (float theta, float phi) -> 
 		float {return SH::evaluate(rotProj, theta, phi).x;}, 40);
+
 	display();
 }

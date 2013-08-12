@@ -227,7 +227,7 @@ std::vector<T> Matrix<T>::operator * (const std::vector<T>& v)
 
 	for(int i = 0; i < r; ++i)
 		for(int j = 0; j < c; ++j)
-			ans[j] += data[i][j] * v[j];
+			ans[i] += data[i][j] * v[j];
 
 	return ans;
 }
@@ -241,9 +241,9 @@ std::vector<glm::vec3> Matrix<T>::operator * (const std::vector<glm::vec3>& v)
 	for(int i = 0; i < r; ++i)
 		for(int j = 0; j < c; ++j)
 		{
-			ans[j].x += data[i][j] * v[j].x;
-			ans[j].y += data[i][j] * v[j].y;
-			ans[j].z += data[i][j] * v[j].z;
+			ans[i].x += data[i][j] * v[j].x;
+			ans[i].y += data[i][j] * v[j].y;
+			ans[i].z += data[i][j] * v[j].z;
 		}
 
 	return ans;
@@ -255,9 +255,9 @@ std::vector<T> operator * (const std::vector<T>& v, const Matrix<T>& m)
 	if(v.size() != m.r) throw new MatDimException;
 	std::vector<T> ans(m.c, 0);
 
-	for(int j = 0; j < m.c; ++j)
-		for(int i = 0; i < m.r; ++i)
-			ans[i] += m.data[i][j] * v[i];
+	for(int i = 0; i < m.r; ++i)
+		for(int j = 0; j < m.c; ++j)
+			ans[j] += m.data[i][j] * v[i];
 
 	return ans;
 }
