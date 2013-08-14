@@ -407,3 +407,244 @@ glm::vec4 AdvectParticlesCentroidLights::getParticleCentroid(
 		sum += particles[*i].pos;
 	return sum / (float) clump.size();
 }
+
+AdvectParticlesSHLights::AdvectParticlesSHLights(
+	Renderable* targetObj,
+	int _maxParticles, int _nLights, 
+	ParticleShader* _shader, 
+	Texture* _bbTex, Texture* _decayTex)
+	:AdvectParticles(_maxParticles, _shader, _bbTex, _decayTex),
+	 nLights(_nLights)
+{ makeLights(); }
+
+AdvectParticlesSHLights::AdvectParticlesSHLights(
+	Renderable* targetObj,
+	int _maxParticles,
+	int _nLights, ParticleShader* _shader, 
+	Texture* _bbTex, Texture* _decayTex,
+	int avgLifetime, int varLifetime, 
+	glm::vec4 initAcn, glm::vec4 initVel,
+	int perturbChance, float perturbRadius,
+	float baseRadius, float centerForce,
+	float bbHeight, float bbWidth,
+	bool perturb_on, bool _init_perturb)
+	:AdvectParticles(_maxParticles, 
+	 _shader, _bbTex, _decayTex,
+	 avgLifetime, varLifetime, 
+	 initAcn, initVel,
+	 perturbChance, perturbRadius,
+	 baseRadius, centerForce,
+	 bbHeight, bbWidth,
+	 perturb_on, _init_perturb),
+	 nLights(_nLights)
+{ makeLights(); }
+
+void AdvectParticlesSHLights::makeLights()
+{
+	// Set up vector of lights.
+	for(int i = 0; i < nLights; ++i)
+	{
+		lights.push_back(new SHLight(
+			[] (float theta, float phi) -> glm::vec3 
+			{
+			//float val = 0.2f;
+			float val = pulse(theta, phi, glm::vec3(1.0f, 0.0f, 0.0f), 5.0f, 1.0f);
+
+			return glm::vec3(val, val, val);
+			}
+		);
+	}
+}
+
+void AdvectParticlesSHLights::onAdd()
+{
+	SHLight* p;
+	// Add lights
+	for(auto l = lights.begin(); l != lights.end(); ++l)
+	{
+		p = scene->add(*l);
+		if(p == nullptr) //Light not added correctly (too many lights?).
+		{
+			std::cout << "Warning: Not all particle lights could be added.\n";
+			break;
+		}
+	}
+}
+
+void AdvectParticlesSHLights::onRemove()
+{
+	for(auto l = lights.begin(); l != lights.end(); ++l)
+		scene->remove(*l);
+}
+
+void AdvectParticlesSHLights::update(int dTime)
+{
+	AdvectParticles::update(dTime);
+	updateLights();
+}
+
+AdvectParticlesRandSHLights::AdvectParticlesRandSHLights(
+	Renderable* targetObj,
+	int _maxParticles, int _nLights,
+	int _interval, ParticleShader* _shader, 
+	Texture* _bbTex, Texture* _decayTex)
+	:AdvectParticlesSHLights(
+		targetObj,
+		_maxParticles,
+		_nLights, _shader, 
+		_bbTex, _decayTex),
+	interval(_interval), counter(0), 
+	lightIndices(std::vector<int>(nLights, 0)) 
+{randomizeLights();}
+
+AdvectParticlesRandSHLights::AdvectParticlesRandSHLights(
+	Renderable* targetObj,
+	int _maxParticles, int _nLights,
+	int _interval, ParticleShader* _shader, 
+	Texture* _bbTex, Texture* _decayTex,
+	int avgLifetime, int varLifetime, 
+	glm::vec4 initAcn, glm::vec4 initVel,
+	int perturbChance, float perturbRadius,
+	float baseRadius, float centerForce,
+	float bbHeight, float bbWidth,
+	bool perturb_on, bool _init_perturb)
+	:AdvectParticlesSHLights(
+		targetObj,
+		_maxParticles,
+		_nLights, _shader, 
+		_bbTex, _decayTex,
+		avgLifetime, varLifetime, 
+		initAcn, initVel,
+		perturbChance, perturbRadius,
+		baseRadius, centerForce,
+		bbHeight, bbWidth,
+		perturb_on, _init_perturb),
+	interval(_interval), counter(0), 
+	lightIndices(std::vector<int>(nLights, 0))
+{randomizeLights();}
+
+void AdvectParticlesRandSHLights::updateLights()
+{
+	if(interval == 0)
+		randomizeLights();
+	else if(interval > 0)
+	{
+		counter += glutGet(GLUT_ELAPSED_TIME);
+		if(counter > interval)
+		{
+			randomizeLights();
+			counter = 0;
+		}
+	}
+
+	// Matrix moves from fire model space to target model space.
+	glm::mat4 toTarget = glm::inverse(targetObj->getModelToWorld()) * modelToWorld;
+
+	for(int i = 0; i < nLights; ++i)
+	{
+		//Move particle pos to target model space and invert
+		//  to get vector from particle to target
+		lights[i]->pointAt(- glm::vec3(toTarget * particles[i].pos));
+	}
+}
+
+void AdvectParticlesRandSHLights::randomizeLights()
+{
+	//Move each light to the location of a randomly selected particle.
+	for(auto i = lightIndices.begin(); i != lightIndices.end(); ++i)
+	{
+		int randParticleIndex = randi(0, maxParticles);
+		*i = randParticleIndex;
+	}
+}
+
+AdvectParticlesCentroidSHLights::AdvectParticlesCentroidSHLights(
+	Renderable* targetObj,
+	int _maxParticles,
+	int _nLights, int _clumpSize,
+	int _interval, ParticleShader* _shader, 
+	Texture* _bbTex, Texture* _decayTex)
+	:AdvectParticlesSHLights(
+		targetObj,
+		_maxParticles, 
+		_nLights, _shader, 
+		_bbTex, _decayTex),
+	 interval(_interval), counter(0),
+	 clumpSize(_clumpSize)
+{ init(); }
+
+AdvectParticlesCentroidSHLights::AdvectParticlesCentroidSHLights(
+	Renderable* targetObj,
+	int _maxParticles,
+	int _nLights, int _clumpSize,
+	int _interval, ParticleShader* _shader, 
+	Texture* _bbTex, Texture* _decayTex,
+	int avgLifetime, int varLifetime, 
+	glm::vec4 initAcn, glm::vec4 initVel,
+	int perturbChance, float perturbRadius,
+	float baseRadius, float centerForce,
+	float bbHeight, float bbWidth,
+	bool perturb_on, bool _init_perturb)
+	:AdvectParticlesSHLights(
+		targetObj,
+		_maxParticles,
+		_nLights, _shader, 
+		_bbTex, _decayTex,
+		avgLifetime, varLifetime, 
+		initAcn, initVel,
+		perturbChance, perturbRadius,
+		baseRadius, centerForce,
+		bbHeight, bbWidth,
+		perturb_on, _init_perturb),
+	 interval(_interval), counter(0),
+	 clumpSize(_clumpSize)
+{ init(); }
+
+void AdvectParticlesCentroidSHLights::init()
+{
+	for(int i = 0; i < nLights; ++i)
+	{
+		std::vector<int> clump;
+		for(int j = 0; j < clumpSize; ++j)
+			clump.push_back(randi(0, maxParticles));
+		clumps.push_back(clump);
+	}
+}
+
+void AdvectParticlesCentroidSHLights::randomizeClumps()
+{
+	for(auto i = clumps.begin(); i != clumps.end(); ++i)
+		for(auto j = i->begin(); j != i->end(); ++j)
+			(*j) = randi(0, maxParticles);
+}
+
+void AdvectParticlesCentroidSHLights::updateLights()
+{
+	if(interval == 0)
+		randomizeClumps();
+	else if(interval > 0)
+	{
+		counter += glutGet(GLUT_ELAPSED_TIME);
+		if(counter > interval)
+		{
+			randomizeClumps();
+			counter = 0;
+		}
+	}
+
+	glm::mat4 toTarget = glm::inverse(targetObj->getModelToWorld()) * modelToWorld;
+
+	for(int i = 0; i < nLights; ++i)
+	{
+		lights[i]->pointAt(- glm::vec3(toTarget * getParticleCentroid(clumps[i])));
+	}
+}
+
+glm::vec4 AdvectParticlesCentroidSHLights::getParticleCentroid(
+	const std::vector<int>& clump)
+{
+	glm::vec4 sum;
+	for(auto i = clump.begin(); i != clump.end(); ++i)
+		sum += particles[*i].pos;
+	return sum / (float) clump.size();
+}

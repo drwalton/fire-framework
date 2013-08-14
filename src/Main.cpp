@@ -94,17 +94,17 @@ int init()
 	//bunny->uniformScale(8.0f);
 	//bunny->translate(glm::vec3(0.0f, -0.6f, 0.0f));
 
-	//AOMesh::bake("stanford.obj", "stanford.obj", "blank.png", "blank.png", "blank.png", 1.0f, 40);
-	//AOMesh* rabbit = new AOMesh("stanford.obj.ao", lightShader);
+	//AOMesh::bake("torii.obj", "torii.obj", "greenWhite.png", "greenWhite.png", "blank.png", 1.0f, 40);
+	//AOMesh* rabbit = new AOMesh("torii.obj.ao", lightShader);
 	//scene->add(rabbit);
 	//rabbit->translate(glm::vec3(0.0f, -1.0f, 0.0f));
 	//rabbit->uniformScale(1.0f);
 
 	SHShader* shShader = new SHShader(false, "diffPRT");
 
-	//PRTMesh::bake(SHADOWED, "stanford.obj", "stanford.obj", "blank.png", 40, 5);
-	PRTMesh* teapot = new PRTMesh("stanford.obj.prtu5", shShader);
-	scene->add(teapot);
+	PRTMesh::bake(SHADOWED, "torii.obj", "torii.obj", "greenWhite.png", 40, 5);
+	//PRTMesh* teapot = new PRTMesh("stanford.obj.prts5", shShader);
+	//scene->add(teapot);
 
 	light = new SHLight(
 		[] (float theta, float phi) -> glm::vec3 
@@ -112,7 +112,18 @@ int init()
 			//float val = 0.2f;
 			float val = pulse(theta, phi, glm::vec3(1.0f, 0.0f, 0.0f), 4.0f, 3.0f);
 
-			return glm::vec3(val, val, val);
+			return glm::vec3(val, 0.0, 0.0f);
+		}
+	);
+	scene->add(light);
+
+	light = new SHLight(
+		[] (float theta, float phi) -> glm::vec3 
+		{
+			//float val = 0.2f;
+			float val = pulse(theta, phi, glm::vec3(0.0f, 1.0f, 0.0f), 4.0f, 3.0f);
+
+			return glm::vec3(0.0f, 0.0f, val);
 		}
 	);
 	scene->add(light);

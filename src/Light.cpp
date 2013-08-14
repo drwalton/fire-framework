@@ -41,3 +41,10 @@ void SHLight::rotateCoeffts(glm::mat4 _rotation)
 	rotCoeffts = rotation * coeffts;
 	manager->update(this);
 }
+
+void SHLight::pointAt(glm::vec3 dir)
+{
+	rotation = glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), dir, glm::vec3(0.0f, 1.0f, 0.0f));
+	rotCoeffts = rotation * coeffts;
+	manager->update(this);
+}

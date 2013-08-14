@@ -200,4 +200,104 @@ private:
 	glm::vec4 getParticleCentroid(const std::vector<int>& clump);
 };
 
+/* AdvectParticlesSHLights
+ * ADT for a derived class of AdvectParticles owning a number of SH light
+ * sources
+ */
+class AdvectParticlesSHLights : public AdvectParticles
+{
+public:
+	AdvectParticlesSHLights(
+		Renderable* targetObj,
+		int _maxParticles,
+		int _nLights, ParticleShader* _shader, 
+		Texture* _bbTex, Texture* _decayTex);
+	AdvectParticlesSHLights(
+		Renderable* targetObj,
+		int _maxParticles, 
+		int nLights, ParticleShader* _shader, 
+		Texture* _bbTex, Texture* _decayTex,
+		int avgLifetime, int varLifetime, 
+		glm::vec4 initAcn, glm::vec4 initVel,
+		int perturbChance, float perturbRadius,
+		float baseRadius, float centerForce,
+		float bbHeight, float bbWidth,
+		bool perturb_on, bool _init_perturb);
+	const int nLights;
+	std::vector<SHLight*> lights;
+	void onAdd();
+	void onRemove();
+	void update(int dTime);
+protected:
+	virtual void updateLights() = 0;
+	void makeLights();
+	Renderable* targetObj;
+};
+
+/* AdvectParticlesRandSHLights
+ * Copy of AdvectParticlesRandLights designed to manipulate SH lights.
+ */
+class AdvectParticlesRandSHLights : public AdvectParticlesLights
+{
+public:
+	AdvectParticlesRandSHLights(
+		Renderable* targetObj,
+		int _maxParticles, int _nLights,
+		int _interval, ParticleShader* _shader, 
+		Texture* _bbTex, Texture* _decayTex);
+	AdvectParticlesRandSHLights(
+		Renderable* targetObj,
+		int _maxParticles, int _nLights,
+		int _interval, ParticleShader* _shader, 
+		Texture* _bbTex, Texture* _decayTex,
+		int avgLifetime, int varLifetime, 
+		glm::vec4 initAcn, glm::vec4 initVel,
+		int perturbChance, float perturbRadius,
+		float baseRadius, float centerForce,
+		float bbHeight, float bbWidth,
+		bool perturb_on, bool _init_perturb);
+protected:
+	void updateLights();
+private:
+	int counter;
+	const int interval;
+	void init();
+	void randomizeLights();
+	std::vector<int> lightIndices;
+};
+
+/* AdvectParticlesCentroidSHLights
+ * Copy of AdvectParticlesCentroidLights for SH lights.
+ */
+class AdvectParticlesCentroidSHLights : public AdvectParticlesSHLights
+{
+public:
+	AdvectParticlesCentroidSHLights(
+		Renderable* targetObj,
+		int _maxParticles, int _nLights, int _clumpSize,
+		int _interval, ParticleShader* _shader, 
+		Texture* _bbTex, Texture* _decayTex);
+	AdvectParticlesCentroidSHLights(
+		Renderable* targetObj,
+		int _maxParticles, int _nLights, int _clumpSize,
+		int _interval, ParticleShader* _shader, 
+		Texture* _bbTex, Texture* _decayTex,
+		int avgLifetime, int varLifetime, 
+		glm::vec4 initAcn, glm::vec4 initVel,
+		int perturbChance, float perturbRadius,
+		float baseRadius, float centerForce,
+		float bbHeight, float bbWidth,
+		bool perturb_on, bool _init_perturb);
+	const int clumpSize;
+protected:
+	void updateLights();
+private:
+	int counter;
+	const int interval;
+	void init();
+	void randomizeClumps();
+	std::vector<std::vector<int>> clumps;
+	glm::vec4 getParticleCentroid(const std::vector<int>& clump);
+};
+
 #endif
