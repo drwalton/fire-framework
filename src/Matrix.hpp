@@ -6,6 +6,8 @@
 #include <glm.hpp>
 #include <iostream>
 
+// Exception thrown on out-of-bounds matrix access,
+// bad matrix-matrix or matrix-vector multiplies.
 class MatDimException : public std::exception {};
 
 /* Matrix
@@ -13,6 +15,8 @@ class MatDimException : public std::exception {};
  * Used by SHMat.
  * N.B. : This matrix class follows the usual row-major convention,
  * differing from the column-major glm::mat* classes.
+ * When constructing from a glm::mat* object, the matrix is appropriately
+ * transposed.
  * Also note that the default matrix is the zero matrix.
  * For an identity matrix, use constructor Matrix(size, 1.0).
  */

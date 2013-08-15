@@ -1,3 +1,7 @@
+/* DiffPRT
+ * Shader intended to render PRTMesh objects.
+ */
+
 --Vertex
 #version 430
 

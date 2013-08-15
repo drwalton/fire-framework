@@ -31,6 +31,10 @@ private:
 	static GLuint nextTexUnit;
 };
 
+/* ArrayTexture
+ * Wraps the loading of a series of 2D textures,
+ *   and subsequent conversion into a 2D array texture.
+ */
 class ArrayTexture
 {
 public:

@@ -1,4 +1,12 @@
-// Uniform blocks:
+/* Shader Uniform Blocks
+ * This file contains a list of some of the uniform blocks 
+ * used in this application, and their formats. These may be
+ * copied into shaders which require them. 
+ * ========================================================
+ * Note that the application is designed to automatically 
+ * substitute constants such as $maxPhongLights$ in the source
+ * with the appropriate literal values.
+ */
 
 //INDEX = 0
 layout(std140) uniform cameraBlock
@@ -17,16 +25,16 @@ layout(std140) uniform ambBlock
 //INDEX = 2
 layout(std140) uniform phongBlock
 {
-	vec4 lightPos[50];
-	vec4 lightDiffuse[50];
-	vec4 lightSpecular[50];
-	float lightAttenuation[50];
+	vec4 lightPos[$maxPhongLights$];
+	vec4 lightDiffuse[$maxPhongLights$];
+	vec4 lightSpecular[$maxPhongLights$];
+	float lightAttenuation[$maxPhongLights$];
 	uint nLights;
 };
 
 //INDEX = 3
 layout(std140) uniform SHBlock
 {
-	vec3 lightCoeffts[9 * 10];
+	vec3 lightCoeffts[$nSHCoeffts$ * $maxSHLights$];
 	uint nLights;
 };

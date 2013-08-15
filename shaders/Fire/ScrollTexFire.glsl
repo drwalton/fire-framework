@@ -1,3 +1,8 @@
+/* ScrollTexFire
+ * Shader intended to render fire billboards
+ * by scrolling a window up a large source texture.
+ */
+
 -- Vertex
 #version 330
 

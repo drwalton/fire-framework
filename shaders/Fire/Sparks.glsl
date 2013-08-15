@@ -1,3 +1,9 @@
+/* Sparks
+ * Simple billboarding/texturing program intended to 
+ * render billboards with a single texture and decaying
+ * alpha (e.g. sparks/embers rising from a fire)
+ */
+
 -- Vertex
 #version 330
 
@@ -97,13 +103,8 @@ uniform sampler2D decayTexture;
 
 void main()
 {
-	vec4 blue = vec4(0.0251, 0.2157, 1.0, 0.2);
-	vec4 yellow = vec4(1.0, 0.8235, 0.2157, 1.0);
-	vec4 red = vec4(1.0, 0.6784, 0.2157, 0.0);
-	float t1 = 0.3;
-	float t2 = 0.9;
-	float opacity = decay < 0.3 ? decay : (1 - decay);
+	float opacity = decay < 0.7 ? 1.0 : (1 - decay);
 	float i = texture2D(bbTexture, texCoord).a * opacity;
 	if (i < 0.1) discard;
-	outputColor = vec4(texture2D(decayTexture, vec2(decay, 0.0)).xyz, i);
+	outputColor = vec4(texture(decayTexture, vec2(decay, 0.0)).xyz, i);
 }

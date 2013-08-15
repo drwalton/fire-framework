@@ -371,12 +371,23 @@ void AOMesh::renderOcclToImage(
 		avgOccl += *o;
 	avgOccl /= static_cast<float>(vertOccl.size());
 
-	unsigned char* ambData = SOIL_load_image
-		(
-			ambIm.c_str(),
-			&width, &height, &channels,
-			SOIL_LOAD_AUTO
-		);
+	/* Most image formats are upside down, so load data and flip it. */
+	int width, height, channels;
+	unsigned char* ambDataFlip = SOIL_load_image(
+		ambIm.c_str(),
+		&width, &height, &channels,
+		SOIL_LOAD_RGB);
+
+	unsigned char* ambData = static_cast<unsigned char*>(
+		malloc(width*height*channels*sizeof(unsigned char)));
+
+	for(int u = 0; u < width; ++u)
+		for(int v = 0; v < height; ++v)
+			for(int c = 0; c < 3; ++c)
+				ambData[(u + v*width)*3 + c] =
+					ambDataFlip[(u + ((height-v)-1)*width)*3 + c];
+
+	SOIL_free_image_data(ambDataFlip);
 
 	// Create framebuffer
 	GLuint frame;
@@ -480,5 +491,5 @@ void AOMesh::renderOcclToImage(
 	glDeleteFramebuffers(1, &frame);
 	glDeleteRenderbuffers(1, &render); 
 
-	SOIL_free_image_data(ambData);
+	free(ambData);
 }

@@ -20,11 +20,15 @@ struct phongBlock
 	float lightAttenuation[GC::maxPhongLights];
 };
 
-
 struct SHBlock
 {
 	glm::vec4 lightCoeffts[GC::nSHCoeffts * GC::maxSHLights];
 };
+
+/* LightManager classes, designed to maintain data and 
+ * uniform blocks relating to lights in the scene.
+ * Each Scene object owns one of each type of LightManager.
+ */
 
 class PhongLightManager
 {

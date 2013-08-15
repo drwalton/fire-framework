@@ -1,3 +1,10 @@
+/* SpherePlot
+ * Shader intended to render plots of real-valued
+ * spherical functions (SpherePlot objects).
+ * Plots are rendered using Gooch shading, in blue
+ * or green according to the sign of the function.
+ */
+
 --Vertex
 #version 430
 

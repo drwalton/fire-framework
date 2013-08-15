@@ -13,6 +13,13 @@ struct AOMeshVertex
 	glm::vec2  t; //Tex coord
 };
 
+/* AOMesh
+ * Class representing an object rendered using
+ * AO and Blinn-Phong shading. 
+ * Intended to be used by first calling bake() to
+ * create a pre-baked file, and then loading this
+ * via the constructor to create AOMesh objects.
+ */
 class AOMesh : public Renderable
 {
 public:

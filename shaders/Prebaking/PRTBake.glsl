@@ -1,3 +1,8 @@
+/* PRTBake
+ * Shader intended for rendering per-vertex RGB
+ * transfer function coefficients to a framebuffer.
+ */
+
 --Vertex
 #version 430
 

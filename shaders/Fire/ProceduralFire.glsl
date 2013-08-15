@@ -1,3 +1,12 @@
+/* ProceduralFire
+ * A shader intended to render fire using billboards, 
+ * which are textured procedurally using Perlin noise.
+ * Makes use of code from the webgl-noise project:
+ *   https://github.com/ashima/webgl-noise
+ * Distributed under the MIT license 
+ * See: ../licenses/webgl-noise.txt
+ */
+
 -- Vertex
 #version 330
 
@@ -123,7 +132,7 @@ uniform sampler2D decayTexture;
  *   https://github.com/ashima/webgl-noise
  * ==============================================
  * Copyright (c) 2011 Stefan Gustavson. All rights reserved.
- * Distributed under the MIT license. 
+ * Distributed under the MIT license (see ../licenses/webgl-noise.txt).
  */
 
 vec4 mod289(vec4 x)

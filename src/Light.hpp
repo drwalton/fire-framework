@@ -64,6 +64,7 @@ private:
 
 /* SHLight
  * A SH projected lighting environment.
+ * Rotation and pointAt methods make use of Ivanic SH rotation.
  */
 class SHLight : public Light
 {

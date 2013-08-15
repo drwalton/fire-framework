@@ -25,6 +25,9 @@ namespace GC
 	const int nAOSamples = sqrtAOSamples * sqrtAOSamples / 2;
 }
 
+/* Other frequently used constants
+ *./
+
 /* Used for testing if floats are 0 */
 const float EPS = 10e-6f;
 

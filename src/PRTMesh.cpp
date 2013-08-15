@@ -455,7 +455,7 @@ void PRTMesh::interreflect(
 		std::cout << " 100% complete" << std::endl;
 	} // end bounces
 
-	SOIL_free_image_data(diffData);
+	free(diffData);
 }
 
 void PRTMesh::renderCoefftToTexture(

@@ -13,8 +13,14 @@ class Scene;
 class BadMaterialIndex : public std::exception {};
 
 /* Renderable
- * A Renderable is an ADT for an Element which has a render() function called by it's owning Scene each frame.
- * All Renderable implementations must also provide an update() function, which may well be a do-nothing for static objects.
+ * A Renderable is an ADT for an Element which has a render()
+ *   function called by it's owning Scene each frame.
+ * All Renderable implementations must also provide an update()
+ *   function, which may well be a no-op for static objects.
+ * Renderables have a boolean member called `translucent'. If 
+ *   false, the Renderable is considered entirely opaque. If
+ *   true, some degree of translucency is assumed and the 
+ *   alpha blending will be used.
  */
 class Renderable : public Element
 {

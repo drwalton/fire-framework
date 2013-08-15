@@ -28,7 +28,12 @@ struct SphereSample
 
 /* SpherePlot
  * A Renderable containing a 3D plot of 
- * a function $S_2 \rightarrow \mathbb{R}$.
+ *   a function $f: S_2 \rightarrow \mathbb{R}$.
+ * Constructor should be provided with a function f
+ *   accepting two floats (the spherical coordinates theta
+ *   and phi) and returning a single float.
+ * SpherePlots are rendered using Gooch shading and ignore
+ *   all light sources in the scene.
  */
 class SpherePlot : public Renderable
 {

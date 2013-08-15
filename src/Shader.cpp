@@ -1,9 +1,8 @@
 #include "Shader.hpp"
 
-std::string phong_subs[4] = 
+std::string phong_subs[2] = 
 {
-	"$maxPhongLights$", std::to_string(static_cast<long long>(GC::maxPhongLights)),
-	"$maxMaterials$", std::to_string(static_cast<long long>(GC::maxMaterials))
+	"$maxPhongLights$", std::to_string(static_cast<long long>(GC::maxPhongLights))
 };
 
 std::string sh_subs[4] = 

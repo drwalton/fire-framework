@@ -25,8 +25,7 @@ struct CameraBlock
 /* Camera
  * Every Scene has a Camera object, which describes how
  * world space is transformed into camera space. 
- * This consists of a rotation, translation and projection
- * (applied in that order).
+ * This consists of a rotation, translation and projection.
  */
 class Camera
 {

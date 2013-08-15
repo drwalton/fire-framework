@@ -1,3 +1,8 @@
+/* BlinnPhong
+ * Blinn-Phong lighting shader intended to render
+ * Mesh and AOMesh objects.
+ */
+
 -- Vertex
 #version 420
 
@@ -20,7 +25,7 @@ layout(std140) uniform cameraBlock
 
 void main()
 {
-	smoothNorm = mat3(modelToWorld) * vNorm; //!Not strictly accurate!
+	smoothNorm = mat3(modelToWorld) * vNorm; //!Beware non-uniform scaling!
 	smoothTexCoord = vTexCoord;
 	worldPos = modelToWorld * vPosition;
 	gl_Position = worldToCamera * worldPos;
@@ -44,10 +49,10 @@ layout(std140) uniform cameraBlock
 
 layout(std140) uniform phongBlock
 {
-	vec4 lightPos[50];
-	vec4 lightDiffuse[50];
-	vec4 lightSpecular[50];
-	float lightAttenuation[50];
+	vec4 lightPos[$maxPhongLights$];
+	vec4 lightDiffuse[$maxPhongLights$];
+	vec4 lightSpecular[$maxPhongLights$];
+	float lightAttenuation[$maxPhongLights$];
 	int nLights;
 };
 
@@ -63,13 +68,14 @@ uniform float specExp;
 
 void main()
 {
+	//Ambient Lighting
 	fragColor = texture2D(ambTex, smoothTexCoord) * ambLight;
 
 	vec3 norm = normalize(smoothNorm);
 
 	vec3 view = normalize(-vec3(cameraPos) - vec3(worldPos));
 
-	for(int i = 0; i < 50; ++i)
+	for(int i = 0; i < $maxPhongLights$; ++i)
 	{
 		// Check if light is off.
 		// Lights that are on must have diffuse.w and specular.w equal to 1.0
@@ -79,35 +85,42 @@ void main()
 		{
 			// Diffuse lighting
 			vec3 lightDir = normalize(vec3(lightPos[i]));
-			float nDotL = max(dot(lightDir, norm), 0.0);
+			float nDotL = clamp(dot(lightDir, norm), 0.0, 1.0);
 			fragColor += nDotL * texture2D(diffTex, smoothTexCoord) * lightDiffuse[i];
 
-			// Specular (Phong) lighting
+			// Specular lighting
 			if(dot(lightDir, norm) > 0.0)
 			{
-				vec3 reflected = reflect(lightDir, norm);
-				fragColor += nDotL * pow(max(dot(reflected, view), 0.0), specExp) * 
-					texture2D(specTex, smoothTexCoord) * lightSpecular[i];
+				vec3 halfVec = normalize(lightDir + view);
+				float nDotH = dot(halfVec, norm);
+				float intensity = pow(clamp(nDotH, 0.0, 1.0)), specExp);
+				fragColor += 
+					intensity * texture2D(specTex, smoothTexCoord) * lightSpecular[i];
 			}
 		}
 
 		else // Point light source
 		{
 			vec3 toLight = vec3(lightPos[i] - worldPos);
-			float denom = max(lightAttenuation[i] * length(toLight), 0.01);
+			float atten = max(lightAttenuation[i] * length(toLight), 0.01);
 			toLight = normalize(toLight);
 			float nDotL = max(dot(toLight, norm), 0.0);
 			// Diffuse lighting
-			fragColor += nDotL * texture2D(diffTex, smoothTexCoord) * lightDiffuse[i] / denom;
-			// Specular (Phong) lighting
+			fragColor += 
+				nDotL * 
+				texture2D(diffTex, smoothTexCoord) * 
+				lightDiffuse[i] / atten;
+			// Specular lighting
 			if(dot(toLight, norm) > 0.0)
 			{ 
-				vec3 reflected = reflect(toLight, norm);
-				fragColor += nDotL * max(pow(dot(reflected, view), specExp), 0.0) * 
-					texture2D(specTex, smoothTexCoord) * lightSpecular[i] / denom;
+				vec3 halfVec = normalize(lightDir + view);
+				float nDotH = dot(halfVec, norm);
+				float intensity = pow(clamp(nDotH, 0.0, 1.0)), specExp);
+				fragColor += 
+					intensity * 
+					texture2D(specTex, smoothTexCoord) * 
+					lightSpecular[i] / atten;
 			}
 		}
 	}
-
-	fragColor = texture2D(ambTex, smoothTexCoord);
 }

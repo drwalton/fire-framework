@@ -40,6 +40,14 @@ struct MeshVertex
 	glm::vec2 t; // Tex coord
 };
 
+/* Mesh
+ * A Renderable object containing a mesh, loaded from
+ * a 3D model file and illuminated using Blinn-Phong 
+ * shading with ambient, diffuse and specular textures.
+ * Has a rudimentary tex coord generation method, but it
+ * is preferable to input meshes with their own texture
+ * coordinates.
+ */
 class Mesh : public Renderable
 {
 public:

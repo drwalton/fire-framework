@@ -7,7 +7,7 @@
 #include "Intersect.hpp"
 #include "SH.hpp"
 
-enum PRTMode : char {UNSHADOWED, SHADOWED, INTERREFLECTED, NONE};
+enum PRTMode : char {UNSHADOWED, SHADOWED, INTERREFLECTED};
 
 struct PRTMeshVertex
 {
@@ -15,6 +15,13 @@ struct PRTMeshVertex
 	glm::vec2 t; //Texture coord
 };
 
+/* PRTMesh
+ * Class representing an object rendered using
+ * diffuse PRT. 
+ * Intended to be used by first calling bake() to
+ * create a pre-baked file, and then loading this
+ * via the constructor to create PRTMesh objects.
+ */
 class PRTMesh : public Renderable
 {
 public:

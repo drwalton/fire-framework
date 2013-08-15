@@ -1,0 +1,4 @@
+SOIL, the Simple OpenGL Image Library, is considered 
+by its author to be in the public domain.
+
+See: http://www.lonesock.net/soil.html
