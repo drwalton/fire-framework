@@ -22,6 +22,7 @@ public:
 	Renderable(bool _translucent);
 	const bool translucent;
 	void setModelToWorld(const glm::mat4& newPos) {modelToWorld = newPos;};
+	glm::mat4 getModelToWorld() {return modelToWorld;};
 	void prependTransform(const glm::mat4& t) {modelToWorld = t * modelToWorld;};
 	void appendTransform(const glm::mat4& t) {modelToWorld = modelToWorld * t;};
 	void translate(const glm::vec3& t);

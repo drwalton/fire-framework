@@ -44,7 +44,9 @@ void SHLight::rotateCoeffts(glm::mat4 _rotation)
 
 void SHLight::pointAt(glm::vec3 dir)
 {
-	rotation = glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), dir, glm::vec3(0.0f, 1.0f, 0.0f));
+	rotation = SHMat(
+		glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), dir, glm::vec3(0.0f, 1.0f, 0.0f)),
+		GC::nSHBands);
 	rotCoeffts = rotation * coeffts;
 	manager->update(this);
 }

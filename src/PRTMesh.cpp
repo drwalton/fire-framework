@@ -36,11 +36,23 @@ void PRTMesh::bake(
 	std::vector<PRTMeshVertex> mesh(coarseData.v.size());
 	std::vector<std::vector<glm::vec3>> transfer(fineData.v.size());
 
+	/* Most image formats are upside down, so load data and flip it. */
 	int width, height, channels;
-	unsigned char* diffData = SOIL_load_image(
+	unsigned char* diffDataFlip = SOIL_load_image(
 		diffTex.c_str(),
 		&width, &height, &channels,
-		SOIL_LOAD_AUTO);
+		SOIL_LOAD_RGB);
+
+	unsigned char* diffData = static_cast<unsigned char*>(
+		malloc(width*height*channels*sizeof(unsigned char)));
+
+	for(int u = 0; u < width; ++u)
+		for(int v = 0; v < height; ++v)
+			for(int c = 0; c < 3; ++c)
+				diffData[(u + v*width)*3 + c] =
+					diffDataFlip[(u + ((height-v)-1)*width)*3 + c];
+
+	SOIL_free_image_data(diffDataFlip);
 
 	int tid;
 	int completedVerts = 0;
@@ -293,11 +305,23 @@ void PRTMesh::interreflect(
 	int nBands, int sqrtNSamples, int nBounces,
 	std::vector<std::vector<glm::vec3>>& transfer)
 {
+	/* Most image formats are upside down, so load data and flip it. */
 	int width, height, channels;
-	unsigned char* diffData = SOIL_load_image(
+	unsigned char* diffDataFlip = SOIL_load_image(
 		diffTex.c_str(),
 		&width, &height, &channels,
-		SOIL_LOAD_AUTO);
+		SOIL_LOAD_RGB);
+
+	unsigned char* diffData = static_cast<unsigned char*>(
+		malloc(width*height*channels*sizeof(unsigned char)));
+
+	for(int u = 0; u < width; ++u)
+		for(int v = 0; v < height; ++v)
+			for(int c = 0; c < 3; ++c)
+				diffData[(u + v*width)*3 + c] =
+					diffDataFlip[(u + ((height-v)-1)*width)*3 + c];
+
+	SOIL_free_image_data(diffDataFlip);
 
 	std::vector<std::vector<glm::vec3>> prevBounce(transfer);
 	std::vector<std::vector<glm::vec3>> currBounce(transfer.size());
@@ -383,9 +407,9 @@ void PRTMesh::interreflect(
 						float tv = closest.y;
 
 						glm::vec2 intersectTexPos = 
-							(1-(tu+tv)) * coarseData.t[closestTri  ] +
-							tu          * coarseData.t[closestTri+1] +
-							tv          * coarseData.t[closestTri+2];
+							(1-(tu+tv)) * coarseData.t[coarseData.e[closestTri  ]] +
+							tu          * coarseData.t[coarseData.e[closestTri+1]] +
+							tv          * coarseData.t[coarseData.e[closestTri+2]];
 
 						glm::vec3 intersectColor = texLookup(
 							diffData, intersectTexPos, width, height, channels);

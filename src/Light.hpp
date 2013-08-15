@@ -8,6 +8,8 @@
 #include "SHMat.hpp"
 
 #include <glm.hpp>
+#include <gtc/matrix_transform.hpp>
+
 #include <GL/glew.h>
 
 class PhongLight;

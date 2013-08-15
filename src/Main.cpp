@@ -6,7 +6,6 @@
 #include "PRTMesh.hpp"
 #include "SH.hpp"
 #include "SHMat.hpp"
-#include "SphereFunc.hpp"
 
 #include <glm.hpp>
 #include <GL/glut.h>
@@ -102,8 +101,8 @@ int init()
 
 	SHShader* shShader = new SHShader(false, "diffPRT");
 
-	PRTMesh::bake(SHADOWED, "torii.obj", "torii.obj", "greenWhite.png", 40, 5);
-	//PRTMesh* teapot = new PRTMesh("stanford.obj.prts5", shShader);
+	PRTMesh::bake(INTERREFLECTED, "torii.obj", "torii.obj", "greenWhite.png", 40, 5, 1);
+	//PRTMesh* teapot = new PRTMesh("torii.obj.prts5", shShader);
 	//scene->add(teapot);
 
 	light = new SHLight(
@@ -112,11 +111,12 @@ int init()
 			//float val = 0.2f;
 			float val = pulse(theta, phi, glm::vec3(1.0f, 0.0f, 0.0f), 4.0f, 3.0f);
 
-			return glm::vec3(val, 0.0, 0.0f);
+			return glm::vec3(val, val, val);
 		}
 	);
 	scene->add(light);
 
+	/*
 	light = new SHLight(
 		[] (float theta, float phi) -> glm::vec3 
 		{
@@ -127,7 +127,7 @@ int init()
 		}
 	);
 	scene->add(light);
-
+	*/
 	return 1;
 }
 

@@ -9,6 +9,7 @@
 #include "Texture.hpp"
 #include "Shader.hpp"
 #include "Scene.hpp"
+#include "SphereFunc.hpp"
 
 #include <vector>
 
@@ -237,7 +238,7 @@ protected:
 /* AdvectParticlesRandSHLights
  * Copy of AdvectParticlesRandLights designed to manipulate SH lights.
  */
-class AdvectParticlesRandSHLights : public AdvectParticlesLights
+class AdvectParticlesRandSHLights : public AdvectParticlesSHLights
 {
 public:
 	AdvectParticlesRandSHLights(

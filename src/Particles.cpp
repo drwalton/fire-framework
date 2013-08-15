@@ -452,7 +452,7 @@ void AdvectParticlesSHLights::makeLights()
 
 			return glm::vec3(val, val, val);
 			}
-		);
+		));
 	}
 }
 
