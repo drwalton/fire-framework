@@ -1,17 +1,15 @@
 #ifndef PARTICLES_HPP
 #define PARTICLES_HPP
 
+#include "Renderable.hpp"
+
 #include <GL/glew.h>
-#include <SOIL.h>
-#include <GL/glut.h>
 #include <glm.hpp>
 
-#include "Texture.hpp"
-#include "Shader.hpp"
-#include "Scene.hpp"
-#include "SphereFunc.hpp"
-
 #include <vector>
+
+class Texture;
+class ParticleShader;
 
 /* ParticleSystem
  * An ADT for a renderable object which is a particle system.

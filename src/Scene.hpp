@@ -1,22 +1,19 @@
 #ifndef SCENE_HPP
 #define SCENE_HPP
 
-#include "Renderable.hpp"
-#include "Shader.hpp"
-#include "Camera.hpp"
-#include "GC.hpp"
 #include "LightManager.hpp"
-#include "SpherePlot.hpp"
 
 #include <glm.hpp>
-#include <GL/glut.h>
-#include <SOIL.h>
-
-#include <vector>
+#include <GL/glew.h>
 #include <set>
 
 class PhongLight;
 class SHLight;
+class Renderable;
+class PhongLightManager;
+class SHLightManager;
+class Shader;
+class Camera;
 
 /* Scene
  * The Scene object handles all Element objects added to it, and renders them appropriately.

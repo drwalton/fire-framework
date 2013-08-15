@@ -1,5 +1,13 @@
 #include "Particles.hpp"
 
+#include "Texture.hpp"
+#include "Shader.hpp"
+#include "Scene.hpp"
+#include "SphereFunc.hpp"
+
+#include <SOIL.h>
+#include <GL/glut.h>
+
 AdvectParticles::AdvectParticles(int _maxParticles,
 	ParticleShader* _shader, 
 	Texture* _bbTex, Texture* _decayTex)

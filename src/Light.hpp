@@ -2,13 +2,8 @@
 #define LIGHT_HPP
 
 #include "SH.hpp"
-#include "LightManager.hpp"
-#include "Element.hpp"
-#include "GC.hpp"
-#include "SHMat.hpp"
 
 #include <glm.hpp>
-#include <gtc/matrix_transform.hpp>
 
 #include <GL/glew.h>
 
@@ -18,6 +13,7 @@ class Element;
 class Scene;
 class PhongLightManager;
 class SHLightManager;
+class SHMat;
 
 /* Light
  * An Element which is a light source (ADT).

@@ -1,0 +1,131 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="ReleaseCfg|Win32">
+      <Configuration>ReleaseCfg</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{CDF71F5D-DFE3-4E4E-AFEC-3076C25D54C9}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>fireframeworklib</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseCfg|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseCfg|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Users\David\Documents\GitHub\fire-framework\lib\assimp\include;C:\Users\David\Documents\GitHub\fire-framework\lib\boost_1_54_0;C:\Users\David\Documents\GitHub\fire-framework\lib\Simple OpenGL Image Library\src;C:\Users\David\Documents\GitHub\fire-framework\lib\glm-0.9.4.4\glm;C:\Users\David\Documents\GitHub\fire-framework\lib\freeglut\include;C:\Users\David\Documents\GitHub\fire-framework\lib\glew-1.10.0\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <Lib>
+      <AdditionalDependencies>freeglut.lib;glew32.lib;soil.lib;assimp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Lib>
+    <Lib>
+      <AdditionalLibraryDirectories>C:\Users\David\Documents\GitHub\fire-framework\lib\assimp\lib\assimp_release-dll_win32;C:\Users\David\Documents\GitHub\fire-framework\lib\Simple OpenGL Image Library\lib;C:\Users\David\Documents\GitHub\fire-framework\lib\glew-1.10.0\lib\Release\Win32;C:\Users\David\Documents\GitHub\fire-framework\lib\freeglut\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseCfg|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Users\David\Documents\GitHub\fire-framework\lib\assimp\include;C:\Users\David\Documents\GitHub\fire-framework\lib\boost_1_54_0;C:\Users\David\Documents\GitHub\fire-framework\lib\Simple OpenGL Image Library\src;C:\Users\David\Documents\GitHub\fire-framework\lib\glm-0.9.4.4\glm;C:\Users\David\Documents\GitHub\fire-framework\lib\freeglut\include;C:\Users\David\Documents\GitHub\fire-framework\lib\glew-1.10.0\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <Lib>
+      <AdditionalDependencies>freeglut.lib;glew32.lib;soil.lib;assimp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Lib>
+    <Lib>
+      <AdditionalLibraryDirectories>C:\Users\David\Documents\GitHub\fire-framework\lib\assimp\lib\assimp_release-dll_win32;C:\Users\David\Documents\GitHub\fire-framework\lib\Simple OpenGL Image Library\lib;C:\Users\David\Documents\GitHub\fire-framework\lib\glew-1.10.0\lib\Release\Win32;C:\Users\David\Documents\GitHub\fire-framework\lib\freeglut\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <None Include="ReadMe.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\..\src\AOMesh.hpp" />
+    <ClInclude Include="..\..\..\..\src\bstrlib.h" />
+    <ClInclude Include="..\..\..\..\src\Camera.hpp" />
+    <ClInclude Include="..\..\..\..\src\Element.hpp" />
+    <ClInclude Include="..\..\..\..\src\GC.hpp" />
+    <ClInclude Include="..\..\..\..\src\glsw.h" />
+    <ClInclude Include="..\..\..\..\src\Intersect.hpp" />
+    <ClInclude Include="..\..\..\..\src\Light.hpp" />
+    <ClInclude Include="..\..\..\..\src\LightManager.hpp" />
+    <ClInclude Include="..\..\..\..\src\Matrix.hpp" />
+    <ClInclude Include="..\..\..\..\src\Mesh.hpp" />
+    <ClInclude Include="..\..\..\..\src\Octree.hpp" />
+    <ClInclude Include="..\..\..\..\src\Particles.hpp" />
+    <ClInclude Include="..\..\..\..\src\PRTMesh.hpp" />
+    <ClInclude Include="..\..\..\..\src\Renderable.hpp" />
+    <ClInclude Include="..\..\..\..\src\Scene.hpp" />
+    <ClInclude Include="..\..\..\..\src\SH.hpp" />
+    <ClInclude Include="..\..\..\..\src\Shader.hpp" />
+    <ClInclude Include="..\..\..\..\src\SHMat.hpp" />
+    <ClInclude Include="..\..\..\..\src\SphereFunc.hpp" />
+    <ClInclude Include="..\..\..\..\src\SpherePlot.hpp" />
+    <ClInclude Include="..\..\..\..\src\Texture.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\..\src\AOMesh.cpp" />
+    <ClCompile Include="..\..\..\..\src\bstrlib.c" />
+    <ClCompile Include="..\..\..\..\src\Camera.cpp" />
+    <ClCompile Include="..\..\..\..\src\glsw.c" />
+    <ClCompile Include="..\..\..\..\src\Intersect.cpp" />
+    <ClCompile Include="..\..\..\..\src\Light.cpp" />
+    <ClCompile Include="..\..\..\..\src\LightManager.cpp" />
+    <ClCompile Include="..\..\..\..\src\Mesh.cpp" />
+    <ClCompile Include="..\..\..\..\src\Octree.cpp" />
+    <ClCompile Include="..\..\..\..\src\Particles.cpp" />
+    <ClCompile Include="..\..\..\..\src\PRTMesh.cpp" />
+    <ClCompile Include="..\..\..\..\src\Renderable.cpp" />
+    <ClCompile Include="..\..\..\..\src\Scene.cpp" />
+    <ClCompile Include="..\..\..\..\src\SH.cpp" />
+    <ClCompile Include="..\..\..\..\src\Shader.cpp" />
+    <ClCompile Include="..\..\..\..\src\SHMat.cpp" />
+    <ClCompile Include="..\..\..\..\src\SphereFunc.cpp" />
+    <ClCompile Include="..\..\..\..\src\SpherePlot.cpp" />
+    <ClCompile Include="..\..\..\..\src\Texture.cpp" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

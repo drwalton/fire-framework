@@ -1,6 +1,8 @@
 #include "Texture.hpp"
 
+#include "SOIL.h"
 #include <iostream>
+#include <fstream>
 
 GLuint Texture::nextTexUnit = 0;
 

@@ -1,5 +1,10 @@
 #include "Camera.hpp"
 
+#include "Shader.hpp"
+
+#include <gtc/matrix_transform.hpp>
+#include <iostream>
+
 const float Camera::moveDelta = 0.4f;
 const float Camera::rotDelta = 1.6f;
 

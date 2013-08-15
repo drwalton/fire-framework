@@ -1,4 +1,14 @@
 #include "Scene.hpp"
+#include "Renderable.hpp"
+#include "Shader.hpp"
+#include "Camera.hpp"
+#include "GC.hpp"
+#include "SpherePlot.hpp"
+
+#include <GL/glut.h>
+#include <SOIL.h>
+
+#include <vector>
 
 Scene::Scene()
 	 :ambLight(0.1f, 0.1f, 0.1f, 1.0f)

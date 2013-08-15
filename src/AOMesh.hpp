@@ -1,10 +1,9 @@
 #ifndef AOMESH_HPP
 #define AOMESH_HPP
 
-#include <omp.h>
+#include "Renderable.hpp"
 
-#include "Mesh.hpp"
-#include "Intersect.hpp"
+enum TexCoordGenMode : char {CYLINDRICAL, DONOTGEN};
 
 struct AOMeshVertex
 {

@@ -1,5 +1,15 @@
 #include "Mesh.hpp"
 
+#include "Scene.hpp"
+#include "Texture.hpp"
+#include "Intersect.hpp"
+
+#include <float.h>
+#include <omp.h>
+#include <assimp\Importer.hpp>
+#include <assimp\scene.h>
+#include <assimp\postprocess.h>
+
 bool fileExists(const std::string& filename)
 {
 	std::ifstream file(filename);

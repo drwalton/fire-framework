@@ -2,13 +2,12 @@
 #define RENDERABLE_H
 
 #include "Element.hpp"
-#include "Shader.hpp"
 
 #include <glm.hpp>
-#include <gtc/matrix_transform.hpp>
 #include <exception>
 
 class Scene;
+class Shader;
 
 class BadMaterialIndex : public std::exception {};
 
@@ -43,28 +42,6 @@ public:
 	virtual void onRemove() {}; //Called when the renderable is removed from the scene.
 protected:
 	glm::mat4 modelToWorld;
-};
-
-/* Solid
- * A Solid is an ADT for a Renderable consisting of a solid opaque mesh.
- * This class also contains functions returning simple geometric Solid objects.
- */
-class Solid : public Renderable
-{
-public:
-	Solid(Shader* _shader);
-	Solid(Shader* _shader, const std::vector<Material>& _materials);
-	Shader* getShader() {return (Shader*) shader;};
-	void setMaterials(const std::vector<Material>& _materials);
-	void setMaterial(unsigned index, const Material& _material);
-	Material getMaterial(unsigned index);
-	void setAmbient(unsigned index, const glm::vec4& _ambient);
-	void setDiffuse(unsigned index, const glm::vec4& _diffuse);
-	void setSpecular(unsigned index, const glm::vec4& _specular);
-	void setExponent(unsigned index, float _exponent);
-protected:
-	Shader* shader;
-	std::vector<Material> materials;
 };
 
 #endif

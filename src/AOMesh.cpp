@@ -1,5 +1,10 @@
 #include "AOMesh.hpp"
 
+#include "Mesh.hpp"
+#include "Intersect.hpp"
+
+#include <omp.h>
+
 AOMesh::AOMesh(
 	const std::string& bakedFilename,
 	LightShader* shader)
@@ -364,8 +369,6 @@ void AOMesh::renderOcclToImage(
 	const std::string& bakedIm,
 	const MeshData& data)
 {
-	int width, height, channels;
-
 	float avgOccl = 0.0f;
 	for(auto o = vertOccl.begin(); o != vertOccl.end(); ++o)
 		avgOccl += *o;

@@ -4,11 +4,9 @@
 #include <GL/glew.h>
 #include <glm.hpp>
 
-#include "SOIL.h"
 #include <string>
 #include <vector>
 #include <exception>
-#include <fstream>
 
 class NoImageFileException : public std::exception {};
 class BadImageDimException : public std::exception {};

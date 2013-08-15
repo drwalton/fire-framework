@@ -2,6 +2,7 @@
 *.slo
 *.lo
 *.o
+*.obj
 
 # Compiled Dynamic libraries
 *.so
@@ -12,6 +13,7 @@
 *.lai
 *.la
 *.a
+*.lib
 
 # Library directory (contains FreeGLUT, GLEW, SOIL etc.)
 lib/
@@ -24,6 +26,16 @@ bin/
 *.suo
 *.sln
 *.ilk
+*.tlog
+*.filters
+*.user
+*.log
+*.lastbuildstate
+*.unsuccessfulbuild
+*.idb
+*.ipch
+*.opensdf
+
 *.pdb
 
 # Executables

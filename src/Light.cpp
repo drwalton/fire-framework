@@ -1,5 +1,12 @@
 #include "Light.hpp"
 
+#include "LightManager.hpp"
+#include "Element.hpp"
+#include "GC.hpp"
+#include "SHMat.hpp"
+
+#include <gtc/matrix_transform.hpp>
+
 void PhongLight::setPos(glm::vec4 _pos)
 {
 	pos = _pos;
