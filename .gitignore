@@ -35,8 +35,19 @@ bin/
 *.idb
 *.ipch
 *.opensdf
+*.manifest
+*.cache
+
+
+prt-rotate-demo/*.glsl
+Debug/*
+Release/*
 
 *.pdb
 
 # Executables
 *.exe
+
+
+*.bmp
+*.prt*

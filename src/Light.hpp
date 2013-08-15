@@ -3,6 +3,9 @@
 
 #include "SH.hpp"
 
+#include "Element.hpp"
+#include "SHMat.hpp"
+
 #include <glm.hpp>
 
 #include <GL/glew.h>

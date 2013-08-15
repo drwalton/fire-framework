@@ -1,5 +1,12 @@
 #include "Shader.hpp"
 
+#include "glsw.h"
+#include "GC.hpp"
+
+#include <boost/algorithm/string.hpp>
+
+#include <iostream>
+
 std::string phong_subs[2] = 
 {
 	"$maxPhongLights$", std::to_string(static_cast<long long>(GC::maxPhongLights))
@@ -12,7 +19,7 @@ std::string sh_subs[4] =
 };
 
 
-const std::vector<std::string> Shader::PHONG_SUBS(phong_subs, phong_subs+4);
+const std::vector<std::string> Shader::PHONG_SUBS(phong_subs, phong_subs+2);
 const std::vector<std::string> Shader::SH_SUBS(sh_subs, sh_subs+4);
 
 NoSuchException::NoSuchException(const std::string& name, Shader* const& shader)

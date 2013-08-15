@@ -2,8 +2,14 @@
 
 #include "Mesh.hpp"
 #include "Intersect.hpp"
+#include "Texture.hpp"
+#include "SH.hpp"
 
 #include <omp.h>
+#include <iostream>
+#include <fstream>
+
+#include "SOIL.h"
 
 AOMesh::AOMesh(
 	const std::string& bakedFilename,
@@ -89,11 +95,10 @@ void AOMesh::bake(
 	const std::string& diffTex,
 	const std::string& specTex,
 	float specExp,
-	int sqrtNSamples,
-	TexCoordGenMode mode)
+	int sqrtNSamples)
 {
-	MeshData coarseData = Mesh::loadSceneFile(coarseMeshFilename, mode);
-	MeshData fineData = Mesh::loadSceneFile(fineMeshFilename, mode);
+	MeshData coarseData = Mesh::loadSceneFile(coarseMeshFilename);
+	MeshData fineData = Mesh::loadSceneFile(fineMeshFilename);
 	std::vector<AOMeshVertex> mesh(coarseData.v.size());
 
 	int tid;

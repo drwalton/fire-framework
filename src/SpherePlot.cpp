@@ -1,5 +1,7 @@
 #include "SpherePlot.hpp"
 
+#include "Shader.hpp"
+
 SpherePlotMesh SpherePlot::genMesh(const std::vector<SphereSample>& samples)
 {
 	SpherePlotMesh mesh;

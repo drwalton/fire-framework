@@ -10,6 +10,9 @@
 #include <assimp\scene.h>
 #include <assimp\postprocess.h>
 
+#include <iostream>
+#include <fstream>
+
 bool fileExists(const std::string& filename)
 {
 	std::ifstream file(filename);
@@ -17,8 +20,7 @@ bool fileExists(const std::string& filename)
 }
 
 MeshData Mesh::loadSceneFile(
-	const std::string& filename,
-	TexCoordGenMode mode)
+	const std::string& filename)
 {
 	Assimp::Importer importer;
 
@@ -61,10 +63,7 @@ MeshData Mesh::loadSceneFile(
 			d.n.push_back(norm);
 		}
 
-		if(mode != DONOTGEN)
-			genTexCoords(d, mode);
-
-		else if(mesh->HasTextureCoords(0))
+		if(mesh->HasTextureCoords(0))
 		{
 			for(int j = 0; j < (int) mesh->mNumVertices; ++j)
 			{
@@ -75,8 +74,8 @@ MeshData Mesh::loadSceneFile(
 			}
 		}
 
-		else
-			genTexCoords(d, CYLINDRICAL);
+		else for(int j = 0; j < (int) mesh->mNumVertices; ++j)
+			d.t.push_back(glm::vec2(0.0f));
 
 		for(int j = 0; j < (int) mesh->mNumFaces; ++j)
 		{
@@ -115,29 +114,18 @@ MeshData Mesh::combineData(const std::vector<MeshData>& data)
 	return comb;
 }
 
-void Mesh::genTexCoords(MeshData& data, TexCoordGenMode mode)
-{
-	switch(mode)
-	{
-	case CYLINDRICAL:
-		genTexCoordsCylindrical(data);
-		break;
-	}
-}
-
 Mesh::Mesh(		
 	const std::string& meshFilename,
 	Texture* ambTex,
 	Texture* diffTex,
 	Texture* specTex,
 	float exponent,
-	LightShader* shader,
-	TexCoordGenMode mode)
+	LightShader* shader)
 	:Renderable(false), shader(shader),
 	ambTex(ambTex), diffTex(diffTex),
 	specTex(specTex), specExp(exponent)
 {
-	MeshData data = loadSceneFile(meshFilename, mode);
+	MeshData data = loadSceneFile(meshFilename);
 	init(data);
 }
 
@@ -212,32 +200,4 @@ void Mesh::render()
 	glDisableVertexAttribArray(t_attrib);
 
 	glUseProgram(0);
-}
-
-void Mesh::genTexCoordsCylindrical(MeshData& data)
-{
-	float highest = FLT_MIN;
-	float lowest =  FLT_MAX;
-	glm::vec2 center(0.0f);
-
-	for(auto v = data.v.begin(); v != data.v.end(); ++v)
-	{
-		if(highest < v->y) highest = v->y;
-		if(lowest  > v->y) lowest  = v->y;
-		center += glm::vec2(v->x, v->z);
-	}
-
-	center /= data.v.size();
-
-	float height = highest - lowest;
-
-	for(auto v = data.v.begin(); v != data.v.end(); ++v)
-	{
-		glm::vec2 texCoord;
-
-		texCoord.y = (v->y - lowest) / height;
-		texCoord.x = (atan2(v->z - center.y, v->x - center.x)  + PI) / (2.0f * PI);
-
-		data.t.push_back(texCoord);
-	}
 }

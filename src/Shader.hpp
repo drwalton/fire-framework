@@ -3,13 +3,8 @@
 
 #include <GL/glew.h>
 #include <glm.hpp>
-#include <boost/algorithm/string.hpp>
-
-#include "glsw.h"
-#include "GC.hpp"
 
 #include <string>
-#include <iostream>
 #include <exception>
 #include <vector>
 

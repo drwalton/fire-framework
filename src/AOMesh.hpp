@@ -2,8 +2,15 @@
 #define AOMESH_HPP
 
 #include "Renderable.hpp"
+#include "Shader.hpp"
 
-enum TexCoordGenMode : char {CYLINDRICAL, DONOTGEN};
+#include <GL/glut.h>
+
+#include <string>
+#include <vector>
+
+struct MeshData;
+class Texture;
 
 struct AOMeshVertex
 {
@@ -33,8 +40,7 @@ public:
 		const std::string& diffTex,
 		const std::string& specTex,
 		float specExp,
-		int sqrtNSamples,
-		TexCoordGenMode mode = DONOTGEN);
+		int sqrtNSamples);
 
 	static void writePrebakedFile(
 		const std::vector<AOMeshVertex>& mesh,

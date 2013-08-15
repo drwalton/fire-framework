@@ -1,4 +1,5 @@
 #include "Scene.hpp"
+#include "Camera.hpp"
 #include "Texture.hpp"
 #include "Particles.hpp"
 #include "Mesh.hpp"
@@ -7,8 +8,10 @@
 #include "SH.hpp"
 #include "SHMat.hpp"
 #include "SphereFunc.hpp"
+#include "SpherePlot.hpp"
 
 #include <glm.hpp>
+#include <gtc/matrix_transform.hpp>
 #include <GL/glut.h>
 
 #include <iomanip>

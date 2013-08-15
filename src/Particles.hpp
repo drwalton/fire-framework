@@ -10,6 +10,8 @@
 
 class Texture;
 class ParticleShader;
+class PhongLight;
+class SHLight;
 
 /* ParticleSystem
  * An ADT for a renderable object which is a particle system.

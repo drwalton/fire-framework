@@ -1,55 +1,22 @@
 #include "Scene.hpp"
 #include "Camera.hpp"
+#include "Texture.hpp"
 #include "Particles.hpp"
 #include "Mesh.hpp"
 #include "AOMesh.hpp"
+#include "PRTMesh.hpp"
 #include "SH.hpp"
 #include "SHMat.hpp"
+#include "Light.hpp"
 #include "SphereFunc.hpp"
-#include "SpherePlot.hpp"
 
 #include <glm.hpp>
-#include <gtc/matrix_transform.hpp>
 #include <GL/glut.h>
+#include <gtc/matrix_transform.hpp>
 
 /* This file will contain the construction and rendering of the scene
  * I am working on right now. 
  */
-
-template <typename Fn>
-void plotApproximations(Fn f, int nBands, float spacing, glm::vec3 translate)
-{
-	Shader* plotShader = new Shader(false, "SpherePlot");
-
-	SpherePlot* original = new SpherePlot(		
-	[&f] (float theta, float phi) -> float 
-	{
-		return f(theta, phi);
-	}
-	, 100, plotShader);
-
-	scene->add(original);
-
-	for(int i = 1; i < nBands; ++i)
-	{
-		std::vector<glm::vec3> proj = SH::shProject(20, i, 
-		[&f] (float theta, float phi) -> glm::vec3 
-		{
-			return glm::vec3(f(theta, phi));
-		}
-		);
-
-		SpherePlot* recovered = new SpherePlot(		
-		[&proj] (float theta, float phi) -> float 
-		{
-			return SH::evaluate(proj, theta, phi).x;
-		}
-		, 50, plotShader);
-
-		recovered->translate(glm::vec3(i * spacing, 0.0, 0.0));
-		scene->add(recovered);
-	}
-}
 
 int init();
 void display();
@@ -58,11 +25,14 @@ void keyboard(unsigned char, int, int);
 
 void addSHArray(Scene* scene, glm::vec3 pos, int nBands, float scale, float spacing);
 
+const int nSwirls = 400;
+const int nSparks = 5;
+
 float theta = 0.0f;
 float phi = 0.0f;
 
 Scene* scene;
-SpherePlot* plot;
+SHLight* light;
 
 const int k = 5;
 
@@ -93,22 +63,33 @@ int main(int argc, char** argv)
 // Called by glutInit().
 int init()
 {
-	glClearColor(1.0, 1.0, 1.0, 1.0);
+	glClearColor(0.8f, 0.8f, 1.0f, 1.0f);
 
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_DEPTH_TEST);
 
+	int tex;
+	glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &tex);
+	std::cout << "max tex units " << tex << "\n";
+
 	scene = new Scene();
-	
-	plotApproximations( 
-	[] (float theta, float phi) -> float
-	{
-		return phi / (2 * PI);
-	},
-		8, 1.5f, glm::vec3(-7.0, 0.0, 0.0));
-	
-	
-	//addSHArray(scene, glm::vec3(0.0f, -3.5, 0.0f), 7, 1.0f, 2.0f);
+
+	SHShader* shShader = new SHShader(false, "diffPRT");
+
+	PRTMesh::bake(INTERREFLECTED, "torii.obj", "greenWhite.png", 40, 5, 1);
+	PRTMesh* torii = new PRTMesh("torii.obj.prti5", shShader);
+	scene->add(torii);
+
+	light = new SHLight(
+		[] (float theta, float phi) -> glm::vec3 
+		{
+			//float val = 0.2f;
+			float val = pulse(theta, phi, glm::vec3(1.0f, 0.0f, 0.0f), 4.0f, 3.0f);
+
+			return glm::vec3(val, val, val);
+		}
+	);
+	scene->add(light);
 
 	return 1;
 }
@@ -120,6 +101,10 @@ void display()
 	eTime = glutGet(GLUT_ELAPSED_TIME);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	scene->update(deTime);
+	glm::mat4 rotation(1.0f);
+	rotation = glm::rotate(glm::mat4(1.0), phi, glm::vec3(1.0, 0.0, 0.0));
+	rotation = glm::rotate(rotation, theta, glm::vec3(0.0, 1.0, 0.0));
+	light->rotateCoeffts(rotation);
 	scene->render();
 	glutSwapBuffers();
 	glutPostRedisplay();
@@ -140,35 +125,21 @@ void keyboard(unsigned char key, int x, int y)
 
     switch (key)
     {
+	case 't':
+		theta += 1.6f;
+		break;
+	case 'g':
+		theta -= 1.6f;
+		break;
+	case 'f':
+		phi -= 1.6f;
+		break;
+	case 'h':
+		phi += 1.6f;
+		break;
+
     case 27:
         exit(0);
         return;
     }
-}
-
-// Renders an array of SH basis functions.
-void addSHArray(Scene* scene, glm::vec3 pos, int nBands,
-	float scale, float spacing)
-{
-	Shader* plotShader = new Shader(false, "SpherePlot");
-
-	for(int l = 0; l < nBands; ++l)
-		for(int m = -l; m <= l; ++m)
-		{
-			SpherePlot* plot = new SpherePlot(		
-				[l, m] (float theta, float phi) -> float 
-				{
-					//float val = 0.2f;
-					float val = SH::realSH(l, m, theta, phi);
-
-					return val;
-				}
-				, 50, plotShader);
-			plot->uniformScale(scale);
-			plot->prependTransform(glm::rotate(
-				glm::mat4(1.0f), 90.0f, glm::vec3(0.0f, 1.0f, 0.0f)));
-			plot->translate(pos + glm::vec3(m * spacing, l * spacing, 0.0f));
-			
-			scene->add(plot);
-		}
 }

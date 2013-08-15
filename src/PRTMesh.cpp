@@ -1,5 +1,16 @@
 #include "PRTMesh.hpp"
 
+#include "Mesh.hpp"
+#include "Intersect.hpp"
+#include "SH.hpp"
+#include "Texture.hpp"
+
+#include "SOIL.h"
+
+#include <omp.h>
+#include <iostream>
+#include <fstream>
+
 PRTMesh::PRTMesh(
 	const std::string& bakedFilename,
 	SHShader* shader)
@@ -23,18 +34,15 @@ PRTMesh::~PRTMesh()
 
 void PRTMesh::bake(
 	PRTMode mode,
-	const std::string& coarseMeshFilename,
-	const std::string& fineMeshFilename,
+	const std::string& meshFilename,
 	const std::string& diffTex,
 	int sqrtNSamples,
 	int nBands,
-	int nBounces,
-	TexCoordGenMode texMode)
+	int nBounces)
 {
-	MeshData coarseData = Mesh::loadSceneFile(coarseMeshFilename, texMode);
-	MeshData fineData = Mesh::loadSceneFile(fineMeshFilename, texMode);
-	std::vector<PRTMeshVertex> mesh(coarseData.v.size());
-	std::vector<std::vector<glm::vec3>> transfer(fineData.v.size());
+	MeshData data = Mesh::loadSceneFile(meshFilename);
+	std::vector<PRTMeshVertex> mesh(data.v.size());
+	std::vector<std::vector<glm::vec3>> transfer(data.v.size());
 
 	/* Most image formats are upside down, so load data and flip it. */
 	int width, height, channels;
@@ -57,12 +65,12 @@ void PRTMesh::bake(
 	int tid;
 	int completedVerts = 0;
 	int currPercent = 0;
-	int nVerts = static_cast<int>(fineData.v.size());
+	int nVerts = static_cast<int>(data.v.size());
 
-	for(unsigned i = 0; i < coarseData.v.size(); ++i)
+	for(unsigned i = 0; i < data.v.size(); ++i)
 	{
-		mesh[i].t = coarseData.t[i];
-		mesh[i].v = coarseData.v[i];
+		mesh[i].t = data.t[i];
+		mesh[i].v = data.v[i];
 	}
 
 	std::cout 
@@ -79,7 +87,7 @@ void PRTMesh::bake(
 
 			if(mode == UNSHADOWED)
 				coeffts = SH::shProject(sqrtNSamples, nBands, 
-					[&coarseData, &fineData, &i, &diffData,
+					[&data, &i, &diffData,
 						&width, &height, &channels]
 					(float theta, float phi) -> glm::vec3 
 						{
@@ -90,10 +98,10 @@ void PRTMesh::bake(
 								cos(theta)
 								);
 							dir = glm::normalize(dir);
-							glm::vec3 norm = glm::normalize(fineData.n[i]);
+							glm::vec3 norm = glm::normalize(data.n[i]);
 
 							glm::vec3 surfColor = texLookup(
-								diffData, fineData.t[i],
+								diffData, data.t[i],
 								width, height, channels);
 
 							float proj = glm::dot(dir, norm);
@@ -105,7 +113,7 @@ void PRTMesh::bake(
 
 			else // mode == SHADOWED || mode == INTERREFLECTED
 				coeffts = SH::shProject(sqrtNSamples, nBands, 
-					[&coarseData, &fineData, &i, &diffData, &width, &height, &channels]
+					[&data, &i, &diffData, &width, &height, &channels]
 					(float theta, float phi) -> glm::vec3 
 						{
 							bool intersect = false;
@@ -117,23 +125,23 @@ void PRTMesh::bake(
 								cos(theta)
 								);
 							dir = glm::normalize(dir);
-							glm::vec3 norm = glm::normalize(fineData.n[i]);
+							glm::vec3 norm = glm::normalize(data.n[i]);
 
 							float proj = glm::dot(dir, norm);
 
 							if(proj <= 0.0f) return glm::vec3(0.0, 0.0, 0.0);
 
 							// For each triangle in mesh
-							for(size_t e = 0; e < coarseData.e.size(); e += 3)
+							for(size_t e = 0; e < data.e.size(); e += 3)
 							{
 								// Find triangle vertices
-								glm::vec3 ta = glm::vec3(coarseData.v[coarseData.e[e]]);
-								glm::vec3 tb = glm::vec3(coarseData.v[coarseData.e[e+1]]);
-								glm::vec3 tc = glm::vec3(coarseData.v[coarseData.e[e+2]]);
+								glm::vec3 ta = glm::vec3(data.v[data.e[e]]);
+								glm::vec3 tb = glm::vec3(data.v[data.e[e+1]]);
+								glm::vec3 tc = glm::vec3(data.v[data.e[e+2]]);
 
 								// Check for intersection
 								if(triangleRayIntersect(
-									ta, tb, tc, glm::vec3(fineData.v[i]), dir))
+									ta, tb, tc, glm::vec3(data.v[i]), dir))
 								{
 									intersect = true;
 									break;
@@ -144,7 +152,7 @@ void PRTMesh::bake(
 							// Light not occluded.
 
 							glm::vec3 surfColor = texLookup(
-								diffData, fineData.t[i],
+								diffData, data.t[i],
 								width, height, channels);
 
 							return proj * surfColor;
@@ -174,19 +182,19 @@ void PRTMesh::bake(
 	{
 		std::cout << "Interreflection pass begins...\n";
 		PRTMesh::interreflect(
-			coarseData, fineData, diffTex,
+			data, diffTex,
 			nBands, sqrtNSamples, nBounces, transfer);
 	}
 
 	free(diffData);
 
 	std::vector<std::string> coefftFilenames;
-	std::string prebakedFilename = PRTMesh::genPrebakedFilename(coarseMeshFilename, mode, nBands);
+	std::string prebakedFilename = PRTMesh::genPrebakedFilename(meshFilename, mode, nBands);
 
 	PRTMesh::writeTransferToTextures(transfer, 
-		fineData, prebakedFilename, coefftFilenames, width, height);
+		data, prebakedFilename, coefftFilenames, width, height);
 
-	PRTMesh::writePrebakedFile(mesh, coarseData.e, coefftFilenames, prebakedFilename);
+	PRTMesh::writePrebakedFile(mesh, data.e, coefftFilenames, prebakedFilename);
 }
 
 std::string PRTMesh::genPrebakedFilename(
@@ -300,7 +308,7 @@ void PRTMesh::readPrebakedFile(
 }
 
 void PRTMesh::interreflect(
-	const MeshData& coarseData, const MeshData& fineData,
+	const MeshData& data,
 	const std::string& diffTex,
 	int nBands, int sqrtNSamples, int nBounces,
 	std::vector<std::vector<glm::vec3>>& transfer)
@@ -336,7 +344,7 @@ void PRTMesh::interreflect(
 		int tid;
 		int completedVerts = 0;
 		int currPercent = 0;
-		int nVerts = static_cast<int>(fineData.v.size());
+		int nVerts = static_cast<int>(data.v.size());
 
 		#pragma omp parallel private(tid, currBounce, prevBounce)
 		{
@@ -376,20 +384,20 @@ void PRTMesh::interreflect(
 							cos(theta)
 							);
 
-						if(glm::dot(fineData.n[i], dir) <= 0.0f) // dir not in hemisphere
+						if(glm::dot(data.n[i], dir) <= 0.0f) // dir not in hemisphere
 							continue;
 
 						/* Find closest intersection */
 						glm::vec3 closest(-1.0, -1.0, -1.0);
 						int closestTri = -1;
-						for(int t = 0; t < static_cast<int>(coarseData.e.size()); t+=3)
+						for(int t = 0; t < static_cast<int>(data.e.size()); t+=3)
 						{
-							glm::vec3 ta = glm::vec3(coarseData.v[coarseData.e[t]]);
-							glm::vec3 tb = glm::vec3(coarseData.v[coarseData.e[t+1]]);
-							glm::vec3 tc = glm::vec3(coarseData.v[coarseData.e[t+2]]);
+							glm::vec3 ta = glm::vec3(data.v[data.e[t]]);
+							glm::vec3 tb = glm::vec3(data.v[data.e[t+1]]);
+							glm::vec3 tc = glm::vec3(data.v[data.e[t+2]]);
 
 							glm::vec3 intersect = getTriangleRayIntersection(
-								ta, tb, tc, glm::vec3(fineData.v[i]), dir);
+								ta, tb, tc, glm::vec3(data.v[i]), dir);
 
 							if(intersect.z > 0.0f &&
 								(intersect.z < closest.z || closest.z < 0.0f))
@@ -407,9 +415,9 @@ void PRTMesh::interreflect(
 						float tv = closest.y;
 
 						glm::vec2 intersectTexPos = 
-							(1-(tu+tv)) * coarseData.t[coarseData.e[closestTri  ]] +
-							tu          * coarseData.t[coarseData.e[closestTri+1]] +
-							tv          * coarseData.t[coarseData.e[closestTri+2]];
+							(1-(tu+tv)) * data.t[data.e[closestTri  ]] +
+							tu          * data.t[data.e[closestTri+1]] +
+							tv          * data.t[data.e[closestTri+2]];
 
 						glm::vec3 intersectColor = texLookup(
 							diffData, intersectTexPos, width, height, channels);
@@ -417,12 +425,12 @@ void PRTMesh::interreflect(
 						for(int c = 0; c < nBands*nBands; ++c)
 						{
 							glm::vec3 avgPrevBounce = 
-								((1-(tu+tv)) * prevBounce[fineData.e[closestTri]][c] +
-								tu * prevBounce[fineData.e[closestTri + 1]][c] +
-								tv * prevBounce[fineData.e[closestTri + 2]][c]);
+								((1-(tu+tv)) * prevBounce[data.e[closestTri]][c] +
+								tu * prevBounce[data.e[closestTri + 1]][c] +
+								tv * prevBounce[data.e[closestTri + 2]][c]);
 
 							currBounce[i][c] += 
-								glm::dot(fineData.n[i], dir) * intersectColor * avgPrevBounce;
+								glm::dot(data.n[i], dir) * intersectColor * avgPrevBounce;
 						}
 					}
 

@@ -1,11 +1,17 @@
 #ifndef PRTMESH_HPP
 #define PRTMESH_HPP
 
-#include <omp.h>
+#include "Renderable.hpp"
 
-#include "Mesh.hpp"
-#include "Intersect.hpp"
-#include "SH.hpp"
+#include <glm.hpp>
+#include <GL/glew.h>
+
+#include <string>
+#include <vector>
+
+#include "Shader.hpp"
+
+class ArrayTexture;
 
 enum PRTMode : char {UNSHADOWED, SHADOWED, INTERREFLECTED};
 
@@ -14,6 +20,8 @@ struct PRTMeshVertex
 	glm::vec4 v; //Postion
 	glm::vec2 t; //Texture coord
 };
+
+struct MeshData;
 
 /* PRTMesh
  * Class representing an object rendered using
@@ -32,17 +40,15 @@ public:
 
 	static void bake(
 		PRTMode mode,
-		const std::string& coarseMeshFilename,
-		const std::string& fineMeshFilename,
+		const std::string& meshFilename,
 		const std::string& diffTex,
 		int sqrtNSamples,
 		int nBands,
-		int nBounces = 3,
-		TexCoordGenMode texMode = DONOTGEN);
+		int nBounces = 3);
 
 	void render();
 	void update(int dTime) {};
-	Shader* getShader() {return shader;};
+	Shader* getShader() {return static_cast<Shader*>(shader);};
 private:
 	static std::string genPrebakedFilename(
 		const std::string& filename,
@@ -57,7 +63,7 @@ private:
 	 	const std::string& filename);
 
 	static void interreflect(
-		const MeshData& coarseData, const MeshData& fineData,
+		const MeshData& data,
 		const std::string& diffTex,
 		int nBands, int sqrtNSamples, int nBounces,
 		std::vector<std::vector<glm::vec3>>& transfer);
