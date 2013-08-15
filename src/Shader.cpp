@@ -267,13 +267,13 @@ void LightShader::setSpecExp(float exponent)
 	glUseProgram(0);
 }
 
-ParticleShader::ParticleShader(bool hasGeomShader, const std::string& filename)
+ParticleShader::ParticleShader(bool hasGeomShader, bool hasBBTex, const std::string& filename)
 	:Shader(hasGeomShader, filename)
 {
 	use();
 	bbWidth_u = getUniformLoc("bbWidth");
 	bbHeight_u = getUniformLoc("bbHeight");
-	bbTex_u = getUniformLoc("bbTexture");
+	if(hasBBTex) bbTex_u = getUniformLoc("bbTexture");
 	decayTex_u = getUniformLoc("decayTexture");
 	glUseProgram(0);
 }

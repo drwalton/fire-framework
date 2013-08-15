@@ -5,20 +5,16 @@ AdvectParticles::AdvectParticles(int _maxParticles,
 	Texture* _bbTex, Texture* _decayTex)
 	:ParticleSystem(_maxParticles, _shader),
 	 bbTex(_bbTex), decayTex(_decayTex),
-	 avgLifetime(1500), varLifetime(200),
-	 perturbChance(10),
-	 initAcn(glm::vec4(0.0, 0.000001, 0.0, 0.0)),
+	 avgLifetime(3000), varLifetime(200),
+	 perturbChance(20),
+	 initAcn(glm::vec4(0.0, 0.0000004, 0.0, 0.0)),
 	 initVel(glm::vec4(0.0, 0.0, 0.0, 0.0)),
-	 perturbRadius(0.0005f),
-	 centerForce(0.00001f),
+	 perturbRadius(0.0001f),
+	 centerForce(0.000003f),
 	 baseRadius(0.2f),
-	 bbHeight(0.2f), bbWidth(0.2f),
+	 bbHeight(0.3f), bbWidth(0.3f),
 	 perturb_on(true), init_perturb(false),
-	 cameraDir(glm::vec3(0.0, 0.0, -1.0)),
-	 vel(std::vector<glm::vec4>(maxParticles, glm::vec4(0.0f))),
-	 acn(std::vector<glm::vec4>(maxParticles, glm::vec4(0.0f))),
-	 time(std::vector<int>(maxParticles, 0)),
-	 lifeTime(std::vector<int>(maxParticles, 0))
+	 cameraDir(glm::vec3(0.0, 0.0, -1.0))
 {init(bbTex, decayTex);}
 
 AdvectParticles::AdvectParticles(int _maxParticles,
@@ -41,11 +37,7 @@ AdvectParticles::AdvectParticles(int _maxParticles,
 	 baseRadius(_baseRadius),
 	 bbHeight(_bbHeight), bbWidth(_bbWidth),
 	 perturb_on(_perturb_on), init_perturb(_init_perturb),
-	 cameraDir(glm::vec3(0.0, 0.0, -1.0)),
-	 vel(std::vector<glm::vec4>(maxParticles, glm::vec4(0.0f))),
-	 acn(std::vector<glm::vec4>(maxParticles, glm::vec4(0.0f))),
-	 time(std::vector<int>(maxParticles, 0)),
-	 lifeTime(std::vector<int>(maxParticles, 0))
+	 cameraDir(glm::vec3(0.0, 0.0, -1.0))
 {init(bbTex, decayTex);}
 
 void AdvectParticles::init(Texture* bbTex, Texture* decayTex)
@@ -62,7 +54,7 @@ void AdvectParticles::init(Texture* bbTex, Texture* decayTex)
 		particles.push_back(p);
 
 		time.push_back(0);
-		lifeTime.push_back(avgLifetime + randi(-varLifetime, +varLifetime));
+		lifeTime.push_back((avgLifetime * i) / maxParticles);
 		acn.push_back(initAcn);
 		
 		if(init_perturb) vel.push_back(perturb(vel[i]));
@@ -131,6 +123,7 @@ void AdvectParticles::render()
 
 void AdvectParticles::update(int dTime)
 {
+	if(dTime > 1000) return; // Avoid updating if timestep excessive
 	#pragma omp parallel for
 	for(int i = 0; i < maxParticles; ++i)
 		updateParticle(i, dTime);

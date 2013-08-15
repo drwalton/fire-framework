@@ -86,7 +86,7 @@ public:
 class ParticleShader : public Shader
 {
 public:
-	ParticleShader(bool hasGeomShader, const std::string& filename);
+	ParticleShader(bool hasGeomShader, bool hasBBTex, const std::string& filename);
 	void setBBWidth(float _bbWidth);
 	void setBBHeight(float _bbHeight);
 	void setBBTexUnit(GLuint _bbTexUnit);
