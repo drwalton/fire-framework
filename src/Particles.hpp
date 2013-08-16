@@ -2,6 +2,7 @@
 #define PARTICLES_HPP
 
 #include "Renderable.hpp"
+#include "Shader.hpp"
 
 #include <GL/glew.h>
 #include <glm.hpp>
@@ -9,7 +10,6 @@
 #include <vector>
 
 class Texture;
-class ParticleShader;
 class PhongLight;
 class SHLight;
 
@@ -21,7 +21,9 @@ class ParticleSystem : public Renderable
 public:
 	ParticleSystem(int _maxParticles, ParticleShader* _shader) 
 		:Renderable(true), maxParticles(_maxParticles), shader(_shader) {};
-	Shader* getShader() {return (Shader*) shader;};
+	ParticleShader* getParticleShader() {return shader;};
+	Shader* getShader() {return static_cast<Shader*>(shader);};
+	void setShader(ParticleShader* shader) {this->shader = shader;};
 protected:
 	int maxParticles;
 	ParticleShader* shader;

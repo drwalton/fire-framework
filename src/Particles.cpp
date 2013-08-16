@@ -1,7 +1,6 @@
 #include "Particles.hpp"
 
 #include "Texture.hpp"
-#include "Shader.hpp"
 #include "Scene.hpp"
 #include "SphereFunc.hpp"
 
@@ -65,7 +64,7 @@ void AdvectParticles::init(Texture* bbTex, Texture* decayTex)
 		lifeTime.push_back((avgLifetime * i) / maxParticles);
 		acn.push_back(initAcn);
 		
-		if(init_perturb) vel.push_back(perturb(vel[i]));
+		if(init_perturb) vel.push_back(perturb(initVel));
 		else vel.push_back(initVel);
 	}
 

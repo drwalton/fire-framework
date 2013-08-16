@@ -416,8 +416,8 @@ void PRTMesh::interreflect(
 
 						glm::vec2 intersectTexPos = 
 							(1-(tu+tv)) * data.t[data.e[closestTri  ]] +
-							tu          * data.t[data.e[closestTri+1]] +
-							tv          * data.t[data.e[closestTri+2]];
+							         tu * data.t[data.e[closestTri+1]] +
+							         tv * data.t[data.e[closestTri+2]];
 
 						glm::vec3 intersectColor = texLookup(
 							diffData, intersectTexPos, width, height, channels);
@@ -425,9 +425,9 @@ void PRTMesh::interreflect(
 						for(int c = 0; c < nBands*nBands; ++c)
 						{
 							glm::vec3 avgPrevBounce = 
-								((1-(tu+tv)) * prevBounce[data.e[closestTri]][c] +
-								tu * prevBounce[data.e[closestTri + 1]][c] +
-								tv * prevBounce[data.e[closestTri + 2]][c]);
+								(1-(tu+tv)) * prevBounce[data.e[closestTri  ]][c] +
+								         tu * prevBounce[data.e[closestTri+1]][c] +
+								         tv * prevBounce[data.e[closestTri+2]][c];
 
 							currBounce[i][c] += 
 								glm::dot(data.n[i], dir) * intersectColor * avgPrevBounce;
@@ -436,7 +436,7 @@ void PRTMesh::interreflect(
 
 				// Normalize coeffts.
 				for(int c = 0; c < nBands*nBands; ++c)
-					currBounce[i][c] *= 2.0 / (PI * sqrtNSamples);	
+					currBounce[i][c] *= 2.0 / (sqrtNSamples * sqrtNSamples * PI);	
 
 				// Add to vertBuffer coeffts.
 				for(int c = 0; c < nBands*nBands; ++c)
