@@ -1,9 +1,6 @@
 #include "Scene.hpp"
 #include "Camera.hpp"
 #include "Texture.hpp"
-#include "Particles.hpp"
-#include "Mesh.hpp"
-#include "AOMesh.hpp"
 #include "PRTMesh.hpp"
 #include "SH.hpp"
 #include "SHMat.hpp"
@@ -13,9 +10,14 @@
 #include <glm.hpp>
 #include <GL/glut.h>
 #include <gtc/matrix_transform.hpp>
+#include <fstream>
 
-/* This file will contain the construction and rendering of the scene
- * I am working on right now. 
+/* PRT Light Rotation Demo
+ * Displays an object illuminated using diffuse PRT.
+ * Environment is composed of a single SH light source
+ *   which may be rotated by the user using the "tfgh" keys.
+ * Camera controlled by "wasd" and "ijkl" keys, with "c" switching
+ *   between "centered rotation" and "free view" modes.
  */
 
 int init();
@@ -48,7 +50,7 @@ int main(int argc, char** argv)
     glutInitDisplayMode(GLUT_DOUBLE);
     glutInitWindowSize(500, 500);
     glutInitWindowPosition(100, 100);
-    glutCreateWindow("API Demo");
+    glutCreateWindow("SH Lighting Demo");
     glewInit();
     int good = init();
     if(!good) return 0;
@@ -60,32 +62,38 @@ int main(int argc, char** argv)
 	delete scene;
 }
 
-// Called by glutInit().
 int init()
 {
-	glClearColor(0.8f, 0.8f, 1.0f, 1.0f);
+	glClearColor(0.8f, 0.8f, 1.0f, 1.0f); // Light blue
 
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_DEPTH_TEST);
 
-	int tex;
-	glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &tex);
-	std::cout << "max tex units " << tex << "\n";
-
 	scene = new Scene();
 
-	SHShader* shShader = new SHShader(false, "diffPRT");
+	/* Edit mesh filename and PRT type here. */
+	/* mode should be UNSHADOWED, SHADOWED or INTERREFLECTED */
+	const std::string filename = "torii.obj";
+	const PRTMode mode = SHADOWED;
 
-	PRTMesh::bake(INTERREFLECTED, "torii.obj", "greenWhite.png", 40, 5, 1);
+	/* Check if baked file exists. If not, make one. */
+	const std::string bakedFilename = filename + "prt" + 
+		(mode == UNSHADOWED ? "u" :
+			mode == SHADOWED ? "s" : "i")
+		+ "5";
+	std::ifstream temp(bakedFilename);
+	if(!temp)
+		PRTMesh::bake(INTERREFLECTED, "torii.obj", "greenWhite.png", 40, 5, 1);
+
+	SHShader* shShader = new SHShader(false, "diffPRT");
 	PRTMesh* torii = new PRTMesh("torii.obj.prti5", shShader);
 	scene->add(torii);
 
+	/* A simple SH light source consisting of a pulse in the +ve x direction */
 	light = new SHLight(
 		[] (float theta, float phi) -> glm::vec3 
 		{
-			//float val = 0.2f;
 			float val = pulse(theta, phi, glm::vec3(1.0f, 0.0f, 0.0f), 4.0f, 3.0f);
-
 			return glm::vec3(val, val, val);
 		}
 	);
@@ -101,10 +109,13 @@ void display()
 	eTime = glutGet(GLUT_ELAPSED_TIME);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	scene->update(deTime);
+
+	/* Rotate SH light to theta, phi */
 	glm::mat4 rotation(1.0f);
 	rotation = glm::rotate(glm::mat4(1.0), phi, glm::vec3(1.0, 0.0, 0.0));
 	rotation = glm::rotate(rotation, theta, glm::vec3(0.0, 1.0, 0.0));
 	light->rotateCoeffts(rotation);
+
 	scene->render();
 	glutSwapBuffers();
 	glutPostRedisplay();
@@ -123,6 +134,7 @@ void keyboard(unsigned char key, int x, int y)
 {
 	scene->camera->keyboardInput(key, x, y);
 
+	/* Rotate the SH Light */
     switch (key)
     {
 	case 't':

@@ -16,8 +16,19 @@
 
 #include <iomanip>
 
-/* This file will contain the construction and rendering of the scene
- * I am working on right now. 
+/* SH Rotation Test Demo
+ * This demo plots two SH functions. The one on the left is reprojected from a 
+ *   rotated spherical function on each frame. The one on the right is having 
+ *   its coefficients rotated by the author's implementation of Ivanic's SH 
+ *   rotation. Both functions are recovered from SH coefficients and replotted
+ *   after every rotation. The functions may be rotated using the "tfgh" keys.
+ * If the SH rotation is working correctly, the two recovered functions should 
+ *   appear identical. Note that the application will run slowly when rotating,
+ *   due to the SH rotation, reprojection and (most importantly) plot mesh 
+ *   generation performed. Also, the left-hand function will "wobble" due to 
+ *   inaccuracies in the Monte Carlo projection method.
+ * Camera controlled by "wasd" and "ijkl" keys, with "c" switching
+ *   between "centered rotation" and "free view" modes.
  */
 
 int init();
@@ -192,16 +203,9 @@ void rotate()
 	reProj = SH::shProject(20, GC::nSHBands, 
 	[] (float theta, float phi) -> glm::vec3 
 	{
-		glm::vec3 dir
-			(
-			sin(theta) * cos(phi),
-			sin(theta) * sin(phi),
-			cos(theta)
-			);
-		dir = glm::mat3(rotation) * dir;
-		theta = acos(dir.z);
-		phi = atan2(dir.y, dir.x);
-		return glm::vec3(pulse(theta, phi, glm::vec3(1.0f, 0.0f, 0.0f), 4.0f, 1.0f));
+		return glm::vec3(pulse(theta, phi, 
+			glm::mat3(rotation) * glm::vec3(1.0f, 0.0f, 0.0f),
+			4.0f, 1.0f));
 	}
 	);
 
@@ -212,7 +216,7 @@ void rotate()
 	reProjected->replot(
 		[] (float theta, float phi) -> 
 		float {return SH::evaluate(reProj, theta, phi).x;}, 40);
-
+	
 	shRotated->replot(		
 		[] (float theta, float phi) -> 
 		float {return SH::evaluate(rotProj, theta, phi).x;}, 40);

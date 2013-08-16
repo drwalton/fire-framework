@@ -1,10 +1,6 @@
 #include "Scene.hpp"
 #include "Camera.hpp"
-#include "Particles.hpp"
-#include "Mesh.hpp"
-#include "AOMesh.hpp"
 #include "SH.hpp"
-#include "SHMat.hpp"
 #include "SphereFunc.hpp"
 #include "SpherePlot.hpp"
 
@@ -12,8 +8,11 @@
 #include <gtc/matrix_transform.hpp>
 #include <GL/glut.h>
 
-/* This file will contain the construction and rendering of the scene
- * I am working on right now. 
+/* SH Plot Demo
+ * Demo illustrating plotting of SH approximations to functions, as well
+ *   as displaying the first bands of the SH basis. 
+ * Camera controlled by "wasd" and "ijkl" keys, with "c" switching
+ *   between "centered rotation" and "free view" modes.
  */
 
 template <typename Fn>
@@ -90,7 +89,6 @@ int main(int argc, char** argv)
 	delete scene;
 }
 
-// Called by glutInit().
 int init()
 {
 	glClearColor(1.0, 1.0, 1.0, 1.0);
@@ -99,16 +97,71 @@ int init()
 	glEnable(GL_DEPTH_TEST);
 
 	scene = new Scene();
-	
-	plotApproximations( 
-	[] (float theta, float phi) -> float
+
+	std::cout << "Please choose demo:" << std::endl;
+	std::cout << ">  1. Plot of SH Basis functions" << std::endl;
+	std::cout << ">  2. Approximations to \"shell\" function" << std::endl;
+	std::cout << ">  3. Approximations to \"apple\" function" << std::endl;
+	std::cout << ">  4. Approximations to \"pulse\" function" << std::endl;
+	std::cout << ">  5. Approximations to \"patches\" function" << std::endl;
+	std::cout << ">  6. Approximations to \"swirls\" function" << std::endl;
+
+	int choice = -1;
+	while(!(
+		choice == 1 || 
+		choice == 2 || 
+		choice == 3 || 
+		choice == 4 || 
+		choice == 5 || 
+		choice == 6))
 	{
-		return phi / (2 * PI);
-	},
-		8, 1.5f, glm::vec3(-7.0, 0.0, 0.0));
+		std::cout << std::endl;
+		std::cout << "Please enter your choice: ";
+		std::cin >> choice;
+	}
 	
-	
-	//addSHArray(scene, glm::vec3(0.0f, -3.5, 0.0f), 7, 1.0f, 2.0f);
+	if(choice == 1) // SH Basis
+		addSHArray(scene, glm::vec3(0.0f, -3.5, 0.0f), 7, 1.0f, 2.0f);
+
+	else if(choice == 2) // Shell
+		plotApproximations( 
+		[] (float theta, float phi) -> float
+		{
+			return phi / (2 * PI);
+		},
+			8, 1.5f, glm::vec3(-7.0, 0.0, 0.0));
+
+	else if(choice == 3) // Apple
+		plotApproximations( 
+		[] (float theta, float phi) -> float
+		{
+			return theta / PI;
+		},
+			8, 1.5f, glm::vec3(-7.0, 0.0, 0.0));
+
+	else if(choice == 4) // Pulse
+		plotApproximations( 
+		[] (float theta, float phi) -> float
+		{
+			return pulse(theta, phi, glm::vec3(1.0f, 0.0f, 0.0f), 4.0f, 3.0f);
+		},
+			8, 1.5f, glm::vec3(-7.0, 0.0, 0.0));
+
+	else if(choice == 5) // Patches
+		plotApproximations( 
+		[] (float theta, float phi) -> float
+		{
+			return patches(theta, phi);
+		},
+			8, 3.0f, glm::vec3(-7.0, 0.0, 0.0));
+
+	else if(choice == 6) // Swirls
+		plotApproximations( 
+		[] (float theta, float phi) -> float
+		{
+			return swirls(theta, phi);
+		},
+			8, 3.0f, glm::vec3(-7.0, 0.0, 0.0));
 
 	return 1;
 }

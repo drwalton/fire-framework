@@ -128,6 +128,27 @@ void AdvectParticles::render()
 	glDepthMask(GL_TRUE);
 }
 
+void AdvectParticles::setShader(ParticleShader* shader)
+{
+	this->shader = shader;
+
+	shader->setBBTexUnit(bbTex->getTexUnit());
+	shader->setDecayTexUnit(decayTex->getTexUnit());
+
+	// Set up vertex buffer objects.
+	glGenBuffers(1, &particles_vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, particles_vbo);
+	glBufferData(GL_ARRAY_BUFFER, particles.size()*sizeof(AdvectParticle),
+		particles.data(), GL_DYNAMIC_DRAW);
+
+	// Set up uniforms.
+	shader->setBBWidth(bbWidth);
+	shader->setBBHeight(bbHeight);
+
+	pos_attrib = shader->getAttribLoc("vPos");
+	decay_attrib = shader->getAttribLoc("vDecay");
+}
+
 void AdvectParticles::update(int dTime)
 {
 	if(dTime > 1000) return; // Avoid updating if timestep excessive

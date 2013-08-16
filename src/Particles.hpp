@@ -23,7 +23,7 @@ public:
 		:Renderable(true), maxParticles(_maxParticles), shader(_shader) {};
 	ParticleShader* getParticleShader() {return shader;};
 	Shader* getShader() {return static_cast<Shader*>(shader);};
-	void setShader(ParticleShader* shader) {this->shader = shader;};
+	virtual void setShader(ParticleShader* shader) = 0;
 protected:
 	int maxParticles;
 	ParticleShader* shader;
@@ -66,6 +66,7 @@ public:
 
 	void render();
 	virtual void update(int dTime);
+	virtual void setShader(ParticleShader* shader);
 protected:
 	std::vector<AdvectParticle> particles;
 	int randi(int low, int high);

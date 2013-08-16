@@ -59,7 +59,7 @@ int main(int argc, char** argv)
 // Called by glutInit().
 int init()
 {
-	glClearColor(0.7f, 0.7f, 0.9f, 1.0f);
+	glClearColor(0.7f, 0.7f, 0.9f, 1.0f); // Light blue
 
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_DEPTH_TEST);
@@ -106,7 +106,7 @@ int init()
 
 	flame = new AdvectParticlesCentroidLights(
 		nFlameParticles, nFlameLights, lightClumpSize, hopInterval,
-		tShader, flameAlphaTex, flameDecayTex);
+		pShader, flameAlphaTex, flameDecayTex);
 
 	sparks = new AdvectParticles(
 		nSparkParticles, sShader, sparkAlphaTex, sparkDecayTex,
@@ -118,7 +118,7 @@ int init()
 		true, true);
 
 	smoke = new AdvectParticles(
-		nSmokeParticles, tShader, smokeAlphaTex, smokeDecayTex);
+		nSmokeParticles, pShader, smokeAlphaTex, smokeDecayTex);
 
 	flame->translate(glm::vec3(0.0f, 0.0f, 1.0f));
 	sparks->translate(glm::vec3(0.0f, 0.0f, 1.0f));

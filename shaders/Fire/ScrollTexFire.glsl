@@ -4,7 +4,7 @@
  */
 
 -- Vertex
-#version 330
+#version 430
 
 uniform mat4 modelToWorld;
 
@@ -25,7 +25,7 @@ void main()
 }
 
 -- Geometry
-#version 330
+#version 430
 
 uniform float bbWidth;
 uniform float bbHeight;
@@ -106,7 +106,7 @@ void main()
 }
 
 -- Fragment
-#version 330
+#version 430
 
 in float height;
 in vec2 texCoord;
@@ -128,7 +128,7 @@ void main()
 
 	float opacity = fade*fade*fade * ( decay < 0.3 ? decay : (1 - decay) );
 
-	float i = texture2D(bbTexture, texCoord).a * opacity;
+	float i = texture(bbTexture, texCoord).a * opacity;
 	if (i < 0.05) discard;
-	outputColor = vec4(texture2D(decayTexture, vec2(decay, 0.0)).xyz, i);
+	outputColor = vec4(texture(decayTexture, vec2(decay, 0.0)).xyz, i);
 }

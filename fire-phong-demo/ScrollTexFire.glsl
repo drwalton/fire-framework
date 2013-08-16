@@ -121,25 +121,14 @@ uniform sampler2D decayTexture;
 
 void main()
 {
-	vec4 blue = vec4(0.0251, 0.2157, 1.0, 0.2);
-	vec4 yellow = vec4(1.0, 0.8235, 0.2157, 1.0);
-	vec4 red = vec4(1.0, 0.6784, 0.2157, 0.0);
-	float t1 = 0.3;
-	float t2 = 0.9;
+	vec2 fromCenter = (bbPos - vec2(0.5, 0.5)) * 2.0;
+	float centerDistSq = clamp(dot(fromCenter, fromCenter), 0.0, 1.0);
 
-	float fromEdge = bbPos.x;
-	fromEdge = min(fromEdge, 1 - bbPos.x);
-	fromEdge = min(fromEdge, bbPos.y);
-	fromEdge = min(fromEdge, 1 - bbPos.y);
+	float fade = (1 - centerDistSq);
 
-	float opacity = 2 * fromEdge * ( decay < 0.3 ? decay : (1 - decay) );
+	float opacity = fade*fade*fade * ( decay < 0.3 ? decay : (1 - decay) );
 
 	float i = texture2D(bbTexture, texCoord).a * opacity;
 	if (i < 0.05) discard;
 	outputColor = vec4(texture2D(decayTexture, vec2(decay, 0.0)).xyz, i);
-}
-
-float min(float x, float y)
-{
-	return x <= y ? x : y;
 }
