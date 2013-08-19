@@ -12,6 +12,7 @@
 class Texture;
 class PhongLight;
 class SHLight;
+class ParticleShader;
 
 /* ParticleSystem
  * An ADT for a renderable object which is a particle system.
@@ -67,10 +68,15 @@ public:
 	void render();
 	virtual void update(int dTime);
 	virtual void setShader(ParticleShader* shader);
+	void setExtForce(const glm::vec3& extForce);
 protected:
 	std::vector<AdvectParticle> particles;
 	int randi(int low, int high);
 	float randf(float low, float high);
+
+	GLuint particles_vbo;
+	GLuint pos_attrib;
+	GLuint decay_attrib;
 private:
 	const int avgLifetime;
 	const int varLifetime;
@@ -86,12 +92,9 @@ private:
 
 	std::vector<glm::vec4> vel;
 	std::vector<glm::vec4> acn;
+	glm::vec4 extForce; //External force applied to all particles.
 	std::vector<int> time;
 	std::vector<int> lifeTime;
-
-	GLuint particles_vbo;
-	GLuint pos_attrib;
-	GLuint decay_attrib;
 
 	bool perturb_on;
 	bool init_perturb;
@@ -302,6 +305,33 @@ private:
 	void randomizeClumps();
 	std::vector<std::vector<int>> clumps;
 	glm::vec4 getParticleCentroid(const std::vector<int>& clump);
+};
+
+/* AdvectParticlesCentroidSHLights
+ * Copy of AdvectParticlesCentroidLights for SH lights.
+ */
+class AdvectParticlesSHCubemap : public AdvectParticles
+{
+public:
+	AdvectParticlesSHCubemap(
+		Renderable* targetObj,
+		int _maxParticles, ParticleShader* _shader, 
+		Texture* _bbTex, Texture* _decayTex);
+	AdvectParticlesSHCubemap(
+		Renderable* targetObj,
+		int _maxParticles, ParticleShader* _shader, 
+		Texture* _bbTex, Texture* _decayTex,
+		int avgLifetime, int varLifetime, 
+		glm::vec4 initAcn, glm::vec4 initVel,
+		int perturbChance, float perturbRadius,
+		float baseRadius, float centerForce,
+		float bbHeight, float bbWidth,
+		bool perturb_on, bool _init_perturb);
+private:
+	Renderable* targetObj;
+	ParticleShader* cubemapShader;
+	void init();
+	void renderCubemap();
 };
 
 #endif

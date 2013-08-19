@@ -3,6 +3,7 @@
 #include "Texture.hpp"
 #include "Scene.hpp"
 #include "SphereFunc.hpp"
+#include "Shader.hpp"
 
 #include <SOIL.h>
 #include <GL/glut.h>
@@ -20,6 +21,7 @@ AdvectParticles::AdvectParticles(int _maxParticles,
 	 centerForce(0.000003f),
 	 baseRadius(0.2f),
 	 bbHeight(0.3f), bbWidth(0.3f),
+	 extForce(glm::vec4(0.0f)),
 	 perturb_on(true), init_perturb(false),
 	 cameraDir(glm::vec3(0.0, 0.0, -1.0))
 {init(bbTex, decayTex);}
@@ -43,6 +45,7 @@ AdvectParticles::AdvectParticles(int _maxParticles,
 	 centerForce(_centerForce),
 	 baseRadius(_baseRadius),
 	 bbHeight(_bbHeight), bbWidth(_bbWidth),
+	 extForce(glm::vec4(0.0f)),
 	 perturb_on(_perturb_on), init_perturb(_init_perturb),
 	 cameraDir(glm::vec3(0.0, 0.0, -1.0))
 {init(bbTex, decayTex);}
@@ -157,6 +160,15 @@ void AdvectParticles::update(int dTime)
 		updateParticle(i, dTime);
 }
 
+void AdvectParticles::setExtForce(const glm::vec3& extForce)
+{
+	this->extForce = glm::vec4(
+							extForce.x,
+							extForce.y,
+							extForce.z,
+							0.0f);
+}
+
 void AdvectParticles::updateParticle(int index, int dTime)
 {
 	time[index] += dTime;
@@ -166,13 +178,15 @@ void AdvectParticles::updateParticle(int index, int dTime)
 	if(time[index] % perturbChance == 1 && perturb_on)
 		vel[index] = perturb(vel[index]);
 
-	vel[index] += (float) dTime *
+	vel[index] += static_cast<float>(dTime) *
 		(acn[index] + (glm::vec4(
 			-particles[index].pos.x,
 			0.0,
 			-particles[index].pos.z,
 			0.0)
 			* centerForce));
+
+	vel[index] += static_cast<float>(dTime) * extForce;
 	particles[index].pos += (float) dTime * vel[index];
 }
 
@@ -668,4 +682,38 @@ glm::vec4 AdvectParticlesCentroidSHLights::getParticleCentroid(
 	for(auto i = clump.begin(); i != clump.end(); ++i)
 		sum += particles[*i].pos;
 	return sum / (float) clump.size();
+}
+
+AdvectParticlesSHCubemap::AdvectParticlesSHCubemap(
+	Renderable* targetObj,
+	int maxParticles, ParticleShader* shader, 
+	Texture* bbTex, Texture* decayTex)
+	:AdvectParticles(maxParticles, shader, bbTex, decayTex),
+	 targetObj(targetObj)
+{ init(); }
+
+AdvectParticlesSHCubemap::AdvectParticlesSHCubemap(
+	Renderable* targetObj,
+	int _maxParticles, ParticleShader* _shader, 
+	Texture* _bbTex, Texture* _decayTex,
+	int avgLifetime, int varLifetime, 
+	glm::vec4 initAcn, glm::vec4 initVel,
+	int perturbChance, float perturbRadius,
+	float baseRadius, float centerForce,
+	float bbHeight, float bbWidth,
+	bool perturb_on, bool _init_perturb)
+	:AdvectParticles(_maxParticles, 
+	 _shader, _bbTex, _decayTex,
+	 avgLifetime, varLifetime, 
+	 initAcn, initVel,
+	 perturbChance, perturbRadius,
+	 baseRadius, centerForce,
+	 bbHeight, bbWidth,
+	 perturb_on, _init_perturb),
+	 targetObj(targetObj)
+{ init(); }
+
+void AdvectParticlesSHCubemap::init()
+{
+
 }

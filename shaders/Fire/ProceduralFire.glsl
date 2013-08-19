@@ -51,7 +51,6 @@ in VertexData {
 } VertexIn[];
 
 out float decay;
-
 out float height;
 out vec2 texCoord;
 out vec2 bbPos;

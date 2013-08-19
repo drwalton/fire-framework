@@ -39,7 +39,7 @@ bin/
 *.cache
 
 
-prt-rotate-demo/*.glsl
+*-demo/*.glsl
 Debug/*
 Release/*
 
