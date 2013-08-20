@@ -743,6 +743,7 @@ void AdvectParticlesSHCubemap::onAdd()
 void AdvectParticlesSHCubemap::init()
 {
 	cubeTexUnit = Texture::genTexUnit();
+	cubemapShader = new CubemapShader(true, false, "FireLight");
 
 	glGenFramebuffers(1, &framebuffer);
 	glGenRenderbuffers(1, &renderbuffer);
