@@ -882,6 +882,10 @@ glm::vec3 AdvectParticlesSHCubemap::cubemapLookup(float theta, float phi)
 		break;
 	}
 
+	//Move from [-1,1] range to [0,1] range.
+	s = (s + 1.0f) / 2.0f;
+	t = (t + 1.0f) / 2.0f;
+
 	//Find integer pixel coords:
 	int s_p = static_cast<int>(s * (GC::cubemapSize-1));
 	int t_p = static_cast<int>(t * (GC::cubemapSize-1));
