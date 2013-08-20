@@ -4,13 +4,13 @@
  */
 
 -- Vertex
-#version 330
+#version 430
 
 uniform mat4 modelToWorld;
 
 in vec4 vPos;
 in float vDecay;
-in float randTex;
+in float vRandTex;
 
 out VertexData{
 	float decay;
@@ -20,12 +20,12 @@ out VertexData{
 void main()
 {
 	VertexOut.decay = vDecay;
-	VertexOut.randTex = randTex;
+	VertexOut.randTex = vRandTex;
 	gl_Position = modelToWorld * vPos;
 }
 
 -- Geometry
-#version 330
+#version 430
 
 uniform float bbWidth;
 uniform float bbHeight;
@@ -106,7 +106,7 @@ void main()
 }
 
 -- Fragment
-#version 330
+#version 430
 
 in float height;
 in vec2 texCoord;
@@ -128,7 +128,7 @@ void main()
 
 	float opacity = fade*fade*fade * ( decay < 0.3 ? decay : (1 - decay) );
 
-	float i = texture2D(bbTexture, texCoord).a * opacity;
+	float i = texture(bbTexture, texCoord).a * opacity;
 	if (i < 0.05) discard;
-	outputColor = vec4(texture2D(decayTexture, vec2(decay, 0.0)).xyz, i);
+	outputColor = vec4(texture(decayTexture, vec2(decay, 0.0)).xyz, i);
 }

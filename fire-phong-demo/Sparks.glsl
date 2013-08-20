@@ -5,7 +5,7 @@
  */
 
 -- Vertex
-#version 330
+#version 430
 
 uniform mat4 modelToWorld;
 
@@ -23,7 +23,7 @@ void main()
 }
 
 -- Geometry
-#version 330
+#version 430
 
 uniform float bbWidth;
 uniform float bbHeight;
@@ -91,7 +91,7 @@ void main()
 	EndPrimitive();
 }
 -- Fragment
-#version 330
+#version 430
 
 in float height;
 in vec2 texCoord;
@@ -105,8 +105,8 @@ uniform sampler2D decayTexture;
 
 void main()
 {
-	float opacity = decay < 0.7 ? 1.0 : (1 - decay);
-	float i = texture2D(bbTexture, texCoord).a * opacity;
+	float opacity = decay < 0.5 ? 1.0 : (1 - decay);
+	float i = texture(bbTexture, texCoord).a * opacity;
 	if (i < 0.1) discard;
 	outputColor = vec4(texture(decayTexture, vec2(decay, 0.0)).xyz, i);
 }

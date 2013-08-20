@@ -20,7 +20,7 @@ out VertexData{
 void main()
 {
 	VertexOut.decay = vDecay;
-	VertexOut.randTex = randTex;
+	VertexOut.randTex = vRandTex;
 	gl_Position = modelToWorld * vPos;
 }
 

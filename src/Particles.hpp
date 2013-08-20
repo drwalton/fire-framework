@@ -56,7 +56,7 @@ class AdvectParticles : public ParticleSystem
 {
 public:
 	AdvectParticles(int _maxParticles, ParticleShader* _shader,
-		Texture* _bbTex, Texture* _decayTex);
+		Texture* _bbTex, Texture* _decayTex, bool texScrolls = true);
 	AdvectParticles(int _maxParticles, ParticleShader* _shader,
 		Texture* _bbTex, Texture* _decayTex,
 		int avgLifetime, int varLifetime, 
@@ -64,7 +64,7 @@ public:
 		int perturbChance, float perturbRadius,
 		float baseRadius, float centerForce,
 		float bbHeight, float bbWidth,
-		bool perturb_on, bool _init_perturb);
+		bool perturb_on, bool _init_perturb, bool texScrolls = true);
 
 	void render();
 	virtual void update(int dTime);
@@ -106,7 +106,7 @@ private:
 
 	void updateParticle(int index, int dTime);
 	void spawnParticle(int index);
-	void init(Texture* bbTex, Texture* decayTex);
+	void init(Texture* bbTex, Texture* decayTex, bool texScrolls);
 
 	glm::vec4 perturb(glm::vec4 input);
 	glm::vec4 randInitPos();

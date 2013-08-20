@@ -10,7 +10,7 @@
 
 AdvectParticles::AdvectParticles(int _maxParticles,
 	ParticleShader* _shader, 
-	Texture* _bbTex, Texture* _decayTex)
+	Texture* _bbTex, Texture* _decayTex, bool texScrolls)
 	:ParticleSystem(_maxParticles, _shader),
 	 bbTex(_bbTex), decayTex(_decayTex),
 	 avgLifetime(3000), varLifetime(200),
@@ -24,7 +24,7 @@ AdvectParticles::AdvectParticles(int _maxParticles,
 	 extForce(glm::vec4(0.0f)),
 	 perturb_on(true), init_perturb(false),
 	 cameraDir(glm::vec3(0.0, 0.0, -1.0))
-{init(bbTex, decayTex);}
+{init(bbTex, decayTex, texScrolls);}
 
 AdvectParticles::AdvectParticles(int _maxParticles,
 	ParticleShader* _shader, 
@@ -34,7 +34,7 @@ AdvectParticles::AdvectParticles(int _maxParticles,
 	int _perturbChance, float _perturbRadius,
 	float _baseRadius, float _centerForce,
 	float _bbHeight, float _bbWidth,
-	bool _perturb_on, bool _init_perturb)
+	bool _perturb_on, bool _init_perturb,  bool texScrolls)
 	:ParticleSystem(_maxParticles, _shader),
      bbTex(_bbTex), decayTex(_decayTex),
 	 avgLifetime(_avgLifetime), varLifetime(_varLifetime),
@@ -48,9 +48,9 @@ AdvectParticles::AdvectParticles(int _maxParticles,
 	 extForce(glm::vec4(0.0f)),
 	 perturb_on(_perturb_on), init_perturb(_init_perturb),
 	 cameraDir(glm::vec3(0.0, 0.0, -1.0))
-{init(bbTex, decayTex);}
+{init(bbTex, decayTex, texScrolls);}
 
-void AdvectParticles::init(Texture* bbTex, Texture* decayTex)
+void AdvectParticles::init(Texture* bbTex, Texture* decayTex, bool texScrolls)
 {
 
 	shader->use();
@@ -90,7 +90,7 @@ void AdvectParticles::init(Texture* bbTex, Texture* decayTex)
 
 	pos_attrib = shader->getAttribLoc("vPos");
 	decay_attrib = shader->getAttribLoc("vDecay");
-	randTex_attrib = shader->getAttribLoc("vRandTex");
+	if(texScrolls) randTex_attrib = shader->getAttribLoc("vRandTex");
 }
 
 void AdvectParticles::render()
@@ -893,7 +893,7 @@ glm::vec3 AdvectParticlesSHCubemap::cubemapLookup(float theta, float phi)
 	return glm::vec3(col);
 }
 
-int findFace(glm::vec3 dir)
+int AdvectParticlesSHCubemap::findFace(glm::vec3 dir)
 {
 	if(abs(dir.x) >= abs(dir.y) && abs(dir.x) >= abs(dir.z)) //x
 	{

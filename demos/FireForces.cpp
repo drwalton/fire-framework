@@ -116,7 +116,7 @@ int init()
 		sparkPerturbChance, sparkPerturbRadius,
 		sparkBaseRadius, sparkCenterForce,
 		sparkBBHeight, sparkBBWidth,
-		true, true);
+		true, true, false);
 
 	flame->translate(glm::vec3(0.0f, 0.0f, 1.0f));
 	sparks->translate(glm::vec3(0.0f, 0.0f, 1.0f));

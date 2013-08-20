@@ -8,8 +8,9 @@
 #include <GL/glut.h>
 #include <gtc/matrix_transform.hpp>
 
-/* This file will contain the construction and rendering of the scene
- * I am working on right now. 
+/* Phong Fire Demo
+ * Demo displays a textured mesh illuminated by a fire using Phong lighting
+ * with centroid lights.
  */
 
 int init();
@@ -115,7 +116,7 @@ int init()
 		sparkPerturbChance, sparkPerturbRadius,
 		sparkBaseRadius, sparkCenterForce,
 		sparkBBHeight, sparkBBWidth,
-		true, true);
+		true, true, false);
 
 	smoke = new AdvectParticles(
 		nSmokeParticles, pShader, smokeAlphaTex, smokeDecayTex);
