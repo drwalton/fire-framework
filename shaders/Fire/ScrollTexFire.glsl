@@ -10,7 +10,7 @@ uniform mat4 modelToWorld;
 
 in vec4 vPos;
 in float vDecay;
-in float randTex;
+in float vRandTex;
 
 out VertexData{
 	float decay;

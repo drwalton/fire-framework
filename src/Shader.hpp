@@ -93,6 +93,15 @@ private:
 	GLuint decayTex_u;
 };
 
+class CubemapShader : public ParticleShader
+{
+public:
+	CubemapShader(bool hasGeomShader, bool hasBBTex, const std::string& filename);
+	void setWorldToObject(const glm::mat4& worldToObject);
+private:
+	GLuint worldToObject_u;
+};
+
 /* LightShader
  * A Shader with additional setters for uniforms related to light sources.
  * Designed for objects illuminated by ambient, point and directional lights

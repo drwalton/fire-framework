@@ -312,6 +312,22 @@ void ParticleShader::setDecayTexUnit(GLuint _decayTexUnit)
 	glUseProgram(0);
 }
 
+CubemapShader::CubemapShader(
+	bool hasGeomShader, bool hasBBTex, const std::string& filename)
+	:ParticleShader(hasGeomShader, hasBBTex, filename)
+{
+	use();
+	worldToObject_u = getUniformLoc("worldToObject");
+	glUseProgram(0);
+}
+
+void CubemapShader::setWorldToObject(const glm::mat4& worldToObject)
+{
+	use();
+	glUniformMatrix4fv(worldToObject_u, 1, GL_FALSE, &(worldToObject[0][0]));
+	glUseProgram(0);
+}
+
 SHShader::SHShader(bool hasGeomShader,  const std::string& filename)
 	:Shader(hasGeomShader, filename, SH_SUBS)
 {

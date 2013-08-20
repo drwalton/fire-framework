@@ -19,6 +19,7 @@ namespace GC
 	const int maxSHLights = 10;
 	const int nSHBounces = 5;
 	const bool jitterSamples = true;
+	const int cubemapSize = 256;
 
 	/* AO */
 	const int sqrtAOSamples = 10;

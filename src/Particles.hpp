@@ -34,6 +34,7 @@ struct AdvectParticle
 {
 	glm::vec4 pos;
 	GLfloat decay;
+	GLfloat randTex;
 };
 
 
@@ -77,6 +78,10 @@ protected:
 	GLuint particles_vbo;
 	GLuint pos_attrib;
 	GLuint decay_attrib;
+	GLuint randTex_attrib;
+
+	Texture* bbTex;
+	Texture* decayTex;
 private:
 	const int avgLifetime;
 	const int varLifetime;
@@ -98,9 +103,6 @@ private:
 
 	bool perturb_on;
 	bool init_perturb;
-
-	Texture* bbTex;
-	Texture* decayTex;
 
 	void updateParticle(int index, int dTime);
 	void spawnParticle(int index);
@@ -327,11 +329,21 @@ public:
 		float baseRadius, float centerForce,
 		float bbHeight, float bbWidth,
 		bool perturb_on, bool _init_perturb);
+	void update(int dTime);
+	void onAdd();
 private:
 	Renderable* targetObj;
-	ParticleShader* cubemapShader;
+	CubemapShader* cubemapShader;
+	SHLight* light;
 	void init();
 	void renderCubemap();
+	void updateLight();
+	glm::vec3 cubemapLookup(float theta, float phi);
+	int findFace(glm::vec3 dir);
+	GLuint cubeTex;
+	GLuint cubeTexUnit;
+	GLuint framebuffer;
+	GLuint renderbuffer;
 };
 
 #endif

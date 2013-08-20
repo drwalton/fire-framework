@@ -61,9 +61,11 @@ void AdvectParticles::init(Texture* bbTex, Texture* decayTex)
 		AdvectParticle p;
 		p.pos = randInitPos();
 		p.decay = 0.0f;
+		p.randTex = randf(0.0f, 1.0f);
 		particles.push_back(p);
 
 		time.push_back(0);
+		// Evenly spacing lifetimes so system stabilises quicly.
 		lifeTime.push_back((avgLifetime * i) / maxParticles);
 		acn.push_back(initAcn);
 		
@@ -88,6 +90,7 @@ void AdvectParticles::init(Texture* bbTex, Texture* decayTex)
 
 	pos_attrib = shader->getAttribLoc("vPos");
 	decay_attrib = shader->getAttribLoc("vDecay");
+	randTex_attrib = shader->getAttribLoc("vRandTex");
 }
 
 void AdvectParticles::render()
@@ -110,6 +113,7 @@ void AdvectParticles::render()
 
 	glEnableVertexAttribArray(pos_attrib);
 	glEnableVertexAttribArray(decay_attrib);
+	glEnableVertexAttribArray(randTex_attrib);
 
 	glBindVertexBuffer(0, particles_vbo, 0, sizeof(AdvectParticle));
 	glVertexAttribFormat(pos_attrib, 4, GL_FLOAT, GL_FALSE,
@@ -118,6 +122,9 @@ void AdvectParticles::render()
 	glVertexAttribFormat(decay_attrib, 1, GL_FLOAT, GL_FALSE,
 		offsetof(AdvectParticle, decay));
 	glVertexAttribBinding(decay_attrib, 0);
+	glVertexAttribFormat(randTex_attrib, 1, GL_FLOAT, GL_FALSE,
+		offsetof(AdvectParticle, randTex));
+	glVertexAttribBinding(randTex_attrib, 0);
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	
@@ -125,6 +132,7 @@ void AdvectParticles::render()
 
 	glDisableVertexAttribArray(pos_attrib);
 	glDisableVertexAttribArray(decay_attrib);
+	glDisableVertexAttribArray(randTex_attrib);
 
 	glUseProgram(0);
 	glDisable(GL_BLEND);
@@ -198,6 +206,7 @@ void AdvectParticles::spawnParticle(int index)
 	acn[index] = initAcn;
 	vel[index] = initVel;
 	particles[index].pos = randInitPos();
+	particles[index].randTex = randf(0.0f, 1.0f);
 }
 
 glm::vec4 AdvectParticles::randInitPos()
@@ -713,7 +722,189 @@ AdvectParticlesSHCubemap::AdvectParticlesSHCubemap(
 	 targetObj(targetObj)
 { init(); }
 
+void AdvectParticlesSHCubemap::update(int dTime)
+{
+	AdvectParticles::update(dTime);
+	renderCubemap();
+	updateLight();
+}
+
+void AdvectParticlesSHCubemap::onAdd()
+{
+	renderCubemap();
+	light = scene->add(new SHLight(
+			[this] (float theta, float phi) -> glm::vec3
+			{
+				return this->cubemapLookup(theta, phi);
+			}));
+	if(light == nullptr) std::cout << "Warning: SH light could not be added.\n"; 
+}
+
 void AdvectParticlesSHCubemap::init()
 {
+	cubeTexUnit = Texture::genTexUnit();
 
+	glGenFramebuffers(1, &framebuffer);
+	glGenRenderbuffers(1, &renderbuffer);
+	glBindRenderbuffer(GL_RENDERBUFFER, renderbuffer);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, GC::cubemapSize, GC::cubemapSize);
+	glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+	glGenTextures(1, &cubeTex);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, cubeTex);
+
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_BASE_LEVEL, 0);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAX_LEVEL, 0);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+}
+
+void AdvectParticlesSHCubemap::renderCubemap()
+{
+	if(!scene || !targetObj) return;
+
+	// Store current state
+	GLfloat clearCol[4];
+	GLint viewport[4];
+	GLboolean faceCull = GL_TRUE;
+	GLboolean blend = GL_FALSE;
+	GLint blendFn = GL_ONE;
+	glGetFloatv(GL_COLOR_CLEAR_VALUE, clearCol);
+	glGetIntegerv(GL_VIEWPORT, viewport);
+	glGetBooleanv(GL_CULL_FACE, &faceCull);
+	glGetBooleanv(GL_BLEND, &blend);
+	glGetIntegerv(GL_BLEND_SRC_ALPHA, &blendFn);
+
+	//Set new state
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	glViewport(0,0,GC::cubemapSize, GC::cubemapSize);
+	glDisable(GL_CULL_FACE);
+	glEnable(GL_BLEND); 
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	//Set uniforms
+	cubemapShader->setModelToWorld(modelToWorld);
+	cubemapShader->setBBTexUnit(bbTex->getTexUnit());
+	cubemapShader->setDecayTexUnit(decayTex->getTexUnit());
+	glm::mat4 worldToObject = glm::inverse(targetObj->getModelToWorld());
+	cubemapShader->setWorldToObject(worldToObject);
+
+	cubemapShader->use();
+
+	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+		GL_RENDERBUFFER, renderbuffer);
+	
+	glBindBuffer(GL_ARRAY_BUFFER, particles_vbo);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, particles.size()*sizeof(AdvectParticle),
+		particles.data());
+
+	glEnableVertexAttribArray(pos_attrib);
+	glEnableVertexAttribArray(decay_attrib);
+
+	glBindVertexBuffer(0, particles_vbo, 0, sizeof(AdvectParticle));
+	glVertexAttribFormat(pos_attrib, 4, GL_FLOAT, GL_FALSE,
+		offsetof(AdvectParticle, pos));
+	glVertexAttribBinding(pos_attrib, 0);
+	glVertexAttribFormat(decay_attrib, 1, GL_FLOAT, GL_FALSE,
+		offsetof(AdvectParticle, decay));
+	glVertexAttribBinding(decay_attrib, 0);
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	
+	glDrawArrays(GL_POINTS, 0, particles.size());
+
+	glDisableVertexAttribArray(pos_attrib);
+	glDisableVertexAttribArray(decay_attrib);
+
+	//Restore state
+	glClearColor(clearCol[0], clearCol[1], clearCol[2], clearCol[3]);
+	glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
+	if(faceCull == GL_TRUE) glEnable(GL_CULL_FACE);
+	else glDisable(GL_CULL_FACE);
+	if(blend == GL_TRUE) glEnable(GL_BLEND);
+	else glDisable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, blendFn);
+
+	glUseProgram(0);
+}
+
+void AdvectParticlesSHCubemap::updateLight()
+{
+	// Set light coeffts to SH projection of cubemap.
+	light->setCoeffts(
+		SH::shProject(GC::sqrtSHSamples, GC::nSHBands,
+			[this] (float theta, float phi) -> glm::vec3
+			{
+				return this->cubemapLookup(theta, phi);
+			}
+	));
+}
+
+glm::vec3 AdvectParticlesSHCubemap::cubemapLookup(float theta, float phi)
+{
+	glm::vec3 dir(
+		sin(theta) * cos(phi),
+		sin(theta) * sin(phi),
+		cos(theta));
+
+	int face = findFace(dir);
+	float s, t;
+
+	// Find texture coordinates.
+	switch(face)
+	{
+	case 0: //+ve x
+		s = -dir.z / dir.x;
+		t = dir.y / dir.x;
+		break;
+	case 1: //-ve x
+		s = dir.z / dir.x;
+		t = dir.y / dir.x;
+		break;
+	case 2: //+ve y
+		s = dir.x / dir.y;
+		t = -dir.z / dir.y;
+		break;
+	case 3: //-ve y
+		s = dir.x / dir.y;
+		t = dir.z / dir.y;
+		break;
+	case 4: //+ve z
+		s = dir.x / dir.z;
+		t = dir.y / dir.z;
+		break;
+	case 5: //-ve z
+		s = -dir.x / dir.z;
+		t = dir.y / dir.z;
+		break;
+	}
+
+	//Find integer pixel coords:
+	int s_p = static_cast<int>(s * (GC::cubemapSize-1));
+	int t_p = static_cast<int>(t * (GC::cubemapSize-1));
+
+	glm::vec4 col;
+	glFramebufferTexture(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, cubeTex, face);
+	glReadPixels(s_p, t_p, 1, 1, GL_RGBA, GL_FLOAT, &(col.x));
+
+	return glm::vec3(col);
+}
+
+int findFace(glm::vec3 dir)
+{
+	if(abs(dir.x) >= abs(dir.y) && abs(dir.x) >= abs(dir.z)) //x
+	{
+		return dir.x >= 0.0f ? 0 : 1;
+	}
+	else if(abs(dir.y) >= abs(dir.z)) //y
+	{
+		return dir.y >= 0.0f ? 2 : 3;
+	}
+	else //z
+	{
+		return dir.z >= 0.0f ? 4 : 5;
+	}
 }
