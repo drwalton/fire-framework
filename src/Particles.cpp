@@ -8,13 +8,13 @@
 #include <SOIL.h>
 #include <GL/glut.h>
 
-AdvectParticles::AdvectParticles(int _maxParticles,
-	ParticleShader* _shader, 
-	Texture* _bbTex, Texture* _decayTex, bool texScrolls, bool additive)
-	:ParticleSystem(_maxParticles, _shader),
-	 bbTex(_bbTex), decayTex(_decayTex),
+AdvectParticles::AdvectParticles(int maxParticles,
+	ParticleShader* shader, 
+	Texture* bbTex, Texture* decayTex, bool texScrolls, bool additive)
+	:ParticleSystem(maxParticles, shader),
+	 bbTex(bbTex), decayTex(decayTex),
 	 avgLifetime(3000), varLifetime(200),
-	 perturbChance(20),
+	 avgPerturbTime(1000), varPerturbTime(100),
 	 initAcn(glm::vec4(0.0, 0.0000004, 0.0, 0.0)),
 	 initVel(glm::vec4(0.0, 0.0, 0.0, 0.0)),
 	 perturbRadius(0.0001f),
@@ -22,32 +22,32 @@ AdvectParticles::AdvectParticles(int _maxParticles,
 	 baseRadius(0.2f),
 	 bbHeight(0.3f), bbWidth(0.3f),
 	 extForce(glm::vec4(0.0f)),
-	 perturb_on(true), init_perturb(false),
+	 perturbOn(true), initPerturb(false),
 	 cameraDir(glm::vec3(0.0, 0.0, -1.0)),
 	 additive(additive)
 {init(bbTex, decayTex, texScrolls);}
 
-AdvectParticles::AdvectParticles(int _maxParticles,
-	ParticleShader* _shader, 
-	Texture* _bbTex, Texture* _decayTex,
-	int _avgLifetime, int _varLifetime, 
-	glm::vec4 _initAcn, glm::vec4 _initVel,
-	int _perturbChance, float _perturbRadius,
-	float _baseRadius, float _centerForce,
-	float _bbHeight, float _bbWidth,
-	bool _perturb_on, bool _init_perturb,  bool texScrolls, bool additive)
-	:ParticleSystem(_maxParticles, _shader),
-     bbTex(_bbTex), decayTex(_decayTex),
-	 avgLifetime(_avgLifetime), varLifetime(_varLifetime),
-	 perturbChance(_perturbChance),
-	 initAcn(_initAcn),
-	 initVel(_initVel),
-	 perturbRadius(_perturbRadius),
-	 centerForce(_centerForce),
-	 baseRadius(_baseRadius),
-	 bbHeight(_bbHeight), bbWidth(_bbWidth),
+AdvectParticles::AdvectParticles(int maxParticles,
+	ParticleShader* shader, 
+	Texture* bbTex, Texture* decayTex,
+	int avgLifetime, int varLifetime, 
+	glm::vec4 initAcn, glm::vec4 initVel,
+	int avgPerturbTime, int varPerturbTime, float _perturbRadius,
+	float baseRadius, float centerForce,
+	float bbHeight, float bbWidth,
+	bool perturbOn, bool initPerturb, bool texScrolls, bool additive)
+	:ParticleSystem(maxParticles, shader),
+     bbTex(bbTex), decayTex(decayTex),
+	 avgLifetime(avgLifetime), varLifetime(varLifetime),
+	 avgPerturbTime(avgPerturbTime), varPerturbTime(varPerturbTime),
+	 initAcn(initAcn),
+	 initVel(initVel),
+	 perturbRadius(perturbRadius),
+	 centerForce(centerForce),
+	 baseRadius(baseRadius),
+	 bbHeight(bbHeight), bbWidth(bbWidth),
 	 extForce(glm::vec4(0.0f)),
-	 perturb_on(_perturb_on), init_perturb(_init_perturb),
+	 perturbOn(perturbOn), initPerturb(initPerturb),
 	 cameraDir(glm::vec3(0.0, 0.0, -1.0)),
 	 additive(additive)
 {init(bbTex, decayTex, texScrolls);}
@@ -71,7 +71,10 @@ void AdvectParticles::init(Texture* bbTex, Texture* decayTex, bool texScrolls)
 		lifeTime.push_back((avgLifetime * i) / maxParticles);
 		acn.push_back(initAcn);
 		
-		if(init_perturb) vel.push_back(perturb(initVel));
+		perturbCounter.push_back(0);
+		perturbTime.push_back(avgPerturbTime + randi(-varPerturbTime, varPerturbTime)); 
+
+		if(initPerturb) vel.push_back(perturb(initVel));
 		else vel.push_back(initVel);
 	}
 
@@ -107,7 +110,7 @@ void AdvectParticles::render()
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	shader->setModelToWorld(modelToWorld);
-
+	shader->setAlpha(alpha);
 	shader->setBBTexUnit(bbTex->getTexUnit());
 	shader->setDecayTexUnit(decayTex->getTexUnit());
 
@@ -188,9 +191,14 @@ void AdvectParticles::updateParticle(int index, int dTime)
 	time[index] += dTime;
 	if(time[index] > lifeTime[index]) spawnParticle(index);
 	particles[index].decay = ((float) time[index]) / ((float) lifeTime[index]);
+	perturbCounter[index] += dTime;
 
-	if(time[index] % perturbChance == 1 && perturb_on)
+	if(perturbCounter[index] >= perturbTime[index] && perturbOn)
+	{
+		perturbCounter[index] = 0;
+		perturbTime[index] = avgPerturbTime + randi(-varPerturbTime, varPerturbTime);
 		vel[index] = perturb(vel[index]);
+	}
 
 	vel[index] += static_cast<float>(dTime) *
 		(acn[index] + (glm::vec4(
@@ -208,6 +216,8 @@ void AdvectParticles::spawnParticle(int index)
 {
 	time[index] = 0;
 	lifeTime[index] = avgLifetime + randi(-varLifetime, +varLifetime);
+	perturbCounter[index] = 0;
+	perturbTime[index] = avgPerturbTime + randi(-varPerturbTime, varPerturbTime);
 	particles[index].decay = 0.0;
 	acn[index] = initAcn;
 	vel[index] = initVel;
@@ -259,7 +269,7 @@ AdvectParticlesLights::AdvectParticlesLights(
 	Texture* _bbTex, Texture* _decayTex,
 	int avgLifetime, int varLifetime, 
 	glm::vec4 initAcn, glm::vec4 initVel,
-	int perturbChance, float perturbRadius,
+	int avgPerturbTime, int varPerturbTime, float perturbRadius,
 	float baseRadius, float centerForce,
 	float bbHeight, float bbWidth,
 	bool perturb_on, bool _init_perturb)
@@ -267,7 +277,7 @@ AdvectParticlesLights::AdvectParticlesLights(
 	 _shader, _bbTex, _decayTex,
 	 avgLifetime, varLifetime, 
 	 initAcn, initVel,
-	 perturbChance, perturbRadius,
+	 avgPerturbTime, varPerturbTime, perturbRadius,
 	 baseRadius, centerForce,
 	 bbHeight, bbWidth,
 	 perturb_on, _init_perturb),
@@ -324,7 +334,7 @@ AdvectParticlesRandLights::AdvectParticlesRandLights(
 	Texture* _bbTex, Texture* _decayTex,
 	int avgLifetime, int varLifetime, 
 	glm::vec4 initAcn, glm::vec4 initVel,
-	int perturbChance, float perturbRadius,
+	int avgPerturbTime, int varPerturbTime, float perturbRadius,
 	float baseRadius, float centerForce,
 	float bbHeight, float bbWidth,
 	bool perturb_on, bool _init_perturb)
@@ -333,7 +343,7 @@ AdvectParticlesRandLights::AdvectParticlesRandLights(
 	_bbTex, _decayTex,
 	avgLifetime, varLifetime, 
 	initAcn, initVel,
-	perturbChance, perturbRadius,
+	 avgPerturbTime, varPerturbTime, perturbRadius,
 	baseRadius, centerForce,
 	bbHeight, bbWidth,
 	perturb_on, _init_perturb),
@@ -392,7 +402,7 @@ AdvectParticlesCentroidLights::AdvectParticlesCentroidLights(
 	Texture* _bbTex, Texture* _decayTex,
 	int avgLifetime, int varLifetime, 
 	glm::vec4 initAcn, glm::vec4 initVel,
-	int perturbChance, float perturbRadius,
+	int avgPerturbTime, int varPerturbTime, float perturbRadius,
 	float baseRadius, float centerForce,
 	float bbHeight, float bbWidth,
 	bool perturb_on, bool _init_perturb)
@@ -401,7 +411,7 @@ AdvectParticlesCentroidLights::AdvectParticlesCentroidLights(
 		_bbTex, _decayTex,
 		avgLifetime, varLifetime, 
 		initAcn, initVel,
-		perturbChance, perturbRadius,
+		avgPerturbTime, varPerturbTime, perturbRadius,
 		baseRadius, centerForce,
 		bbHeight, bbWidth,
 		perturb_on, _init_perturb),
@@ -474,7 +484,7 @@ AdvectParticlesSHLights::AdvectParticlesSHLights(
 	Texture* _bbTex, Texture* _decayTex,
 	int avgLifetime, int varLifetime, 
 	glm::vec4 initAcn, glm::vec4 initVel,
-	int perturbChance, float perturbRadius,
+	int avgPerturbTime, int varPerturbTime, float perturbRadius,
 	float baseRadius, float centerForce,
 	float bbHeight, float bbWidth,
 	bool perturb_on, bool _init_perturb)
@@ -482,7 +492,7 @@ AdvectParticlesSHLights::AdvectParticlesSHLights(
 	 _shader, _bbTex, _decayTex,
 	 avgLifetime, varLifetime, 
 	 initAcn, initVel,
-	 perturbChance, perturbRadius,
+	 avgPerturbTime, varPerturbTime, perturbRadius,
 	 baseRadius, centerForce,
 	 bbHeight, bbWidth,
 	 perturb_on, _init_perturb),
@@ -554,7 +564,7 @@ AdvectParticlesRandSHLights::AdvectParticlesRandSHLights(
 	Texture* _bbTex, Texture* _decayTex,
 	int avgLifetime, int varLifetime, 
 	glm::vec4 initAcn, glm::vec4 initVel,
-	int perturbChance, float perturbRadius,
+	int avgPerturbTime, int varPerturbTime, float perturbRadius,
 	float baseRadius, float centerForce,
 	float bbHeight, float bbWidth,
 	bool perturb_on, bool _init_perturb)
@@ -565,7 +575,7 @@ AdvectParticlesRandSHLights::AdvectParticlesRandSHLights(
 		_bbTex, _decayTex,
 		avgLifetime, varLifetime, 
 		initAcn, initVel,
-		perturbChance, perturbRadius,
+		avgPerturbTime, varPerturbTime, perturbRadius,
 		baseRadius, centerForce,
 		bbHeight, bbWidth,
 		perturb_on, _init_perturb),
@@ -631,7 +641,7 @@ AdvectParticlesCentroidSHLights::AdvectParticlesCentroidSHLights(
 	Texture* _bbTex, Texture* _decayTex,
 	int avgLifetime, int varLifetime, 
 	glm::vec4 initAcn, glm::vec4 initVel,
-	int perturbChance, float perturbRadius,
+	int avgPerturbTime, int varPerturbTime, float perturbRadius,
 	float baseRadius, float centerForce,
 	float bbHeight, float bbWidth,
 	bool perturb_on, bool _init_perturb)
@@ -642,7 +652,7 @@ AdvectParticlesCentroidSHLights::AdvectParticlesCentroidSHLights(
 		_bbTex, _decayTex,
 		avgLifetime, varLifetime, 
 		initAcn, initVel,
-		perturbChance, perturbRadius,
+		avgPerturbTime, varPerturbTime, perturbRadius,
 		baseRadius, centerForce,
 		bbHeight, bbWidth,
 		perturb_on, _init_perturb),
@@ -713,7 +723,7 @@ AdvectParticlesSHCubemap::AdvectParticlesSHCubemap(
 	Texture* _bbTex, Texture* _decayTex,
 	int avgLifetime, int varLifetime, 
 	glm::vec4 initAcn, glm::vec4 initVel,
-	int perturbChance, float perturbRadius,
+	int avgPerturbTime, int varPerturbTime, float perturbRadius,
 	float baseRadius, float centerForce,
 	float bbHeight, float bbWidth,
 	bool perturb_on, bool _init_perturb)
@@ -721,7 +731,7 @@ AdvectParticlesSHCubemap::AdvectParticlesSHCubemap(
 	 _shader, _bbTex, _decayTex,
 	 avgLifetime, varLifetime, 
 	 initAcn, initVel,
-	 perturbChance, perturbRadius,
+	 avgPerturbTime, varPerturbTime, perturbRadius,
 	 baseRadius, centerForce,
 	 bbHeight, bbWidth,
 	 perturb_on, _init_perturb),

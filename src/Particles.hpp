@@ -60,16 +60,16 @@ struct AdvectParticle
 class AdvectParticles : public ParticleSystem
 {
 public:
-	AdvectParticles(int _maxParticles, ParticleShader* _shader,
-		Texture* _bbTex, Texture* _decayTex, bool texScrolls = true, bool additive = true);
-	AdvectParticles(int _maxParticles, ParticleShader* _shader,
-		Texture* _bbTex, Texture* _decayTex,
+	AdvectParticles(int maxParticles, ParticleShader* shader,
+		Texture* bbTex, Texture* decayTex, bool texScrolls = true, bool additive = true);
+	AdvectParticles(int maxParticles, ParticleShader* shader,
+		Texture* bbTex, Texture* decayTex,
 		int avgLifetime, int varLifetime, 
 		glm::vec4 initAcn, glm::vec4 initVel,
-		int perturbChance, float perturbRadius,
+		int avgPerturbTime, int varPerturbTime, float perturbRadius,
 		float baseRadius, float centerForce,
 		float bbHeight, float bbWidth,
-		bool perturb_on, bool _init_perturb, bool texScrolls = true, bool additive = true);
+		bool perturbOn, bool initPerturb, bool texScrolls = true, bool additive = true);
 
 	void render();
 	virtual void update(int dTime);
@@ -93,7 +93,8 @@ private:
 	const int varLifetime;
 	const glm::vec4 initAcn;
 	const glm::vec4 initVel;
-	const int perturbChance; 
+	const int avgPerturbTime;
+	const int varPerturbTime;
 	const float perturbRadius;
 	const float baseRadius;
 	const float centerForce;
@@ -106,9 +107,11 @@ private:
 	glm::vec4 extForce; //External force applied to all particles.
 	std::vector<int> time;
 	std::vector<int> lifeTime;
+	std::vector<int> perturbCounter;
+	std::vector<int> perturbTime;
 
-	bool perturb_on;
-	bool init_perturb;
+	bool perturbOn;
+	bool initPerturb;
 
 	void updateParticle(int index, int dTime);
 	void spawnParticle(int index);
@@ -133,7 +136,7 @@ public:
 		Texture* _bbTex, Texture* _decayTex,
 		int avgLifetime, int varLifetime, 
 		glm::vec4 initAcn, glm::vec4 initVel,
-		int perturbChance, float perturbRadius,
+		int avgPerturbTime, int varPerturbTime, float perturbRadius,
 		float baseRadius, float centerForce,
 		float bbHeight, float bbWidth,
 		bool perturb_on, bool _init_perturb);
@@ -168,7 +171,7 @@ public:
 		Texture* _bbTex, Texture* _decayTex,
 		int avgLifetime, int varLifetime, 
 		glm::vec4 initAcn, glm::vec4 initVel,
-		int perturbChance, float perturbRadius,
+		int avgPerturbTime, int varPerturbTime, float perturbRadius,
 		float baseRadius, float centerForce,
 		float bbHeight, float bbWidth,
 		bool perturb_on, bool _init_perturb);
@@ -199,7 +202,7 @@ public:
 		Texture* _bbTex, Texture* _decayTex,
 		int avgLifetime, int varLifetime, 
 		glm::vec4 initAcn, glm::vec4 initVel,
-		int perturbChance, float perturbRadius,
+		int avgPerturbTime, int varPerturbTime, float perturbRadius,
 		float baseRadius, float centerForce,
 		float bbHeight, float bbWidth,
 		bool perturb_on, bool _init_perturb);
@@ -234,7 +237,7 @@ public:
 		Texture* _bbTex, Texture* _decayTex,
 		int avgLifetime, int varLifetime, 
 		glm::vec4 initAcn, glm::vec4 initVel,
-		int perturbChance, float perturbRadius,
+		int avgPerturbTime, int varPerturbTime, float perturbRadius,
 		float baseRadius, float centerForce,
 		float bbHeight, float bbWidth,
 		bool perturb_on, bool _init_perturb);
@@ -267,7 +270,7 @@ public:
 		Texture* _bbTex, Texture* _decayTex,
 		int avgLifetime, int varLifetime, 
 		glm::vec4 initAcn, glm::vec4 initVel,
-		int perturbChance, float perturbRadius,
+		int avgPerturbTime, int varPerturbTime, float perturbRadius,
 		float baseRadius, float centerForce,
 		float bbHeight, float bbWidth,
 		bool perturb_on, bool _init_perturb);
@@ -299,7 +302,7 @@ public:
 		Texture* _bbTex, Texture* _decayTex,
 		int avgLifetime, int varLifetime, 
 		glm::vec4 initAcn, glm::vec4 initVel,
-		int perturbChance, float perturbRadius,
+		int avgPerturbTime, int varPerturbTime, float perturbRadius,
 		float baseRadius, float centerForce,
 		float bbHeight, float bbWidth,
 		bool perturb_on, bool _init_perturb);
@@ -331,7 +334,7 @@ public:
 		Texture* _bbTex, Texture* _decayTex,
 		int avgLifetime, int varLifetime, 
 		glm::vec4 initAcn, glm::vec4 initVel,
-		int perturbChance, float perturbRadius,
+		int avgPerturbTime, int varPerturbTime, float perturbRadius,
 		float baseRadius, float centerForce,
 		float bbHeight, float bbWidth,
 		bool perturb_on, bool _init_perturb);
