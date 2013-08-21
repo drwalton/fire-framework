@@ -273,8 +273,9 @@ void LightShader::setSpecExp(float exponent)
 	glUseProgram(0);
 }
 
-ParticleShader::ParticleShader(bool hasGeomShader, bool hasBBTex, const std::string& filename)
-	:Shader(hasGeomShader, filename)
+ParticleShader::ParticleShader(bool hasGeomShader, bool hasBBTex, const std::string& filename,
+	bool hasCamera, bool hasModelToWorld)
+	:Shader(hasGeomShader, filename, hasCamera, hasModelToWorld)
 {
 	use();
 	bbWidth_u = getUniformLoc("bbWidth");
@@ -314,7 +315,7 @@ void ParticleShader::setDecayTexUnit(GLuint _decayTexUnit)
 
 CubemapShader::CubemapShader(
 	bool hasGeomShader, bool hasBBTex, const std::string& filename)
-	:ParticleShader(hasGeomShader, hasBBTex, filename)
+	:ParticleShader(hasGeomShader, hasBBTex, filename, false, true)
 {
 	use();
 	worldToObject_u = getUniformLoc("worldToObject");

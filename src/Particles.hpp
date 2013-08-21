@@ -3,11 +3,13 @@
 
 #include "Renderable.hpp"
 #include "Shader.hpp"
+#include "GC.hpp"
 
 #include <GL/glew.h>
 #include <glm.hpp>
 
 #include <vector>
+#include <array>
 
 class Texture;
 class PhongLight;
@@ -338,6 +340,7 @@ private:
 	void init();
 	void renderCubemap();
 	void updateLight();
+	std::array<std::array<glm::vec4, GC::cubemapPixels>, 6> cubemap;
 	glm::vec3 cubemapLookup(float theta, float phi);
 	int findFace(glm::vec3 dir);
 	GLuint cubeTex;

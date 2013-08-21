@@ -829,7 +829,15 @@ void AdvectParticlesSHCubemap::renderCubemap()
 	else glDisable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, blendFn);
 
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
 	glUseProgram(0);
+
+	for(int face = 0; face < 6; ++face)
+	{
+		glFramebufferTexture(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, cubeTex, face);
+		glReadPixels(0, 0, GC::cubemapSize, GC::cubemapSize, GL_RGBA, GL_FLOAT, (cubemap[face]).data());
+	}
 }
 
 void AdvectParticlesSHCubemap::updateLight()
@@ -891,11 +899,7 @@ glm::vec3 AdvectParticlesSHCubemap::cubemapLookup(float theta, float phi)
 	int s_p = static_cast<int>(s * (GC::cubemapSize-1));
 	int t_p = static_cast<int>(t * (GC::cubemapSize-1));
 
-	glm::vec4 col;
-	glFramebufferTexture(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, cubeTex, face);
-	glReadPixels(s_p, t_p, 1, 1, GL_RGBA, GL_FLOAT, &(col.x));
-
-	return glm::vec3(col);
+	return glm::vec3(cubemap[face][s_p + t_p*GC::cubemapSize]);
 }
 
 int AdvectParticlesSHCubemap::findFace(glm::vec3 dir)

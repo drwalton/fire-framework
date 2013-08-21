@@ -20,6 +20,7 @@ namespace GC
 	const int nSHBounces = 5;
 	const bool jitterSamples = true;
 	const int cubemapSize = 256;
+	const int cubemapPixels = cubemapSize * cubemapSize;
 
 	/* AO */
 	const int sqrtAOSamples = 10;

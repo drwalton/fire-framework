@@ -97,9 +97,7 @@ int init()
 
 	SHShader* bunnyShader = new SHShader(false, "diffPRT");
 
-	Texture* bunnyAmbTex = new Texture("bunnyAmb.png");
 	Texture* bunnyDiffTex = new Texture("bunnyDiff.png");
-	Texture* bunnySpecTex = new Texture("bunnySpec.png");
 
 	if(mode == UNSHADOWED)
 	{	
