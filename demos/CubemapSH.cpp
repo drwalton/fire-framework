@@ -81,7 +81,8 @@ int init()
 	const int sparkVarLifetime = 200;
 	const glm::vec4 sparkInitAcn(0.0f, -0.0000004f, 0.0f, 0.0f);
 	const glm::vec4 sparkInitVel(0.0f, 0.0008f, 0.0f, 0.0f);
-	const int sparkPerturbChance = 10;
+	const int avgSparkPerturb = 1000;
+	const int varSparkPerturb = 100;
 	const float sparkPerturbRadius = 0.0004f;
 	const float sparkCenterForce = 0.0f;
 	const float sparkBaseRadius = 0.2f;
@@ -156,7 +157,7 @@ int init()
 		nSparkParticles, sShader, sparkAlphaTex, sparkDecayTex,
 		sparkLifetime, sparkVarLifetime, 
 		sparkInitAcn, sparkInitVel,
-		sparkPerturbChance, sparkPerturbRadius,
+		avgSparkPerturb, varSparkPerturb, sparkPerturbRadius,
 		sparkBaseRadius, sparkCenterForce,
 		sparkBBHeight, sparkBBWidth,
 		true, true, false);
