@@ -801,18 +801,22 @@ void AdvectParticlesSHCubemap::renderCubemap()
 	glBindRenderbuffer(GL_RENDERBUFFER, renderbuffer);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, renderbuffer);
 
-	glClearColor(0.0f, 1.0f, 0.0f, 1.0f);
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glViewport(0, 0, GC::cubemapSize, GC::cubemapSize);
 	glDisable(GL_CULL_FACE);
-	glEnable(GL_BLEND); 
+	glDisable(GL_BLEND); 
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 
 	//Set uniforms
 	cubemapShader->setModelToWorld(modelToWorld);
 	cubemapShader->setBBTexUnit(bbTex->getTexUnit());
 	cubemapShader->setDecayTexUnit(decayTex->getTexUnit());
+	cubemapShader->setBBWidth(1.0f);
+	cubemapShader->setBBHeight(1.0f);
+	//TODO: correct worldToObject
 	glm::mat4 worldToObject = glm::inverse(targetObj->getModelToWorld());
 	cubemapShader->setWorldToObject(worldToObject);
+	cubemapShader->setAlpha(1.0f);
 
 	cubemapShader->use();
 
