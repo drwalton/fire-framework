@@ -278,10 +278,18 @@ ParticleShader::ParticleShader(bool hasGeomShader, bool hasBBTex, const std::str
 	:Shader(hasGeomShader, filename, hasCamera, hasModelToWorld)
 {
 	use();
+	alpha_u = getUniformLoc("globalAlpha");
 	bbWidth_u = getUniformLoc("bbWidth");
 	bbHeight_u = getUniformLoc("bbHeight");
 	if(hasBBTex) bbTex_u = getUniformLoc("bbTexture");
 	decayTex_u = getUniformLoc("decayTexture");
+	glUseProgram(0);
+}
+
+void ParticleShader::setAlpha(float alpha)
+{
+	use();
+	glUniform1fv(alpha_u, 1, &alpha);
 	glUseProgram(0);
 }
 

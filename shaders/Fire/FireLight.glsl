@@ -25,7 +25,7 @@ uniform mat4 worldToObject;
 void main()
 {
 	VertexOut.decay = vDecay;
-	VertexOut.randTex = randTex;
+	VertexOut.randTex = vRandTex;
 	gl_Position = worldToObject * modelToWorld * vPos;
 }
 
@@ -57,19 +57,19 @@ const float invRtTwo = 0.70710678118654; //\frac{1}{\sqrt{2}}
 const mat4 lookRight = mat4(
 	 invRtTwo, invRtTwo, 0.0, 0.0,
 	-invRtTwo, invRtTwo, 0.0, 0.0,
-	0.0, 0.0, 1.0, 0.0
+	0.0, 0.0, 1.0, 0.0,
 	0.0, 0.0, 0.0, 1.0);
 // A rotation of PI / 4 radians CCW about +ve x axis.
 const mat4 lookDown = mat4(
 	1.0, 0.0, 0.0, 0.0,
 	0.0,  invRtTwo, invRtTwo, 0.0,
-	0.0, -invRtTwo, invRtTwo. 0.0,
+	0.0, -invRtTwo, invRtTwo, 0.0,
 	0.0, 0.0, 0.0, 1.0);
 
 const mat4 posZMat = mat4(
 	1.0, 0.0, 0.0, 0.0, 
 	0.0, 1.0, 0.0, 0.0,
-	0.0, -(zFar / (zFar - zNear)), -(zFar * zNear) / (zFar - zNear),
+	0.0, 0.0, -(zFar / (zFar - zNear)), -(zFar * zNear) / (zFar - zNear),
 	0.0, 0.0, -1.0, 0.0);
 
 const mat4 posXMat = posZMat * lookRight;
@@ -281,6 +281,7 @@ in float decay;
 out vec4 outputColor;
 
 uniform sampler2D decayTexture;
+uniform float globalAlpha;
 
 void main()
 {
@@ -292,5 +293,6 @@ void main()
 	float alpha = fade*fade*fade * ( decay < 0.3 ? decay : (1 - decay) );
 
 	if (alpha < 0.05) discard;
+	alpha *= globalAlpha;
 	outputColor = vec4(texture2D(decayTexture, vec2(decay, 0.0)).xyz, alpha);
 }

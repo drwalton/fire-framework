@@ -77,6 +77,7 @@ void AdvectParticles::init(Texture* bbTex, Texture* decayTex, bool texScrolls)
 
 	glUseProgram(0);
 
+	shader->setAlpha(alpha);
 	shader->setBBTexUnit(bbTex->getTexUnit());
 	shader->setDecayTexUnit(decayTex->getTexUnit());
 

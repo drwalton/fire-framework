@@ -123,6 +123,7 @@ in float decay;
 out vec4 outputColor;
 
 uniform sampler2D decayTexture;
+uniform float globalAlpha;
 
 /* The following procedural noise generation code 
  *   was developed by Stefan Gustavson 
@@ -213,5 +214,6 @@ void main()
 
 	float alpha = (1.0 + cnoise(vec2(texCoord.x * NOISE_DENSITY_X, texCoord.y * NOISE_DENSITY_Y))) * opacity / 2;
 	if (alpha < 0.05) discard;
+	alpha *= globalAlpha;
 	outputColor = vec4(texture2D(decayTexture, vec2(decay, 0.0)).xyz, alpha);
 }

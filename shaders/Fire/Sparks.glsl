@@ -102,11 +102,13 @@ out vec4 outputColor;
 
 uniform sampler2D bbTexture;
 uniform sampler2D decayTexture;
+uniform float globalAlpha;
 
 void main()
 {
 	float opacity = decay < 0.5 ? 1.0 : (1 - decay);
-	float i = texture(bbTexture, texCoord).a * opacity;
-	if (i < 0.1) discard;
-	outputColor = vec4(texture(decayTexture, vec2(decay, 0.0)).xyz, i);
+	float alpha = texture(bbTexture, texCoord).a * opacity;
+	if (alpha < 0.05) discard;
+	alpha *= globalAlpha;
+	outputColor = vec4(texture(decayTexture, vec2(decay, 0.0)).xyz, alpha);
 }

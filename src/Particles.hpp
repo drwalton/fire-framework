@@ -22,13 +22,14 @@ class ParticleShader;
 class ParticleSystem : public Renderable
 {
 public:
-	ParticleSystem(int _maxParticles, ParticleShader* _shader) 
-		:Renderable(true), maxParticles(_maxParticles), shader(_shader) {};
+	ParticleSystem(int _maxParticles, ParticleShader* _shader, float alpha = 0.5f) 
+		:Renderable(true), maxParticles(_maxParticles), shader(_shader), alpha(alpha) {};
 	ParticleShader* getParticleShader() {return shader;};
 	Shader* getShader() {return static_cast<Shader*>(shader);};
 	virtual void setShader(ParticleShader* shader) = 0;
 protected:
 	int maxParticles;
+	float alpha;
 	ParticleShader* shader;
 };
 
