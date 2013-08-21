@@ -18,7 +18,7 @@ namespace GC
 	const int nSHSamples = sqrtSHSamples * sqrtSHSamples;
 	const int maxSHLights = 10;
 	const int nSHBounces = 5;
-	const bool jitterSamples = true;
+	const bool jitterSamples = false;
 	const int cubemapSize = 256;
 	const int cubemapPixels = cubemapSize * cubemapSize;
 
