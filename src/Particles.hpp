@@ -351,8 +351,7 @@ private:
 	glm::vec3 cubemapLookup(float theta, float phi);
 	int findFace(glm::vec3 dir);
 	glm::mat4 getRotation(int face);
-	GLuint cubeTex;
-	GLuint cubeTexUnit;
+	GLuint renderbuffer;
 	GLuint framebuffer;
 };
 

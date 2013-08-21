@@ -760,18 +760,14 @@ void AdvectParticlesSHCubemap::onAdd()
 
 void AdvectParticlesSHCubemap::init()
 {
-	cubeTexUnit = Texture::genTexUnit();
 	cubemapShader = new CubemapShader(true, false, "FireLight");
 
 	glGenFramebuffers(1, &framebuffer);
 	
-	glGenTextures(1, &cubeTex);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, cubeTex);
-
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_BASE_LEVEL, 0);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAX_LEVEL, 0);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glGenRenderbuffers(1, &renderbuffer);
+	glBindRenderbuffer(GL_RENDERBUFFER, renderbuffer);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, GC::cubemapSize, GC::cubemapSize);
+	glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
 	// Fill texture with test data for debugging.
 	std::array<GLbyte, 4 * GC::cubemapPixels> testData;
@@ -801,20 +797,15 @@ void AdvectParticlesSHCubemap::renderCubemap()
 	glGetIntegerv(GL_BLEND_SRC_ALPHA, &blendFn);
 
 	//Set new state
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+	glBindRenderbuffer(GL_RENDERBUFFER, renderbuffer);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, renderbuffer);
 
 	glClearColor(0.0f, 1.0f, 0.0f, 1.0f);
 	glViewport(0, 0, GC::cubemapSize, GC::cubemapSize);
 	glDisable(GL_CULL_FACE);
 	glEnable(GL_BLEND); 
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-
-	for(int face = 0; face < 6; ++face)
-	{
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-			GL_TEXTURE_CUBE_MAP_POSITIVE_X + face, cubeTex, 0);
-		glClear(GL_COLOR_BUFFER_BIT);
-	}
 
 	//Set uniforms
 	cubemapShader->setModelToWorld(modelToWorld);
@@ -824,10 +815,6 @@ void AdvectParticlesSHCubemap::renderCubemap()
 	cubemapShader->setWorldToObject(worldToObject);
 
 	cubemapShader->use();
-
-	glBindBuffer(GL_ARRAY_BUFFER, particles_vbo);
-	glBufferSubData(GL_ARRAY_BUFFER, 0, particles.size()*sizeof(AdvectParticle),
-		particles.data());
 
 	glEnableVertexAttribArray(pos_attrib);
 	glEnableVertexAttribArray(decay_attrib);
@@ -840,17 +827,15 @@ void AdvectParticlesSHCubemap::renderCubemap()
 		offsetof(AdvectParticle, decay));
 	glVertexAttribBinding(decay_attrib, 0);
 
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-
 	for(int face = 0; face < 6; ++face)
 	{
 		cubemapShader->setRotation(getRotation(face));
 
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-			GL_TEXTURE_CUBE_MAP_POSITIVE_X + face, cubeTex, 0);
+		glClear(GL_COLOR_BUFFER_BIT);
 
 		glDrawArrays(GL_POINTS, 0, particles.size());
 
+		glPixelStorei(GL_PACK_ALIGNMENT, 1);
 		glReadPixels(0, 0, GC::cubemapSize, GC::cubemapSize, 
 			GL_RGBA, GL_FLOAT, (cubemap[face]).data());
 	}
