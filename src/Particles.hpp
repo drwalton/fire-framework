@@ -53,12 +53,14 @@ struct AdvectParticle
  * The bbTex is applied to each particle billboard. The colour of the billboard is set by a point along
  *  decayTex determined by the particle's remaining lifetime.
  * **Note** that scrollTexParticles.glsl uses bbTex in a different way. See the shader source for more details.
+ * The additive property determines whether additive or subtractive alpha 
+ *   blending is used.
  */
 class AdvectParticles : public ParticleSystem
 {
 public:
 	AdvectParticles(int _maxParticles, ParticleShader* _shader,
-		Texture* _bbTex, Texture* _decayTex, bool texScrolls = true);
+		Texture* _bbTex, Texture* _decayTex, bool texScrolls = true, bool additive = true);
 	AdvectParticles(int _maxParticles, ParticleShader* _shader,
 		Texture* _bbTex, Texture* _decayTex,
 		int avgLifetime, int varLifetime, 
@@ -66,13 +68,14 @@ public:
 		int perturbChance, float perturbRadius,
 		float baseRadius, float centerForce,
 		float bbHeight, float bbWidth,
-		bool perturb_on, bool _init_perturb, bool texScrolls = true);
+		bool perturb_on, bool _init_perturb, bool texScrolls = true, bool additive = true);
 
 	void render();
 	virtual void update(int dTime);
 	virtual void setShader(ParticleShader* shader);
 	void setExtForce(const glm::vec3& extForce);
 protected:
+	bool additive;
 	std::vector<AdvectParticle> particles;
 	int randi(int low, int high);
 	float randf(float low, float high);

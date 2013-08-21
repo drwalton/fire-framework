@@ -10,7 +10,7 @@
 
 AdvectParticles::AdvectParticles(int _maxParticles,
 	ParticleShader* _shader, 
-	Texture* _bbTex, Texture* _decayTex, bool texScrolls)
+	Texture* _bbTex, Texture* _decayTex, bool texScrolls, bool additive)
 	:ParticleSystem(_maxParticles, _shader),
 	 bbTex(_bbTex), decayTex(_decayTex),
 	 avgLifetime(3000), varLifetime(200),
@@ -23,7 +23,8 @@ AdvectParticles::AdvectParticles(int _maxParticles,
 	 bbHeight(0.3f), bbWidth(0.3f),
 	 extForce(glm::vec4(0.0f)),
 	 perturb_on(true), init_perturb(false),
-	 cameraDir(glm::vec3(0.0, 0.0, -1.0))
+	 cameraDir(glm::vec3(0.0, 0.0, -1.0)),
+	 additive(additive)
 {init(bbTex, decayTex, texScrolls);}
 
 AdvectParticles::AdvectParticles(int _maxParticles,
@@ -34,7 +35,7 @@ AdvectParticles::AdvectParticles(int _maxParticles,
 	int _perturbChance, float _perturbRadius,
 	float _baseRadius, float _centerForce,
 	float _bbHeight, float _bbWidth,
-	bool _perturb_on, bool _init_perturb,  bool texScrolls)
+	bool _perturb_on, bool _init_perturb,  bool texScrolls, bool additive)
 	:ParticleSystem(_maxParticles, _shader),
      bbTex(_bbTex), decayTex(_decayTex),
 	 avgLifetime(_avgLifetime), varLifetime(_varLifetime),
@@ -47,7 +48,8 @@ AdvectParticles::AdvectParticles(int _maxParticles,
 	 bbHeight(_bbHeight), bbWidth(_bbWidth),
 	 extForce(glm::vec4(0.0f)),
 	 perturb_on(_perturb_on), init_perturb(_init_perturb),
-	 cameraDir(glm::vec3(0.0, 0.0, -1.0))
+	 cameraDir(glm::vec3(0.0, 0.0, -1.0)),
+	 additive(additive)
 {init(bbTex, decayTex, texScrolls);}
 
 void AdvectParticles::init(Texture* bbTex, Texture* decayTex, bool texScrolls)
@@ -98,7 +100,10 @@ void AdvectParticles::render()
 	if(!scene) return;
 	glDepthMask(GL_FALSE);
 	glEnable(GL_BLEND); 
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	if(additive)
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+	else
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	shader->setModelToWorld(modelToWorld);
 
