@@ -50,7 +50,7 @@ int main(int argc, char** argv)
     glutInitDisplayMode(GLUT_DOUBLE);
     glutInitWindowSize(500, 500);
     glutInitWindowPosition(100, 100);
-    glutCreateWindow("Fire and Phong Lighting Demo");
+    glutCreateWindow("Fire and SH Lighting Demo");
     glewInit();
     int good = init();
     if(!good) return 0;
@@ -102,35 +102,35 @@ int init()
 
 	if(mode == UNSHADOWED)
 	{	
-		if(!fileExists("bunny.obj.prtu" + toString(GC::nSHBands)))
+		if(!fileExists("stanford.obj.prtu" + toString(GC::nSHBands)))
 			PRTMesh::bake(UNSHADOWED, 
-				"bunny.obj", "bunnyDiff.png", 
+				"stanford.obj", "bunnyDiff.png", 
 				GC::sqrtSHSamples, GC::nSHBands);
 
 		bunny = new PRTMesh(
-			"bunny.obj.prtu" + toString(GC::nSHBands), bunnyShader);
+			"stanford.obj.prtu" + toString(GC::nSHBands), bunnyShader);
 	}
 
 	if(mode == SHADOWED)
 	{	
-		if(!fileExists("bunny.obj.prts" + toString(GC::nSHBands)))
+		if(!fileExists("stanford.obj.prts" + toString(GC::nSHBands)))
 			PRTMesh::bake(SHADOWED, 
-				"bunny.obj", "bunnyDiff.png", 
+				"stanford.obj", "bunnyDiff.png", 
 				GC::sqrtSHSamples, GC::nSHBands);
 
 		bunny = new PRTMesh(
-			"bunny.obj.prts" + toString(GC::nSHBands), bunnyShader);
+			"stanford.obj.prts" + toString(GC::nSHBands), bunnyShader);
 	}
 
 	if(mode == INTERREFLECTED)
 	{	
-		if(!fileExists("bunny.obj.prti" + toString(GC::nSHBands)))
+		if(!fileExists("stanford.obj.prti" + toString(GC::nSHBands)))
 			PRTMesh::bake(INTERREFLECTED, 
-				"bunny.obj", "bunnyDiff.png", 
+				"stanford.obj", "bunnyDiff.png", 
 				GC::sqrtSHSamples, GC::nSHBands);
 
 		bunny = new PRTMesh(
-			"bunny.obj.prti" + toString(GC::nSHBands), bunnyShader);
+			"stanford.obj.prti" + toString(GC::nSHBands), bunnyShader);
 	}
 
 	bunny->uniformScale(0.2f);

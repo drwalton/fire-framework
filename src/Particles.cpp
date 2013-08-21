@@ -8,6 +8,8 @@
 #include <SOIL.h>
 #include <GL/glut.h>
 
+#include <gtc/matrix_transform.hpp>
+
 AdvectParticles::AdvectParticles(int maxParticles,
 	ParticleShader* shader, 
 	Texture* bbTex, Texture* decayTex, bool texScrolls, bool additive)
@@ -762,11 +764,7 @@ void AdvectParticlesSHCubemap::init()
 	cubemapShader = new CubemapShader(true, false, "FireLight");
 
 	glGenFramebuffers(1, &framebuffer);
-	glGenRenderbuffers(1, &renderbuffer);
-	glBindRenderbuffer(GL_RENDERBUFFER, renderbuffer);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, GC::cubemapSize, GC::cubemapSize);
-	glBindRenderbuffer(GL_RENDERBUFFER, 0);
-
+	
 	glGenTextures(1, &cubeTex);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, cubeTex);
 
@@ -774,6 +772,14 @@ void AdvectParticlesSHCubemap::init()
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAX_LEVEL, 0);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+	// Fill texture with test data for debugging.
+	std::array<GLbyte, 4 * GC::cubemapPixels> testData;
+	std::fill(testData.begin(), testData.end(), 128);
+    for(int face = 0; face < 6; ++face)
+		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + face, 0, GL_RGBA8,
+			GC::cubemapSize, GC::cubemapSize, 0, 
+			GL_RGBA, GL_UNSIGNED_BYTE, testData.data());
 
 	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 }
@@ -795,11 +801,20 @@ void AdvectParticlesSHCubemap::renderCubemap()
 	glGetIntegerv(GL_BLEND_SRC_ALPHA, &blendFn);
 
 	//Set new state
-	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-	glViewport(0,0,GC::cubemapSize, GC::cubemapSize);
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebuffer);
+
+	glClearColor(0.0f, 1.0f, 0.0f, 1.0f);
+	glViewport(0, 0, GC::cubemapSize, GC::cubemapSize);
 	glDisable(GL_CULL_FACE);
 	glEnable(GL_BLEND); 
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+
+	for(int face = 0; face < 6; ++face)
+	{
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+			GL_TEXTURE_CUBE_MAP_POSITIVE_X + face, cubeTex, 0);
+		glClear(GL_COLOR_BUFFER_BIT);
+	}
 
 	//Set uniforms
 	cubemapShader->setModelToWorld(modelToWorld);
@@ -810,10 +825,6 @@ void AdvectParticlesSHCubemap::renderCubemap()
 
 	cubemapShader->use();
 
-	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-		GL_RENDERBUFFER, renderbuffer);
-	
 	glBindBuffer(GL_ARRAY_BUFFER, particles_vbo);
 	glBufferSubData(GL_ARRAY_BUFFER, 0, particles.size()*sizeof(AdvectParticle),
 		particles.data());
@@ -830,13 +841,26 @@ void AdvectParticlesSHCubemap::renderCubemap()
 	glVertexAttribBinding(decay_attrib, 0);
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	
-	glDrawArrays(GL_POINTS, 0, particles.size());
+
+	for(int face = 0; face < 6; ++face)
+	{
+		cubemapShader->setRotation(getRotation(face));
+
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+			GL_TEXTURE_CUBE_MAP_POSITIVE_X + face, cubeTex, 0);
+
+		glDrawArrays(GL_POINTS, 0, particles.size());
+
+		glReadPixels(0, 0, GC::cubemapSize, GC::cubemapSize, 
+			GL_RGBA, GL_FLOAT, (cubemap[face]).data());
+	}
 
 	glDisableVertexAttribArray(pos_attrib);
 	glDisableVertexAttribArray(decay_attrib);
 
 	//Restore state
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
 	glClearColor(clearCol[0], clearCol[1], clearCol[2], clearCol[3]);
 	glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
 	if(faceCull == GL_TRUE) glEnable(GL_CULL_FACE);
@@ -845,15 +869,7 @@ void AdvectParticlesSHCubemap::renderCubemap()
 	else glDisable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, blendFn);
 
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
 	glUseProgram(0);
-
-	for(int face = 0; face < 6; ++face)
-	{
-		glFramebufferTexture(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, cubeTex, face);
-		glReadPixels(0, 0, GC::cubemapSize, GC::cubemapSize, GL_RGBA, GL_FLOAT, (cubemap[face]).data());
-	}
 }
 
 void AdvectParticlesSHCubemap::updateLight()
@@ -932,4 +948,21 @@ int AdvectParticlesSHCubemap::findFace(glm::vec3 dir)
 	{
 		return dir.z >= 0.0f ? 4 : 5;
 	}
+}
+
+glm::mat4 AdvectParticlesSHCubemap::getRotation(int face)
+{
+	if(face == 0) //+ve x
+		return glm::rotate(glm::mat4(1.0f), 90.0f, glm::vec3(0.0f, 1.0f, 0.0f));
+	else if (face == 1) //-ve x
+		return glm::rotate(glm::mat4(1.0f), -90.0f, glm::vec3(0.0f, 1.0f, 0.0f));
+	else if (face == 2) //+ve y
+		return glm::rotate(glm::mat4(1.0f), 90.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+	else if (face == 3) //-ve y
+		return glm::rotate(glm::mat4(1.0f), 90.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+	else if (face == 4) //+ve z
+		return glm::mat4(1.0f);
+	else if (face == 5) //-ve z
+		return glm::rotate(glm::mat4(1.0f), 180.0f, glm::vec3(0.0f, 1.0f, 0.0f));
+	else return glm::mat4(0.0f);
 }

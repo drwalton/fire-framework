@@ -101,8 +101,12 @@ class CubemapShader : public ParticleShader
 public:
 	CubemapShader(bool hasGeomShader, bool hasBBTex, const std::string& filename);
 	void setWorldToObject(const glm::mat4& worldToObject);
+	void setRotation(const glm::mat4& rotation);
+	void setPerspective(const glm::mat4& perspective);
 private:
 	GLuint worldToObject_u;
+	GLuint rotation_u;
+	GLuint perspective_u;
 };
 
 /* LightShader

@@ -21,19 +21,32 @@ uniform mat4 modelToWorld;
  *   matrix.
  */
 uniform mat4 worldToObject;
+uniform mat4 rotation;
+uniform mat4 perspective;
 
 void main()
 {
 	VertexOut.decay = vDecay;
 	VertexOut.randTex = vRandTex;
-	gl_Position = worldToObject * modelToWorld * vPos;
+	gl_Position = perspective * rotation * worldToObject * modelToWorld * vPos;
 }
 
 -- Geometry
 #version 330
 
+uniform float bbWidth;
+uniform float bbHeight;
+
+layout(std140) uniform cameraBlock
+{
+	mat4 worldToCamera;
+	vec4 cameraPos;
+	vec4 cameraDir;
+};
+
 layout(points) in;
-layout(triangle_strip, max_vertices = 24) out; //6 triangle strips.
+
+layout(triangle_strip, max_vertices = 4) out;
 
 in VertexData {
 	float decay;
@@ -41,55 +54,20 @@ in VertexData {
 } VertexIn[];
 
 out float decay;
+out float height;
 out vec2 texCoord;
 out vec2 bbPos;
-
-uniform float bbWidth;
-uniform float bbHeight;
-
-// Camera matrices for the 6 cube faces.
-const float zNear = 0.01;
-const float zFar  = 50.0;
-
-const float invRtTwo = 0.70710678118654; //\frac{1}{\sqrt{2}}
-
-// A rotation of PI / 4 radians CCW about +ve z axis.
-const mat4 lookRight = mat4(
-	 invRtTwo, invRtTwo, 0.0, 0.0,
-	-invRtTwo, invRtTwo, 0.0, 0.0,
-	0.0, 0.0, 1.0, 0.0,
-	0.0, 0.0, 0.0, 1.0);
-// A rotation of PI / 4 radians CCW about +ve x axis.
-const mat4 lookDown = mat4(
-	1.0, 0.0, 0.0, 0.0,
-	0.0,  invRtTwo, invRtTwo, 0.0,
-	0.0, -invRtTwo, invRtTwo, 0.0,
-	0.0, 0.0, 0.0, 1.0);
-
-const mat4 posZMat = mat4(
-	1.0, 0.0, 0.0, 0.0, 
-	0.0, 1.0, 0.0, 0.0,
-	0.0, 0.0, -(zFar / (zFar - zNear)), -(zFar * zNear) / (zFar - zNear),
-	0.0, 0.0, -1.0, 0.0);
-
-const mat4 posXMat = posZMat * lookRight;
-const mat4 negXMat = posZMat * lookRight * lookRight * lookRight;
-const mat4 posYMat = posZMat * lookDown * lookDown * lookDown;
-const mat4 negYMat = posZMat * lookDown;
-
-const mat4 negZMat = posZMat * lookRight * lookRight;
 
 void main()
 {
 	decay = VertexIn[0].decay;
 	vec3 pointPos = gl_in[0].gl_Position.xyz;
-
-	/* Find positions of billboard corners in model space */
+	vec3 toCamera = normalize(-vec3(cameraDir));
 
 	// Find vectors in plane of billboard.
 	vec3 up = vec3(0.0, 1.0, 0.0);
-	vec3 across = normalize(cross(up, -pointPos));
-	up = normalize(cross(-pointPos, across));
+	vec3 across = normalize(cross(up, toCamera));
+	up = normalize(cross(toCamera, across));
 	
 
 	float texLeft = VertexIn[0].randTex * 0.7;
@@ -97,174 +75,37 @@ void main()
 	float texBottom = VertexIn[0].decay * 0.85;
 	float texTop = texBottom + 0.15;
 
+	vec3 corner;
 	// Bottom left vertex
-	vec4 blPos = vec4(pointPos - (0.5*bbWidth*across) - (0.5*bbHeight*up), 1.0);
-	vec2 blTex = vec2(texLeft, texBottom);
-	vec2 blBBPos = vec2(0, 0);
+	corner = pointPos - (0.5*bbWidth*across) - (0.5*bbHeight*up);
+	gl_Position = worldToCamera * vec4(corner, 1.0);
+	height = gl_Position.y;
+	texCoord = vec2(texLeft, texBottom);
+	bbPos = vec2(0, 0);
+	EmitVertex();
 
 	// Top left vertex
-	vec4 tlPos = vec4(pointPos - (0.5*bbWidth*across) + (0.5*bbHeight*up), 1.0);
-	vec2 tlTex = vec2(texLeft, texTop);
-	vec2 tlBBPos = vec2(0, 1);
+	corner = pointPos - (0.5*bbWidth*across) + (0.5*bbHeight*up);
+	gl_Position = worldToCamera * vec4(corner, 1.0);
+	height = gl_Position.y;
+	texCoord = vec2(texLeft, texTop);
+	bbPos = vec2(0, 1);
+	EmitVertex();
 
 	// Bottom right vertex
-	vec4 brPos = vec4(pointPos + (0.5*bbWidth*across) - (0.5*bbHeight*up), 1.0);
-	vec2 brTex = vec2(texRight, texBottom);
-	vec2 brBBPos = vec2(1, 0);
+	corner = pointPos + (0.5*bbWidth*across) - (0.5*bbHeight*up);
+	gl_Position = worldToCamera * vec4(corner, 1.0);
+	height = gl_Position.y;
+	texCoord = vec2(texRight, texBottom);
+	bbPos = vec2(1, 0);
+	EmitVertex();
 
 	// Top right vertex
-	vec4 trPos = vec4(pointPos + (0.5*bbWidth*across) + (0.5*bbHeight*up), 1.0);
-	vec2 trTex = vec2(texRight, texTop);
-	vec2 trBBPos = vec2(1, 1);
-
-	/* Output a quad to each face of the cube. */
-
-	//Positive x face (layer 0)
-	gl_Layer = 0;
-
-	gl_Position = posXMat * blPos;
-	texCoord = blTex;
-	bbPos = blBBPos;
-	EmitVertex();
-
-	gl_Position = posXMat * tlPos;
-	texCoord = tlTex;
-	bbPos = tlBBPos;
-	EmitVertex();
-
-	gl_Position = posXMat * brPos;
-	texCoord = brTex;
-	bbPos = brBBPos;
-	EmitVertex();
-
-	gl_Position = posXMat * trPos;
-	texCoord = trTex;
-	bbPos = trBBPos;
-	EmitVertex();
-
-	EndPrimitive();
-
-	//Negative x face (layer 1)
-	gl_Layer = 1;
-
-	gl_Position = negXMat * blPos;
-	texCoord = blTex;
-	bbPos = blBBPos;
-	EmitVertex();
-
-	gl_Position = negXMat * tlPos;
-	texCoord = tlTex;
-	bbPos = tlBBPos;
-	EmitVertex();
-
-	gl_Position = negXMat * brPos;
-	texCoord = brTex;
-	bbPos = brBBPos;
-	EmitVertex();
-
-	gl_Position = negXMat * trPos;
-	texCoord = trTex;
-	bbPos = trBBPos;
-	EmitVertex();
-
-	EndPrimitive();
-
-	//Positive y face (layer 2)
-	gl_Layer = 2;
-
-	gl_Position = posYMat * blPos;
-	texCoord = blTex;
-	bbPos = blBBPos;
-	EmitVertex();
-
-	gl_Position = posYMat * tlPos;
-	texCoord = tlTex;
-	bbPos = tlBBPos;
-	EmitVertex();
-
-	gl_Position = posYMat * brPos;
-	texCoord = brTex;
-	bbPos = brBBPos;
-	EmitVertex();
-
-	gl_Position = posYMat * trPos;
-	texCoord = trTex;
-	bbPos = trBBPos;
-	EmitVertex();
-
-	EndPrimitive();
-
-	//Negative y face (layer 3)
-	gl_Layer = 3;
-
-	gl_Position = negYMat * blPos;
-	texCoord = blTex;
-	bbPos = blBBPos;
-	EmitVertex();
-
-	gl_Position = negYMat * tlPos;
-	texCoord = tlTex;
-	bbPos = tlBBPos;
-	EmitVertex();
-
-	gl_Position = negYMat * brPos;
-	texCoord = brTex;
-	bbPos = brBBPos;
-	EmitVertex();
-
-	gl_Position = negYMat * trPos;
-	texCoord = trTex;
-	bbPos = trBBPos;
-	EmitVertex();
-
-	EndPrimitive();
-
-	//Positive z face (layer 4)
-	gl_Layer = 4;
-
-	gl_Position = posZMat * blPos;
-	texCoord = blTex;
-	bbPos = blBBPos;
-	EmitVertex();
-
-	gl_Position = posZMat * tlPos;
-	texCoord = tlTex;
-	bbPos = tlBBPos;
-	EmitVertex();
-
-	gl_Position = posZMat * brPos;
-	texCoord = brTex;
-	bbPos = brBBPos;
-	EmitVertex();
-
-	gl_Position = posZMat * trPos;
-	texCoord = trTex;
-	bbPos = trBBPos;
-	EmitVertex();
-
-	EndPrimitive();
-
-	//Negative z face (layer 5)
-	gl_Layer = 5;
-
-	gl_Position = negZMat * blPos;
-	texCoord = blTex;
-	bbPos = blBBPos;
-	EmitVertex();
-
-	gl_Position = negZMat * tlPos;
-	texCoord = tlTex;
-	bbPos = tlBBPos;
-	EmitVertex();
-
-	gl_Position = negZMat * brPos;
-	texCoord = brTex;
-	bbPos = brBBPos;
-	EmitVertex();
-
-	gl_Position = negZMat * trPos;
-	texCoord = trTex;
-	bbPos = trBBPos;
+	corner = pointPos + (0.5*bbWidth*across) + (0.5*bbHeight*up);
+	gl_Position = worldToCamera * vec4(corner, 1.0);
+	height = gl_Position.y;
+	texCoord = vec2(texRight, texTop);
+	bbPos = vec2(1, 1);
 	EmitVertex();
 
 	EndPrimitive();

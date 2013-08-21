@@ -3,6 +3,8 @@
 #include "glsw.h"
 #include "GC.hpp"
 
+#include <gtc/matrix_transform.hpp>
+
 #include <boost/algorithm/string.hpp>
 
 #include <iostream>
@@ -327,6 +329,10 @@ CubemapShader::CubemapShader(
 {
 	use();
 	worldToObject_u = getUniformLoc("worldToObject");
+	rotation_u = getUniformLoc("rotation");
+	perspective_u = getUniformLoc("perspective");
+	glm::mat4 perspective = glm::perspective(90.0f, 1.0f, 0.01f, 50.0f);
+	glUniformMatrix4fv(perspective_u, 1, GL_FALSE, &(perspective[0][0]));
 	glUseProgram(0);
 }
 
@@ -335,6 +341,12 @@ void CubemapShader::setWorldToObject(const glm::mat4& worldToObject)
 	use();
 	glUniformMatrix4fv(worldToObject_u, 1, GL_FALSE, &(worldToObject[0][0]));
 	glUseProgram(0);
+}
+
+void CubemapShader::setRotation(const glm::mat4& rotation)
+{
+	use();
+	glUniformMatrix4fv(rotation_u, 1, GL_FALSE, &(rotation[0][0]));
 }
 
 SHShader::SHShader(bool hasGeomShader,  const std::string& filename)

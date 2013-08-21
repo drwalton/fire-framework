@@ -40,6 +40,7 @@ void SHLight::setCoeffts(std::vector<glm::vec3> _coeffts)
 {
 	coeffts = _coeffts;
 	rotCoeffts = rotation * coeffts;
+	if(manager) manager->update(this);
 }
 
 void SHLight::rotateCoeffts(glm::mat4 _rotation)
