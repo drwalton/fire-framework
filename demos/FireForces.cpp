@@ -36,6 +36,9 @@ const int k = 5;
 int eTime;
 int deTime;
 
+float flameIntensity = 0.02f;
+float intensityDelta = 0.001f;
+
 const float delta = 0.4f;
 
 int main(int argc, char** argv)
@@ -185,6 +188,18 @@ void keyboard(unsigned char key, int x, int y)
     		flame->setShader(tShader);
     	}
     	break;
+
+	case 't':
+		flameIntensity += intensityDelta;
+		flame->setLightIntensity(flameIntensity);
+		std::cout << flameIntensity << std::endl;
+		break;
+
+	case 'g':
+		flameIntensity -= intensityDelta;
+		flame->setLightIntensity(flameIntensity);
+		std::cout << flameIntensity << std::endl;
+		break;
 
     case 27:
         exit(0);

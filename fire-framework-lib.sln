@@ -24,6 +24,9 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "fire-phong-demo", "fire-pho
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "fire-forces-demo", "fire-forces-demo\fire-forces-demo.vcxproj", "{96294654-672E-4D54-9C3D-54CF5BC06CA5}"
+	ProjectSection(ProjectDependencies) = postProject
+		{CDF71F5D-DFE3-4E4E-AFEC-3076C25D54C9} = {CDF71F5D-DFE3-4E4E-AFEC-3076C25D54C9}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cubemap-sh-demo", "cubemap-sh-demo\cubemap-sh-demo.vcxproj", "{1E3D4530-14A8-41F5-A277-03D18DEBB939}"
 	ProjectSection(ProjectDependencies) = postProject

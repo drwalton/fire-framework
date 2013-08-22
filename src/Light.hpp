@@ -43,10 +43,11 @@ public:
 		:pos(_pos), diffuse(_diffuse),
 		 specular(_specular), attenuation(_attenuation),
 		 index(-1), manager(nullptr) {};
-	void setPos(glm::vec4 _pos);
-	void setDiffuse(glm::vec4 _diffuse);
-	void setSpecular(glm::vec4 _specular);
-	void setAttenuation(float _attenuation);
+	void setPos(glm::vec4 pos);
+	void setDiffuse(glm::vec4 diffuse);
+	void setSpecular(glm::vec4 specular);
+	void setAttenuation(float attenuation);
+	void setColor(glm::vec4 color) {setDiffuse(color); setSpecular(color);};
 	const glm::vec4& getPos() {return pos;};
 	const glm::vec4& getDiffuse() {return diffuse;};
 	const glm::vec4& getSpecular() {return specular;};

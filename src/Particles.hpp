@@ -146,8 +146,14 @@ public:
 	void onAdd();
 	void onRemove();
 	void update(int dTime);
+	void setLightIntensity(float lightIntensity);
 protected:
 	virtual void updateLights() = 0;
+	glm::vec4 getParticleColor(float decay);
+	std::vector<glm::vec4> particleColors;
+private:
+	std::vector<glm::vec4> loadImage(const std::string& filename);
+	float lightIntensity;
 };
 
 /* AdvectParticlesRandLights
@@ -217,6 +223,7 @@ private:
 	void randomizeClumps();
 	std::vector<std::vector<int>> clumps;
 	glm::vec4 getParticleCentroid(const std::vector<int>& clump);
+	glm::vec4 getAverageColor(const std::vector<int>& clump);
 };
 
 /* AdvectParticlesSHLights

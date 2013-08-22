@@ -143,9 +143,9 @@ int init()
 		plotApproximations( 
 		[] (float theta, float phi) -> float
 		{
-			return pulse(theta, phi, glm::vec3(1.0f, 0.0f, 0.0f), 4.0f, 3.0f);
+			return pulse(theta, phi, glm::vec3(0.0f, 1.0f, 0.0f), 4.0f, 3.0f);
 		},
-			8, 1.5f, glm::vec3(-7.0, 0.0, 0.0));
+			8, 2.0f, glm::vec3(-7.0, 0.0, 0.0));
 
 	else if(choice == 5) // Patches
 		plotApproximations( 
@@ -218,8 +218,7 @@ void addSHArray(Scene* scene, glm::vec3 pos, int nBands,
 				}
 				, 50, plotShader);
 			plot->uniformScale(scale);
-			plot->prependTransform(glm::rotate(
-				glm::mat4(1.0f), 90.0f, glm::vec3(0.0f, 1.0f, 0.0f)));
+			plot->rotate(90.0f, glm::vec3(0.0f, 1.0f, 0.0f));
 			plot->translate(pos + glm::vec3(m * spacing, l * spacing, 0.0f));
 			
 			scene->add(plot);

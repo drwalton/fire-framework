@@ -256,13 +256,14 @@ int AdvectParticles::randi(int low, int high)
 AdvectParticlesLights::AdvectParticlesLights(int _maxParticles, int _nLights, 
 	ParticleShader* _shader, Texture* _bbTex, Texture* _decayTex)
 	:AdvectParticles(_maxParticles, _shader, _bbTex, _decayTex),
-	 nLights(_nLights)
+	 nLights(_nLights), lightIntensity(0.02f)
 {
 	// Set up vector of lights.
 	for(int i = 0; i < nLights; ++i)
 	{
 		lights.push_back(new PhongLight(getOrigin()));
 	}
+	particleColors = loadImage(decayTex->filename);
 }
 
 AdvectParticlesLights::AdvectParticlesLights(
@@ -283,13 +284,14 @@ AdvectParticlesLights::AdvectParticlesLights(
 	 baseRadius, centerForce,
 	 bbHeight, bbWidth,
 	 perturb_on, _init_perturb),
-	 nLights(_nLights)
+	 nLights(_nLights), lightIntensity(0.02f)
 {
 	// Set up vector of lights.
 	for(int i = 0; i < nLights; ++i)
 	{
 		lights.push_back(new PhongLight(getOrigin()));
 	}
+	particleColors = loadImage(decayTex->filename);
 }
 
 void AdvectParticlesLights::onAdd()
@@ -317,6 +319,47 @@ void AdvectParticlesLights::update(int dTime)
 {
 	AdvectParticles::update(dTime);
 	updateLights();
+}
+
+void AdvectParticlesLights::setLightIntensity(float lightIntensity)
+{
+	this->lightIntensity = lightIntensity;
+}
+
+glm::vec4 AdvectParticlesLights::getParticleColor(float decay)
+{
+	int pixel = static_cast<int>(decay * (particleColors.size()-1));
+	return glm::vec4(
+			particleColors[pixel].x * lightIntensity,
+			particleColors[pixel].y * lightIntensity,
+			particleColors[pixel].z * lightIntensity,
+			1.0f);
+}
+
+std::vector<glm::vec4> AdvectParticlesLights::loadImage(const std::string& filename)
+{
+	int width, height, channels;
+	unsigned char* data = SOIL_load_image(
+		filename.c_str(),
+		&width, &height, &channels,
+		SOIL_LOAD_RGB);
+
+	std::vector<glm::vec4> image;
+
+	for(int p = 0; p < width; ++p)
+	{
+		glm::vec4 pixel;
+		pixel.x = static_cast<float>(data[p*channels + 0]) / 255.0f;
+		pixel.y = static_cast<float>(data[p*channels + 1]) / 255.0f;
+		pixel.z = static_cast<float>(data[p*channels + 2]) / 255.0f;
+		pixel.w = 1.0f;
+		pixel = glm::clamp(pixel, glm::vec4(0.0f), glm::vec4(1.0f));
+		image.push_back(pixel);
+	}
+
+	SOIL_free_image_data(data);
+
+	return image;
 }
 
 AdvectParticlesRandLights::AdvectParticlesRandLights(
@@ -370,6 +413,7 @@ void AdvectParticlesRandLights::updateLights()
 	for(int i = 0; i < nLights; ++i)
 	{
 		lights[i]->setPos(modelToWorld * particles[i].pos);
+		lights[i]->setColor(getParticleColor(particles[i].decay));
 	}
 }
 
@@ -458,6 +502,7 @@ void AdvectParticlesCentroidLights::updateLights()
 	for(int i = 0; i < nLights; ++i)
 	{
 		lights[i]->setPos(modelToWorld * getParticleCentroid(clumps[i]));
+		lights[i]->setColor(getAverageColor(clumps[i]));
 	}
 }
 
@@ -467,7 +512,16 @@ glm::vec4 AdvectParticlesCentroidLights::getParticleCentroid(
 	glm::vec4 sum;
 	for(auto i = clump.begin(); i != clump.end(); ++i)
 		sum += particles[*i].pos;
-	return sum / (float) clump.size();
+	return sum / static_cast<float>(clump.size());
+}
+
+glm::vec4 AdvectParticlesCentroidLights::getAverageColor(
+	const std::vector<int>& clump)
+{
+	glm::vec4 color;
+	for(auto i = clump.begin(); i != clump.end(); ++i)
+		color += getParticleColor(particles[*i].decay);
+	return color / static_cast<float>(clump.size());
 }
 
 AdvectParticlesSHLights::AdvectParticlesSHLights(

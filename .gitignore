@@ -21,6 +21,7 @@ build/
 bin/
 
 # Visual Studio gubbins
+*.sln
 *.sdf
 *.sdf.*
 *.suo
