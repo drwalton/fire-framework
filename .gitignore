@@ -24,7 +24,6 @@ bin/
 *.sdf
 *.sdf.*
 *.suo
-*.sln
 *.ilk
 *.tlog
 *.filters
