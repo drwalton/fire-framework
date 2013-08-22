@@ -165,9 +165,9 @@ int init()
 	smoke = new AdvectParticles(
 		nSmokeParticles, pShader, smokeAlphaTex, smokeDecayTex);
 
-	flame->translate(glm::vec3(0.0f, 0.0f, 1.0f));
-	sparks->translate(glm::vec3(0.0f, 0.0f, 1.0f));
-	smoke->translate(glm::vec3(0.0f, 1.0f, 1.0f));
+	flame->translate(glm::vec3(0.0f, 0.0f, 0.5f));
+	sparks->translate(glm::vec3(0.0f, 0.0f, 0.5f));
+	smoke->translate(glm::vec3(0.0f, 1.0f, 0.5f));
 
 	scene->add(flame);
 	scene->add(sparks);

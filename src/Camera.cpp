@@ -167,8 +167,6 @@ void Camera::updateRotation()
 	rotation = glm::rotate(glm::mat4(1.0), phi, glm::vec3(1.0, 0.0, 0.0));
 	//Spin around
 	rotation = glm::rotate(rotation,     theta, glm::vec3(0.0, 1.0, 0.0));
-
-	std::cout << theta << ", " << phi << "\n";
 }
 
 void Camera::updateBlock()

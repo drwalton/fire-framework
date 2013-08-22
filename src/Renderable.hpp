@@ -26,13 +26,14 @@ class Renderable : public Element
 public:
 	Renderable(bool _translucent);
 	const bool translucent;
-	void setModelToWorld(const glm::mat4& newPos) {modelToWorld = newPos;};
 	glm::mat4 getModelToWorld() {return modelToWorld;};
-	void prependTransform(const glm::mat4& t) {modelToWorld = t * modelToWorld;};
-	void appendTransform(const glm::mat4& t) {modelToWorld = modelToWorld * t;};
+	glm::mat4 getRotation() {return rotation;};
+	glm::mat4 getTranslation() {return translation;};
+	glm::mat4 getScaling() {return scaling;};
 	void translate(const glm::vec3& t);
 	void moveTo(const glm::vec3& p);
 	void uniformScale(float s);
+	void rotate(float angle, const glm::vec3& axis);
 	glm::vec4 getOrigin(); //Return pos'n of model space origin in world space.
 	virtual void update(int dTime) = 0;
 	virtual void render() = 0;
@@ -41,6 +42,9 @@ public:
 	virtual void onAdd() {}; //Called when the renderable is added to the scene.
 	virtual void onRemove() {}; //Called when the renderable is removed from the scene.
 protected:
+	glm::mat4 translation;
+	glm::mat4 rotation;
+	glm::mat4 scaling;
 	glm::mat4 modelToWorld;
 };
 

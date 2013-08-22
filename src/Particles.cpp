@@ -811,10 +811,11 @@ void AdvectParticlesSHCubemap::renderCubemap()
 	cubemapShader->setModelToWorld(modelToWorld);
 	cubemapShader->setBBTexUnit(bbTex->getTexUnit());
 	cubemapShader->setDecayTexUnit(decayTex->getTexUnit());
-	cubemapShader->setBBWidth(1.0f);
-	cubemapShader->setBBHeight(1.0f);
+	cubemapShader->setBBWidth(bbWidth);
+	cubemapShader->setBBHeight(bbHeight);
 	//TODO: correct worldToObject
-	glm::mat4 worldToObject = glm::inverse(targetObj->getModelToWorld());
+	glm::mat4 worldToObject = glm::inverse(
+		targetObj->getTranslation() * targetObj->getRotation());
 	cubemapShader->setWorldToObject(worldToObject);
 	cubemapShader->setAlpha(1.0f);
 
@@ -942,11 +943,11 @@ int AdvectParticlesSHCubemap::findFace(glm::vec3 dir)
 glm::mat4 AdvectParticlesSHCubemap::getRotation(int face)
 {
 	if(face == 0) //+ve x
-		return glm::rotate(glm::mat4(1.0f), 90.0f, glm::vec3(0.0f, 1.0f, 0.0f));
-	else if (face == 1) //-ve x
 		return glm::rotate(glm::mat4(1.0f), -90.0f, glm::vec3(0.0f, 1.0f, 0.0f));
+	else if (face == 1) //-ve x
+		return glm::rotate(glm::mat4(1.0f), 90.0f, glm::vec3(0.0f, 1.0f, 0.0f));
 	else if (face == 2) //+ve y
-		return glm::rotate(glm::mat4(1.0f), 90.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+		return glm::rotate(glm::mat4(1.0f), -90.0f, glm::vec3(1.0f, 0.0f, 0.0f));
 	else if (face == 3) //-ve y
 		return glm::rotate(glm::mat4(1.0f), 90.0f, glm::vec3(1.0f, 0.0f, 0.0f));
 	else if (face == 4) //+ve z

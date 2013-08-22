@@ -88,6 +88,9 @@ protected:
 
 	Texture* bbTex;
 	Texture* decayTex;
+
+	const float bbHeight; //Particle billboard width.
+	const float bbWidth;  //Particle billboard height.
 private:
 	const int avgLifetime;
 	const int varLifetime;
@@ -98,8 +101,6 @@ private:
 	const float perturbRadius;
 	const float baseRadius;
 	const float centerForce;
-	const float bbHeight; //Particle billboard width.
-	const float bbWidth;  //Particle billboard height.
 	glm::vec3 cameraDir;
 
 	std::vector<glm::vec4> vel;
