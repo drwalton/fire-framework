@@ -162,7 +162,7 @@ int init()
 
 	scene->add(plot);
 
-	plot->uniformScale(0.1f);
+	plot->uniformScale(0.2f);
 
 	return 1;
 }

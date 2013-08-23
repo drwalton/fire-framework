@@ -15,6 +15,14 @@ std::vector<glm::vec3> operator * (const std::vector<glm::vec3> vec, const float
 	return ans;
 }
 
+std::vector<glm::vec3> operator * (const std::vector<glm::vec3> vec, const glm::vec3& f)
+{
+	std::vector<glm::vec3> ans = vec;
+	for(auto i = ans.begin(); i != ans.end(); ++i)
+		*i *= f;
+	return ans;
+}
+
 void PhongLight::setPos(glm::vec4 _pos)
 {
 	pos = _pos;
@@ -47,29 +55,47 @@ void PhongLight::update()
 void SHLight::setCoeffts(std::vector<glm::vec3> _coeffts)
 {
 	coeffts = _coeffts;
-	retCoeffts = rotation * coeffts * intensity;
+	retCoeffts = rotation * coeffts * intensity * color;
 	if(manager) manager->update(this);
 }
 
 void SHLight::rotateCoeffts(glm::mat4 _rotation)
 {
 	rotation = SHMat(_rotation, GC::nSHBands);
-	retCoeffts = rotation * coeffts * intensity;
+	retCoeffts = rotation * coeffts * intensity * color;
 	manager->update(this);
 }
 
 void SHLight::pointAt(glm::vec3 dir)
 {
+	dir = glm::normalize(dir);
+	float theta = -asin(dir.y);
+	float phi = atan2(dir.z, dir.x) + PI;
+
+	glm::mat4 look = glm::rotate(glm::mat4(1.0f),
+		(theta * 180.0f) / PI,
+		glm::vec3(1.0f, 0.0f, 0.0f));
+	look = glm::rotate(look,
+		(phi * 180.0f) / PI, 
+		glm::vec3(0.0f, 1.0f, 0.0f));
+
 	rotation = SHMat(
-		glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), dir, glm::vec3(0.0f, 1.0f, 0.0f)),
+		look,
 		GC::nSHBands);
-	retCoeffts = rotation * coeffts * intensity;
+	retCoeffts = rotation * coeffts * intensity * color;
 	manager->update(this);
 }
 
 void SHLight::setIntensity(float intensity)
 {
 	this->intensity = intensity;
-	retCoeffts = rotation * coeffts * intensity;
+	retCoeffts = rotation * coeffts * intensity * color;
+	manager->update(this);
+}
+
+void SHLight::setColor(const glm::vec3& color)
+{
+	this->color = color;
+	retCoeffts = rotation * coeffts * intensity * color;
 	manager->update(this);
 }

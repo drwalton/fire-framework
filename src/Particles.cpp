@@ -679,7 +679,7 @@ void AdvectParticlesRandSHLights::updateLights()
 	{
 		//Move particle pos to target model space and invert
 		//  to get vector from particle to target
-		lights[i]->pointAt(- glm::vec3(toTarget * particles[i].pos));
+		lights[i]->pointAt(glm::vec3(toTarget * particles[i].pos));
 	}
 }
 
@@ -771,7 +771,7 @@ void AdvectParticlesCentroidSHLights::updateLights()
 
 	for(int i = 0; i < nLights; ++i)
 	{
-		lights[i]->pointAt(- glm::vec3(toTarget * getParticleCentroid(clumps[i])));
+		lights[i]->pointAt(glm::vec3(toTarget * getParticleCentroid(clumps[i])));
 	}
 }
 
