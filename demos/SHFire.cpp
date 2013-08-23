@@ -69,9 +69,9 @@ int init()
 
 	/* Flame Properties */
 	const int nFlameParticles = 400;
-	const float flameIntensity = 10.0f;
-	const int nFlameLights = 1;
-	const int lightClumpSize = 1;
+	const float flameIntensity = 2.0f;
+	const int nFlameLights = 5;
+	const int lightClumpSize = 4;
 	const int hopInterval = -1; // Never hop. Set to +ve ms value to hop.
 
 	/* Spark Properties */
@@ -153,9 +153,14 @@ int init()
 
 	plot = new SpherePlot(
 		[] (float theta, float phi) -> 
-		float {return SH::evaluate(
-			flame->lights[0]->getCoeffts(), theta, phi).x / 
-			flame->getIntensity();},
+		float {
+			std::vector<glm::vec3> allLights(GC::nSHCoeffts);
+			std::fill(allLights.begin(), allLights.end(), glm::vec3(0.0f));
+			for(size_t l = 0; l < flame->lights.size(); ++l)
+				for(size_t c = 0; c < GC::nSHCoeffts; ++c)
+					allLights[c] += flame->lights[l]->getCoeffts()[c];
+			return SH::evaluate(allLights, theta, phi).x / flame->getIntensity();
+			},
 		40, plotShader);
 
 	plot->translate(glm::vec3(-1.0f, 0.0f, 0.0f));
@@ -177,9 +182,15 @@ void display()
 
 	plot->replot(
 		[] (float theta, float phi) -> 
-		float {return SH::evaluate(
-			flame->lights[0]->getCoeffts(), theta, phi).x / 
-				flame->getIntensity();}, 40);
+		float {
+			std::vector<glm::vec3> allLights(GC::nSHCoeffts);
+			std::fill(allLights.begin(), allLights.end(), glm::vec3(0.0f));
+			for(size_t l = 0; l < flame->lights.size(); ++l)
+				for(size_t c = 0; c < GC::nSHCoeffts; ++c)
+					allLights[c] += flame->lights[l]->getCoeffts()[c];
+			return SH::evaluate(allLights, theta, phi).x / flame->getIntensity();
+			},
+			40);
 
 	scene->render();
 	glutSwapBuffers();

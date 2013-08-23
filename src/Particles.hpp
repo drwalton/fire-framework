@@ -268,38 +268,6 @@ private:
 	float intensity;
 };
 
-/* AdvectParticlesRandSHLights
- * Copy of AdvectParticlesRandLights designed to manipulate SH lights.
- */
-class AdvectParticlesRandSHLights : public AdvectParticlesSHLights
-{
-public:
-	AdvectParticlesRandSHLights(
-		Renderable* targetObj, float intensity,
-		int _maxParticles, int _nLights,
-		int _interval, ParticleShader* _shader, 
-		Texture* _bbTex, Texture* _decayTex);
-	AdvectParticlesRandSHLights(
-		Renderable* targetObj, float intensity,
-		int _maxParticles, int _nLights,
-		int _interval, ParticleShader* _shader, 
-		Texture* _bbTex, Texture* _decayTex,
-		int avgLifetime, int varLifetime, 
-		glm::vec4 initAcn, glm::vec4 initVel,
-		int avgPerturbTime, int varPerturbTime, float perturbRadius,
-		float baseRadius, float centerForce,
-		float bbHeight, float bbWidth,
-		bool perturb_on, bool _init_perturb);
-protected:
-	void updateLights();
-private:
-	int counter;
-	const int interval;
-	void init();
-	void randomizeLights();
-	std::vector<int> lightIndices;
-};
-
 /* AdvectParticlesCentroidSHLights
  * Copy of AdvectParticlesCentroidLights for SH lights.
  */
