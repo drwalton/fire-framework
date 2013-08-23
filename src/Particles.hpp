@@ -75,6 +75,7 @@ public:
 	virtual void update(int dTime);
 	virtual void setShader(ParticleShader* shader);
 	void setExtForce(const glm::vec3& extForce);
+	const float height;
 protected:
 	bool additive;
 	std::vector<AdvectParticle> particles;
@@ -150,6 +151,7 @@ public:
 protected:
 	virtual void updateLights() = 0;
 	glm::vec4 getParticleColor(float decay);
+	float saturate(float val);
 	std::vector<glm::vec4> particleColors;
 private:
 	std::vector<glm::vec4> loadImage(const std::string& filename);
@@ -358,6 +360,7 @@ private:
 	std::array<std::array<glm::vec4, GC::cubemapPixels>, 6> cubemap;
 	glm::vec3 cubemapLookup(float theta, float phi);
 	int findFace(glm::vec3 dir);
+	glm::vec3 shEval(int face, int texel, int coefft);
 	glm::mat4 getRotation(int face);
 	GLuint renderbuffer;
 	GLuint framebuffer;

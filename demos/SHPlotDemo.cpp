@@ -103,17 +103,12 @@ int init()
 	std::cout << ">  2. Approximations to \"shell\" function" << std::endl;
 	std::cout << ">  3. Approximations to \"apple\" function" << std::endl;
 	std::cout << ">  4. Approximations to \"pulse\" function" << std::endl;
-	std::cout << ">  5. Approximations to \"patches\" function" << std::endl;
-	std::cout << ">  6. Approximations to \"swirls\" function" << std::endl;
+	std::cout << ">  5. Approximations to \"circle\" function" << std::endl;
+	std::cout << ">  6. Approximations to \"patches\" function" << std::endl;
+	std::cout << ">  7. Approximations to \"swirls\" function" << std::endl;
 
 	int choice = -1;
-	while(!(
-		choice == 1 || 
-		choice == 2 || 
-		choice == 3 || 
-		choice == 4 || 
-		choice == 5 || 
-		choice == 6))
+	while(!(choice >= 1 && choice <= 7))
 	{
 		std::cout << std::endl;
 		std::cout << "Please enter your choice: ";
@@ -147,7 +142,15 @@ int init()
 		},
 			8, 2.0f, glm::vec3(-7.0, 0.0, 0.0));
 
-	else if(choice == 5) // Patches
+	else if(choice == 5) // Circle
+		plotApproximations( 
+		[] (float theta, float phi) -> float
+		{
+			return circle(theta, phi, glm::vec3(0.0f, 1.0f, 0.0f), 1.0f);
+		},
+			8, 2.0f, glm::vec3(-7.0, 0.0, 0.0));
+
+	else if(choice == 6) // Patches
 		plotApproximations( 
 		[] (float theta, float phi) -> float
 		{
@@ -155,7 +158,7 @@ int init()
 		},
 			8, 3.0f, glm::vec3(-7.0, 0.0, 0.0));
 
-	else if(choice == 6) // Swirls
+	else if(choice == 7) // Swirls
 		plotApproximations( 
 		[] (float theta, float phi) -> float
 		{

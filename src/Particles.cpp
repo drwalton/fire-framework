@@ -10,6 +10,8 @@
 
 #include <gtc/matrix_transform.hpp>
 
+#include<algorithm>
+
 AdvectParticles::AdvectParticles(int maxParticles,
 	ParticleShader* shader, 
 	Texture* bbTex, Texture* decayTex, bool texScrolls, bool additive)
@@ -26,7 +28,7 @@ AdvectParticles::AdvectParticles(int maxParticles,
 	 extForce(glm::vec4(0.0f)),
 	 perturbOn(true), initPerturb(false),
 	 cameraDir(glm::vec3(0.0, 0.0, -1.0)),
-	 additive(additive)
+	 additive(additive), height(initAcn.y * avgLifetime)
 {init(bbTex, decayTex, texScrolls);}
 
 AdvectParticles::AdvectParticles(int maxParticles,
@@ -51,12 +53,11 @@ AdvectParticles::AdvectParticles(int maxParticles,
 	 extForce(glm::vec4(0.0f)),
 	 perturbOn(perturbOn), initPerturb(initPerturb),
 	 cameraDir(glm::vec3(0.0, 0.0, -1.0)),
-	 additive(additive)
+	 additive(additive), height(initAcn.y * avgLifetime)
 {init(bbTex, decayTex, texScrolls);}
 
 void AdvectParticles::init(Texture* bbTex, Texture* decayTex, bool texScrolls)
 {
-
 	shader->use();
 
 	// Set up particles.
@@ -330,10 +331,16 @@ glm::vec4 AdvectParticlesLights::getParticleColor(float decay)
 {
 	int pixel = static_cast<int>(decay * (particleColors.size()-1));
 	return glm::vec4(
-			particleColors[pixel].x * lightIntensity,
-			particleColors[pixel].y * lightIntensity,
-			particleColors[pixel].z * lightIntensity,
+			saturate(particleColors[pixel].x) * lightIntensity,
+			saturate(particleColors[pixel].y) * lightIntensity,
+			saturate(particleColors[pixel].z) * lightIntensity,
 			1.0f);
+}
+
+float AdvectParticlesLights::saturate(float val)
+{
+	const float min = 0.5f;
+	return glm::mix(min, 1.0f, val);
 }
 
 std::vector<glm::vec4> AdvectParticlesLights::loadImage(const std::string& filename)

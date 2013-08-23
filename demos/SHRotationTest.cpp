@@ -48,6 +48,7 @@ float phi = 0.0f;
 
 Scene* scene;
 SHLight* light;
+SpherePlot* rotated;
 SpherePlot* reProjected;
 SpherePlot* shRotated;
 std::vector<glm::vec3> proj;
@@ -102,6 +103,11 @@ int init()
 
 	reProj = proj; rotProj = proj;
 
+	rotated = new SpherePlot(
+		[] (float theta, float phi) -> 
+		float {return SH::evaluate(proj, theta, phi).x;},
+		40, plotShader);
+
 	reProjected = new SpherePlot(
 		[] (float theta, float phi) -> 
 		float {return SH::evaluate(reProj, theta, phi).x;},
@@ -111,11 +117,12 @@ int init()
 		[] (float theta, float phi) -> 
 		float {return SH::evaluate(rotProj, theta, phi).x;},
 		40, plotShader);
-
+	
+	rotated->translate(glm::vec3(0.0f, 0.0f, 1.5f));
 	reProjected->translate(glm::vec3(-1.5f, 0.0f, 0.0f));
 	shRotated->translate(glm::vec3(1.5f, 0.0f, 0.0f));
 
-	scene->add(shRotated); scene->add(reProjected);
+	scene->add(rotated); scene->add(shRotated); scene->add(reProjected);
 
 	return 1;
 }
@@ -196,15 +203,14 @@ void printInfo()
 
 void rotate()
 {
-	rotation = glm::mat4(1.0f);
-	rotation = glm::rotate(glm::mat4(1.0), phi, glm::vec3(1.0, 0.0, 0.0));
-	rotation = glm::rotate(rotation, theta, glm::vec3(0.0, 1.0, 0.0));
+	rotation = glm::rotate(glm::mat4(1.0f), phi, glm::vec3(1.0f, 0.0f, 0.0f));
+	rotation = glm::rotate(rotation, theta, glm::vec3(0.0f, 1.0f, 0.0f));
 
 	reProj = SH::shProject(20, GC::nSHBands, 
 	[] (float theta, float phi) -> glm::vec3 
 	{
 		return glm::vec3(pulse(theta, phi, 
-			glm::mat3(rotation) * glm::vec3(1.0f, 0.0f, 0.0f),
+			glm::vec3(rotation * glm::vec4(1.0f, 0.0f, 0.0f, 1.0f)),
 			4.0f, 1.0f));
 	}
 	);
@@ -212,6 +218,8 @@ void rotate()
 	shRotation = SHMat(rotation, GC::nSHBands);
 
 	rotProj = shRotation * proj;
+
+	rotated->setRotation(rotation);
 
 	reProjected->replot(
 		[] (float theta, float phi) -> 

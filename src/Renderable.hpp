@@ -34,6 +34,7 @@ public:
 	void moveTo(const glm::vec3& p);
 	void uniformScale(float s);
 	void rotate(float angle, const glm::vec3& axis);
+	void setRotation(const glm::mat4& rotation);
 	glm::vec4 getOrigin(); //Return pos'n of model space origin in world space.
 	virtual void update(int dTime) = 0;
 	virtual void render() = 0;

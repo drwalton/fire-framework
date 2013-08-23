@@ -36,8 +36,8 @@ const int k = 5;
 int eTime;
 int deTime;
 
-float flameIntensity = 0.02f;
-float intensityDelta = 0.001f;
+float flameIntensity = 0.001f;
+float intensityDelta = 0.0001f;
 
 const float delta = 0.4f;
 

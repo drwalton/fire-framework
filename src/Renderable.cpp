@@ -45,6 +45,12 @@ void Renderable::rotate(float angle, const glm::vec3& axis)
 	modelToWorld = translation * rotation * scaling;
 }
 
+void Renderable::setRotation(const glm::mat4& rotation)
+{
+	this->rotation = rotation;
+	modelToWorld = translation * rotation * scaling;
+}
+
 glm::vec4 Renderable::getOrigin()
 {
 	glm::vec4 o = glm::vec4(0.0, 0.0, 0.0, 1.0);

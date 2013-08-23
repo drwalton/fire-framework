@@ -10,6 +10,8 @@
 // decrease the width of the pulse.
 float pulse(float theta, float phi, glm::vec3 pulseDir, float width, float scale);
 
+float circle(float theta, float phi, glm::vec3 centerDir, float angle);
+
 // A simple 1D square wave function used to generate other functions.
 float squareWave(float x, float interval, float xLow = -1.0f, float xHigh = 1.0f);
 

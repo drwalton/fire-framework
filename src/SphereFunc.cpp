@@ -18,6 +18,20 @@ float pulse(float theta, float phi, glm::vec3 pulseDir, float width, float scale
 	return dot;
 };
 
+float circle(float theta, float phi, glm::vec3 centerDir, float angle)
+{
+	glm::vec3 dir
+		(
+		sin(theta) * cos(phi),
+		sin(theta) * sin(phi),
+		cos(theta)
+		);
+
+	float dot = glm::dot(centerDir, dir);
+
+	return acos(dot) < angle ? 1.0f : 0.0f;
+}
+
 float squareWave(float x, float interval, float xLow, float xHigh)
 {
 	if(x < 0) x = -x;
