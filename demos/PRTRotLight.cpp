@@ -71,22 +71,22 @@ int init()
 
 	scene = new Scene();
 
-	/* Edit mesh filename and PRT type here. */
+	/* Edit mesh & texture filenames and PRT type here. */
 	/* mode should be UNSHADOWED, SHADOWED or INTERREFLECTED */
 	const std::string filename = "torii.obj";
+	const std::string diffTexture = "greenWhite.png";
 	const PRTMode mode = SHADOWED;
 
 	/* Check if baked file exists. If not, make one. */
 	const std::string bakedFilename = filename + "prt" + 
-		(mode == UNSHADOWED ? "u" :
-			mode == SHADOWED ? "s" : "i")
+		(mode == UNSHADOWED ? "u" : mode == SHADOWED ? "s" : "i")
 		+ "5";
 	std::ifstream temp(bakedFilename);
 	if(!temp)
-		PRTMesh::bake(INTERREFLECTED, "torii.obj", "greenWhite.png", 40, 5, 1);
+		PRTMesh::bake(INTERREFLECTED, filename, diffTexture, 40, 5, 1);
 
 	SHShader* shShader = new SHShader(false, "diffPRT");
-	PRTMesh* torii = new PRTMesh("torii.obj.prti5", shShader);
+	PRTMesh* torii = new PRTMesh(bakedFilename, shShader);
 	scene->add(torii);
 
 	/* A simple SH light source consisting of a pulse in the +ve x direction */

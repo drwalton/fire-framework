@@ -12,6 +12,9 @@
 
 #include<algorithm>
 
+const float AdvectParticlesLights::minColor = 0.6f;
+const float AdvectParticlesSHLights::minColor = 0.8f;
+
 AdvectParticles::AdvectParticles(int maxParticles,
 	ParticleShader* shader, 
 	Texture* bbTex, Texture* decayTex, bool texScrolls, bool additive)
@@ -254,6 +257,37 @@ int AdvectParticles::randi(int low, int high)
 	return r + low;
 }
 
+std::vector<glm::vec4> AdvectParticles::loadImage(const std::string& filename)
+{
+	int width, height, channels;
+	unsigned char* data = SOIL_load_image(
+		filename.c_str(),
+		&width, &height, &channels,
+		SOIL_LOAD_RGB);
+
+	std::vector<glm::vec4> image;
+
+	for(int p = 0; p < width; ++p)
+	{
+		glm::vec4 pixel;
+		pixel.x = static_cast<float>(data[p*channels + 0]) / 255.0f;
+		pixel.y = static_cast<float>(data[p*channels + 1]) / 255.0f;
+		pixel.z = static_cast<float>(data[p*channels + 2]) / 255.0f;
+		pixel.w = 1.0f;
+		pixel = glm::clamp(pixel, glm::vec4(0.0f), glm::vec4(1.0f));
+		image.push_back(pixel);
+	}
+
+	SOIL_free_image_data(data);
+
+	return image;
+}
+
+float AdvectParticles::saturate(float val, float min)
+{
+	return glm::mix(min, 1.0f, val);
+}
+
 AdvectParticlesLights::AdvectParticlesLights(int _maxParticles, int _nLights, 
 	ParticleShader* _shader, Texture* _bbTex, Texture* _decayTex)
 	:AdvectParticles(_maxParticles, _shader, _bbTex, _decayTex),
@@ -331,42 +365,10 @@ glm::vec4 AdvectParticlesLights::getParticleColor(float decay)
 {
 	int pixel = static_cast<int>(decay * (particleColors.size()-1));
 	return glm::vec4(
-			saturate(particleColors[pixel].x) * lightIntensity,
-			saturate(particleColors[pixel].y) * lightIntensity,
-			saturate(particleColors[pixel].z) * lightIntensity,
+			saturate(particleColors[pixel].x, minColor) * lightIntensity,
+			saturate(particleColors[pixel].y, minColor) * lightIntensity,
+			saturate(particleColors[pixel].z, minColor) * lightIntensity,
 			1.0f);
-}
-
-float AdvectParticlesLights::saturate(float val)
-{
-	const float min = 0.4f;
-	return glm::mix(min, 1.0f, val);
-}
-
-std::vector<glm::vec4> AdvectParticlesLights::loadImage(const std::string& filename)
-{
-	int width, height, channels;
-	unsigned char* data = SOIL_load_image(
-		filename.c_str(),
-		&width, &height, &channels,
-		SOIL_LOAD_RGB);
-
-	std::vector<glm::vec4> image;
-
-	for(int p = 0; p < width; ++p)
-	{
-		glm::vec4 pixel;
-		pixel.x = static_cast<float>(data[p*channels + 0]) / 255.0f;
-		pixel.y = static_cast<float>(data[p*channels + 1]) / 255.0f;
-		pixel.z = static_cast<float>(data[p*channels + 2]) / 255.0f;
-		pixel.w = 1.0f;
-		pixel = glm::clamp(pixel, glm::vec4(0.0f), glm::vec4(1.0f));
-		image.push_back(pixel);
-	}
-
-	SOIL_free_image_data(data);
-
-	return image;
 }
 
 AdvectParticlesCentroidLights::AdvectParticlesCentroidLights(
@@ -516,6 +518,8 @@ void AdvectParticlesSHLights::makeLights()
 			}
 		));
 	}
+
+	particleColors = loadImage(decayTex->filename);
 }
 
 void AdvectParticlesSHLights::onAdd()
@@ -551,6 +555,15 @@ void AdvectParticlesSHLights::setIntensity(float intensity)
 	this->intensity = intensity;
 	for(auto l = lights.begin(); l != lights.end(); ++l)
 		(*l)->setIntensity(intensity);
+}
+
+glm::vec3 AdvectParticlesSHLights::getParticleColor(float decay)
+{
+	int pixel = static_cast<int>(decay * (particleColors.size()-1));
+	return glm::vec3(
+			saturate(particleColors[pixel].x, minColor),
+			saturate(particleColors[pixel].y, minColor),
+			saturate(particleColors[pixel].z, minColor));
 }
 
 AdvectParticlesCentroidSHLights::AdvectParticlesCentroidSHLights(
@@ -632,6 +645,7 @@ void AdvectParticlesCentroidSHLights::updateLights()
 	for(int i = 0; i < nLights; ++i)
 	{
 		lights[i]->pointAt(glm::vec3(toTarget * getParticleCentroid(clumps[i])));
+		lights[i]->setColor(getAverageColor(clumps[i]));
 	}
 }
 
@@ -642,6 +656,15 @@ glm::vec4 AdvectParticlesCentroidSHLights::getParticleCentroid(
 	for(auto i = clump.begin(); i != clump.end(); ++i)
 		sum += particles[*i].pos;
 	return sum / (float) clump.size();
+}
+
+glm::vec3 AdvectParticlesCentroidSHLights::getAverageColor(
+	const std::vector<int>& clump)
+{
+	glm::vec3 color;
+	for(auto i = clump.begin(); i != clump.end(); ++i)
+		color += getParticleColor(particles[*i].decay);
+	return color / static_cast<float>(clump.size());
 }
 
 AdvectParticlesSHCubemap::AdvectParticlesSHCubemap(

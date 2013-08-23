@@ -82,6 +82,9 @@ protected:
 	int randi(int low, int high);
 	float randf(float low, float high);
 
+	std::vector<glm::vec4> loadImage(const std::string& filename);
+	float saturate(float val, float min);
+
 	GLuint particles_vbo;
 	GLuint pos_attrib;
 	GLuint decay_attrib;
@@ -151,47 +154,10 @@ public:
 protected:
 	virtual void updateLights() = 0;
 	glm::vec4 getParticleColor(float decay);
-	float saturate(float val);
 	std::vector<glm::vec4> particleColors;
 private:
-	std::vector<glm::vec4> loadImage(const std::string& filename);
 	float lightIntensity;
-};
-
-/* AdvectParticlesRandLights
- * Places nLights lights at the location of nLights particles.
- * The particles are initially randomly selected, and the lights
- * follow them, hopping to new randomly selected particles whenever
- * an interval elapses.
- * Special cases: 
- *     * interval == 0 : Lights hop every frame.
- *     * interval == -1: Lights never hop.
- */
-class AdvectParticlesRandLights : public AdvectParticlesLights
-{
-public:
-	AdvectParticlesRandLights(
-		int _maxParticles, int _nLights,
-		int _interval, ParticleShader* _shader, 
-		Texture* _bbTex, Texture* _decayTex);
-	AdvectParticlesRandLights(
-		int _maxParticles, int _nLights,
-		int _interval, ParticleShader* _shader, 
-		Texture* _bbTex, Texture* _decayTex,
-		int avgLifetime, int varLifetime, 
-		glm::vec4 initAcn, glm::vec4 initVel,
-		int avgPerturbTime, int varPerturbTime, float perturbRadius,
-		float baseRadius, float centerForce,
-		float bbHeight, float bbWidth,
-		bool perturb_on, bool _init_perturb);
-protected:
-	void updateLights();
-private:
-	int counter;
-	const int interval;
-	void init();
-	void randomizeLights();
-	std::vector<int> lightIndices;
+	static const float minColor;
 };
 
 /* AdvectParticlesCentroidLights
@@ -264,8 +230,11 @@ protected:
 	virtual void updateLights() = 0;
 	void makeLights();
 	Renderable* targetObj;
+	std::vector<glm::vec4> particleColors;
+	glm::vec3 getParticleColor(float decay);
 private:
 	float intensity;
+	static const float minColor;
 };
 
 /* AdvectParticlesCentroidSHLights
@@ -300,6 +269,7 @@ private:
 	void randomizeClumps();
 	std::vector<std::vector<int>> clumps;
 	glm::vec4 getParticleCentroid(const std::vector<int>& clump);
+	glm::vec3 getAverageColor(const std::vector<int>& clump);
 };
 
 /* AdvectParticlesCentroidSHLights
