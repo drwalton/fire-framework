@@ -257,7 +257,7 @@ int AdvectParticles::randi(int low, int high)
 AdvectParticlesLights::AdvectParticlesLights(int _maxParticles, int _nLights, 
 	ParticleShader* _shader, Texture* _bbTex, Texture* _decayTex)
 	:AdvectParticles(_maxParticles, _shader, _bbTex, _decayTex),
-	 nLights(_nLights), lightIntensity(0.02f)
+	 nLights(_nLights), lightIntensity(0.0014f)
 {
 	// Set up vector of lights.
 	for(int i = 0; i < nLights; ++i)
@@ -285,7 +285,7 @@ AdvectParticlesLights::AdvectParticlesLights(
 	 baseRadius, centerForce,
 	 bbHeight, bbWidth,
 	 perturb_on, _init_perturb),
-	 nLights(_nLights), lightIntensity(0.02f)
+	 nLights(_nLights), lightIntensity(0.0014f)
 {
 	// Set up vector of lights.
 	for(int i = 0; i < nLights; ++i)
@@ -339,7 +339,7 @@ glm::vec4 AdvectParticlesLights::getParticleColor(float decay)
 
 float AdvectParticlesLights::saturate(float val)
 {
-	const float min = 0.5f;
+	const float min = 0.4f;
 	return glm::mix(min, 1.0f, val);
 }
 

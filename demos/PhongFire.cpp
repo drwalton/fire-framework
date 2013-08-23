@@ -60,12 +60,9 @@ int main(int argc, char** argv)
 // Called by glutInit().
 int init()
 {
-	glClearColor(0.7f, 0.7f, 0.9f, 1.0f); // Light blue
-
-	glEnable(GL_CULL_FACE);
-	glEnable(GL_DEPTH_TEST);
-
-	scene = new Scene();
+	/* Ambient Light Properties */
+	const float ambIntensity = 0.5f;
+	const glm::vec4 ambColor(0.7f, 0.7f, 0.9f, 1.0f); //light blue
 
 	/* Flame Properties */
 	const int nFlameParticles = 400;
@@ -92,6 +89,14 @@ int init()
 
 	/* Bunny Properties */
 	const float bunnySpecExp = 1.0f;
+
+	glClearColor(ambColor.x, ambColor.y, ambColor.z, ambColor.w);
+
+	glEnable(GL_CULL_FACE);
+	glEnable(GL_DEPTH_TEST);
+
+	scene = new Scene();
+	scene->setAmbLight(ambColor * ambIntensity);
 
 	pShader = new ParticleShader(true, false, "ProceduralFire");
 	tShader = new ParticleShader(true, true , "ScrollTexFire" );
