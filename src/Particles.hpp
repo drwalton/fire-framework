@@ -237,29 +237,35 @@ class AdvectParticlesSHLights : public AdvectParticles
 public:
 	AdvectParticlesSHLights(
 		Renderable* targetObj,
-		int _maxParticles,
-		int _nLights, ParticleShader* _shader, 
-		Texture* _bbTex, Texture* _decayTex);
+		float intensity,
+		int maxParticles,
+		int nLights, ParticleShader* shader, 
+		Texture* bbTex, Texture* decayTex);
 	AdvectParticlesSHLights(
 		Renderable* targetObj,
-		int _maxParticles, 
-		int nLights, ParticleShader* _shader, 
-		Texture* _bbTex, Texture* _decayTex,
+		float intensity,
+		int maxParticles, 
+		int nLights, ParticleShader* shader, 
+		Texture* bbTex, Texture* decayTex,
 		int avgLifetime, int varLifetime, 
 		glm::vec4 initAcn, glm::vec4 initVel,
 		int avgPerturbTime, int varPerturbTime, float perturbRadius,
 		float baseRadius, float centerForce,
 		float bbHeight, float bbWidth,
-		bool perturb_on, bool _init_perturb);
+		bool perturb_on, bool init_perturb);
 	const int nLights;
 	std::vector<SHLight*> lights;
 	void onAdd();
 	void onRemove();
 	void update(int dTime);
+	void setIntensity(float intensity);
+	float getIntensity() {return intensity;};
 protected:
 	virtual void updateLights() = 0;
 	void makeLights();
 	Renderable* targetObj;
+private:
+	float intensity;
 };
 
 /* AdvectParticlesRandSHLights
@@ -269,12 +275,12 @@ class AdvectParticlesRandSHLights : public AdvectParticlesSHLights
 {
 public:
 	AdvectParticlesRandSHLights(
-		Renderable* targetObj,
+		Renderable* targetObj, float intensity,
 		int _maxParticles, int _nLights,
 		int _interval, ParticleShader* _shader, 
 		Texture* _bbTex, Texture* _decayTex);
 	AdvectParticlesRandSHLights(
-		Renderable* targetObj,
+		Renderable* targetObj, float intensity,
 		int _maxParticles, int _nLights,
 		int _interval, ParticleShader* _shader, 
 		Texture* _bbTex, Texture* _decayTex,
@@ -301,12 +307,12 @@ class AdvectParticlesCentroidSHLights : public AdvectParticlesSHLights
 {
 public:
 	AdvectParticlesCentroidSHLights(
-		Renderable* targetObj,
+		Renderable* targetObj, float intensity,
 		int _maxParticles, int _nLights, int _clumpSize,
 		int _interval, ParticleShader* _shader, 
 		Texture* _bbTex, Texture* _decayTex);
 	AdvectParticlesCentroidSHLights(
-		Renderable* targetObj,
+		Renderable* targetObj, float intensity,
 		int _maxParticles, int _nLights, int _clumpSize,
 		int _interval, ParticleShader* _shader, 
 		Texture* _bbTex, Texture* _decayTex,

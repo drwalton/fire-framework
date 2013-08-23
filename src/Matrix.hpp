@@ -52,6 +52,7 @@ public:
 	std::vector<glm::vec3> operator * (const std::vector<glm::vec3>& v);
 
 	void print();
+	static void print(glm::mat3 matrix);
 
 	const int r, c;
 private:
@@ -311,6 +312,17 @@ void Matrix<T>::print()
 		for(int j = 0; j < c - 1; ++j)
 			std::cout << data[i][j] << " ";
 		std::cout << data[i][c-1] << std::endl;
+	}
+}
+
+template <typename T>
+void Matrix<T>::print(glm::mat3 matrix)
+{
+	for(int r = 0; r < 3; ++r)
+	{
+		for(int c = 0; c < 3; ++c)
+			std::cout << matrix[r][c] << " ";
+		std::cout << std::endl;
 	}
 }
 

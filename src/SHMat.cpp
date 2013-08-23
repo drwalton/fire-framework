@@ -67,13 +67,13 @@ void SHMat::init(const glm::mat3& rotation, int nBands)
 	/* Rearrange coeffts of R */
 	Matrix<float> R(3,3);
 	R(0,0) = R_o(1,1);
-	R(0,1) = R_o(1,2);
+	R(0,1) = -R_o(1,2);
 	R(0,2) = R_o(1,0);
-	R(1,0) = R_o(2,1);
+	R(1,0) = -R_o(2,1);
 	R(1,1) = R_o(2,2);
-	R(1,2) = R_o(2,0);
+	R(1,2) = -R_o(2,0);
 	R(2,0) = R_o(0,1);
-	R(2,1) = R_o(0,2);
+	R(2,1) = -R_o(0,2);
 	R(2,2) = R_o(0,0);
 
 	blocks.reserve(nBands);

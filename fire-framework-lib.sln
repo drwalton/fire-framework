@@ -33,6 +33,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cubemap-sh-demo", "cubemap-
 		{CDF71F5D-DFE3-4E4E-AFEC-3076C25D54C9} = {CDF71F5D-DFE3-4E4E-AFEC-3076C25D54C9}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "fire-sh-demo", "fire-sh-demo\fire-sh-demo.vcxproj", "{3EBAB3AC-5E5F-4FE6-A766-F3ED6C43BD93}"
+	ProjectSection(ProjectDependencies) = postProject
+		{CDF71F5D-DFE3-4E4E-AFEC-3076C25D54C9} = {CDF71F5D-DFE3-4E4E-AFEC-3076C25D54C9}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -67,6 +72,10 @@ Global
 		{1E3D4530-14A8-41F5-A277-03D18DEBB939}.Debug|Win32.Build.0 = Debug|Win32
 		{1E3D4530-14A8-41F5-A277-03D18DEBB939}.Release|Win32.ActiveCfg = Release|Win32
 		{1E3D4530-14A8-41F5-A277-03D18DEBB939}.Release|Win32.Build.0 = Release|Win32
+		{3EBAB3AC-5E5F-4FE6-A766-F3ED6C43BD93}.Debug|Win32.ActiveCfg = Debug|Win32
+		{3EBAB3AC-5E5F-4FE6-A766-F3ED6C43BD93}.Debug|Win32.Build.0 = Debug|Win32
+		{3EBAB3AC-5E5F-4FE6-A766-F3ED6C43BD93}.Release|Win32.ActiveCfg = Release|Win32
+		{3EBAB3AC-5E5F-4FE6-A766-F3ED6C43BD93}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

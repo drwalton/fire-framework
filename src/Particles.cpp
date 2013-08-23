@@ -533,33 +533,37 @@ glm::vec4 AdvectParticlesCentroidLights::getAverageColor(
 
 AdvectParticlesSHLights::AdvectParticlesSHLights(
 	Renderable* targetObj,
-	int _maxParticles, int _nLights, 
-	ParticleShader* _shader, 
-	Texture* _bbTex, Texture* _decayTex)
-	:AdvectParticles(_maxParticles, _shader, _bbTex, _decayTex),
-	 nLights(_nLights)
+	float intensity,
+	int maxParticles, int nLights, 
+	ParticleShader* shader, 
+	Texture* bbTex, Texture* decayTex)
+	:AdvectParticles(maxParticles, shader, bbTex, decayTex),
+	 nLights(nLights), targetObj(targetObj),
+	 intensity(intensity / nLights)
 { makeLights(); }
 
 AdvectParticlesSHLights::AdvectParticlesSHLights(
 	Renderable* targetObj,
-	int _maxParticles,
-	int _nLights, ParticleShader* _shader, 
-	Texture* _bbTex, Texture* _decayTex,
+	float intensity,
+	int maxParticles,
+	int nLights, ParticleShader* shader, 
+	Texture* bbTex, Texture* decayTex,
 	int avgLifetime, int varLifetime, 
 	glm::vec4 initAcn, glm::vec4 initVel,
 	int avgPerturbTime, int varPerturbTime, float perturbRadius,
 	float baseRadius, float centerForce,
 	float bbHeight, float bbWidth,
-	bool perturb_on, bool _init_perturb)
-	:AdvectParticles(_maxParticles, 
-	 _shader, _bbTex, _decayTex,
+	bool perturb_on, bool init_perturb)
+	:AdvectParticles(maxParticles, 
+	 shader, bbTex, decayTex,
 	 avgLifetime, varLifetime, 
 	 initAcn, initVel,
 	 avgPerturbTime, varPerturbTime, perturbRadius,
 	 baseRadius, centerForce,
 	 bbHeight, bbWidth,
-	 perturb_on, _init_perturb),
-	 nLights(_nLights)
+	 perturb_on, init_perturb),
+	 nLights(nLights), targetObj(targetObj),
+	 intensity(intensity / nLights)
 { makeLights(); }
 
 void AdvectParticlesSHLights::makeLights()
@@ -588,9 +592,10 @@ void AdvectParticlesSHLights::onAdd()
 		p = scene->add(*l);
 		if(p == nullptr) //Light not added correctly (too many lights?).
 		{
-			std::cout << "Warning: Not all particle lights could be added.\n";
+			std::cout << "Warning: Not all SH lights could be added.\n";
 			break;
 		}
+		(*l)->setIntensity(intensity);
 	}
 }
 
@@ -606,13 +611,20 @@ void AdvectParticlesSHLights::update(int dTime)
 	updateLights();
 }
 
+void AdvectParticlesSHLights::setIntensity(float intensity)
+{
+	this->intensity = intensity;
+	for(auto l = lights.begin(); l != lights.end(); ++l)
+		(*l)->setIntensity(intensity);
+}
+
 AdvectParticlesRandSHLights::AdvectParticlesRandSHLights(
-	Renderable* targetObj,
+	Renderable* targetObj, float intensity,
 	int _maxParticles, int _nLights,
 	int _interval, ParticleShader* _shader, 
 	Texture* _bbTex, Texture* _decayTex)
 	:AdvectParticlesSHLights(
-		targetObj,
+		targetObj, intensity,
 		_maxParticles,
 		_nLights, _shader, 
 		_bbTex, _decayTex),
@@ -621,7 +633,7 @@ AdvectParticlesRandSHLights::AdvectParticlesRandSHLights(
 {randomizeLights();}
 
 AdvectParticlesRandSHLights::AdvectParticlesRandSHLights(
-	Renderable* targetObj,
+	Renderable* targetObj, float intensity,
 	int _maxParticles, int _nLights,
 	int _interval, ParticleShader* _shader, 
 	Texture* _bbTex, Texture* _decayTex,
@@ -632,7 +644,7 @@ AdvectParticlesRandSHLights::AdvectParticlesRandSHLights(
 	float bbHeight, float bbWidth,
 	bool perturb_on, bool _init_perturb)
 	:AdvectParticlesSHLights(
-		targetObj,
+		targetObj, intensity,
 		_maxParticles,
 		_nLights, _shader, 
 		_bbTex, _decayTex,
@@ -682,13 +694,13 @@ void AdvectParticlesRandSHLights::randomizeLights()
 }
 
 AdvectParticlesCentroidSHLights::AdvectParticlesCentroidSHLights(
-	Renderable* targetObj,
+	Renderable* targetObj, float intensity,
 	int _maxParticles,
 	int _nLights, int _clumpSize,
 	int _interval, ParticleShader* _shader, 
 	Texture* _bbTex, Texture* _decayTex)
 	:AdvectParticlesSHLights(
-		targetObj,
+		targetObj, intensity,
 		_maxParticles, 
 		_nLights, _shader, 
 		_bbTex, _decayTex),
@@ -697,7 +709,7 @@ AdvectParticlesCentroidSHLights::AdvectParticlesCentroidSHLights(
 { init(); }
 
 AdvectParticlesCentroidSHLights::AdvectParticlesCentroidSHLights(
-	Renderable* targetObj,
+	Renderable* targetObj, float intensity,
 	int _maxParticles,
 	int _nLights, int _clumpSize,
 	int _interval, ParticleShader* _shader, 
@@ -709,7 +721,7 @@ AdvectParticlesCentroidSHLights::AdvectParticlesCentroidSHLights(
 	float bbHeight, float bbWidth,
 	bool perturb_on, bool _init_perturb)
 	:AdvectParticlesSHLights(
-		targetObj,
+		targetObj, intensity,
 		_maxParticles,
 		_nLights, _shader, 
 		_bbTex, _decayTex,

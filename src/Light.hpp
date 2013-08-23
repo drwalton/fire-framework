@@ -74,15 +74,17 @@ public:
 	template <typename Fn>
 	void setFunc(Fn func);
 	void setCoeffts(std::vector<glm::vec3> _coeffts);
-	const std::vector<glm::vec3>& getCoeffts() {return rotCoeffts;};
+	const std::vector<glm::vec3>& getCoeffts() {return retCoeffts;};
 	void rotateCoeffts(glm::mat4 rotation);
 	void pointAt(glm::vec3 dir); //N.B. Rotates so the image of (1,0,0) is dir.
 	int index;
 	SHLightManager* manager;
+	void setIntensity(float intensity);
 private:
 	std::vector<glm::vec3> coeffts;
-	std::vector<glm::vec3> rotCoeffts;
+	std::vector<glm::vec3> retCoeffts;
 	SHMat rotation;
+	float intensity;
 };
 
 template <typename Fn>
@@ -90,14 +92,14 @@ SHLight::SHLight(Fn func)
 	:index(-1), manager(nullptr), rotation(SHMat(GC::nSHBands))
 {
 	coeffts = SH::shProject(GC::sqrtSHSamples, GC::nSHBands, func);
-	rotCoeffts = coeffts;
+	retCoeffts = coeffts;
 };
 
 template <typename Fn>
 void SHLight::setFunc(Fn func)
 {
 	coeffts = SH::shProject(GC::sqrtSHSamples, GC::nSHBands, func);
-	rotCoeffts = rotation * coeffts;
+	retCoeffts = rotation * coeffts * intensity;
 }
 
 #endif

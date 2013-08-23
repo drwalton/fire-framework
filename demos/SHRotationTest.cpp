@@ -45,6 +45,7 @@ const int nSparks = 5;
 
 float theta = 0.0f;
 float phi = 0.0f;
+float psi = 0.0f;
 
 Scene* scene;
 SHLight* light;
@@ -153,20 +154,28 @@ void keyboard(unsigned char key, int x, int y)
 
     switch (key)
     {
-	case 't':
+	case 'r':
 		theta += 3.6f;
 		rotate();
 		break;
-	case 'g':
+	case 'f':
 		theta -= 3.6f;
 		rotate();
 		break;
-	case 'f':
+	case 't':
 		phi -= 3.6f;
 		rotate();
 		break;
-	case 'h':
+	case 'g':
 		phi += 3.6f;
+		rotate();
+		break;
+	case 'y':
+		psi -= 3.6f;
+		rotate();
+		break;
+	case 'h':
+		psi += 3.6f;
 		rotate();
 		break;
 	case 'p':
@@ -203,8 +212,10 @@ void printInfo()
 
 void rotate()
 {
-	rotation = glm::rotate(glm::mat4(1.0f), phi, glm::vec3(1.0f, 0.0f, 0.0f));
+	rotation = glm::rotate(glm::mat4(1.0f), psi, glm::vec3(0.0f, 0.0f, 1.0f));
+	rotation = glm::rotate(rotation, phi, glm::vec3(1.0f, 0.0f, 0.0f));
 	rotation = glm::rotate(rotation, theta, glm::vec3(0.0f, 1.0f, 0.0f));
+
 
 	reProj = SH::shProject(20, GC::nSHBands, 
 	[] (float theta, float phi) -> glm::vec3 
@@ -215,7 +226,15 @@ void rotate()
 	}
 	);
 
+	glm::mat4 rotation2 = glm::rotate(glm::mat4(1.0f), -phi, glm::vec3(1.0f, 0.0f, 0.0f));
+	rotation2 = glm::rotate(rotation2, -theta, glm::vec3(0.0f, 1.0f, 0.0f));
+
 	shRotation = SHMat(rotation, GC::nSHBands);
+
+	std::cout << "Original matrix: " << std::endl;
+	Matrix<float>::print(glm::mat3(rotation));
+	std::cout << "Other matrix: " << std::endl;
+	Matrix<float>::print(glm::mat3(rotation2));
 
 	rotProj = shRotation * proj;
 
