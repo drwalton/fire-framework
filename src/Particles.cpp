@@ -364,10 +364,14 @@ void AdvectParticlesLights::setLightIntensity(float lightIntensity)
 glm::vec4 AdvectParticlesLights::getParticleColor(float decay)
 {
 	int pixel = static_cast<int>(decay * (particleColors.size()-1));
+
+	float decayIntensity = decay < 0.3 ? decay : (1 - decay);
+	decayIntensity *= lightIntensity;
+
 	return glm::vec4(
-			saturate(particleColors[pixel].x, minColor) * lightIntensity,
-			saturate(particleColors[pixel].y, minColor) * lightIntensity,
-			saturate(particleColors[pixel].z, minColor) * lightIntensity,
+			saturate(particleColors[pixel].x, minColor) * decayIntensity,
+			saturate(particleColors[pixel].y, minColor) * decayIntensity,
+			saturate(particleColors[pixel].z, minColor) * decayIntensity,
 			1.0f);
 }
 
@@ -741,12 +745,10 @@ void AdvectParticlesSHCubemap::renderCubemap()
 	if(!scene || !targetObj) return;
 
 	// Store current state
-	GLfloat clearCol[4];
 	GLint viewport[4];
 	GLboolean faceCull = GL_TRUE;
 	GLboolean blend = GL_FALSE;
 	GLint blendFn = GL_ONE;
-	glGetFloatv(GL_COLOR_CLEAR_VALUE, clearCol);
 	glGetIntegerv(GL_VIEWPORT, viewport);
 	glGetBooleanv(GL_CULL_FACE, &faceCull);
 	glGetBooleanv(GL_BLEND, &blend);
@@ -757,7 +759,6 @@ void AdvectParticlesSHCubemap::renderCubemap()
 	glBindRenderbuffer(GL_RENDERBUFFER, renderbuffer);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, renderbuffer);
 
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glViewport(0, 0, GC::cubemapSize, GC::cubemapSize);
 	glDisable(GL_CULL_FACE);
 	glDisable(GL_BLEND); 
@@ -807,7 +808,6 @@ void AdvectParticlesSHCubemap::renderCubemap()
 	//Restore state
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-	glClearColor(clearCol[0], clearCol[1], clearCol[2], clearCol[3]);
 	glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
 	if(faceCull == GL_TRUE) glEnable(GL_CULL_FACE);
 	else glDisable(GL_CULL_FACE);

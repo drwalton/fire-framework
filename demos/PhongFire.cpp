@@ -69,6 +69,7 @@ int init()
 	const int nFlameLights = 10;
 	const int lightClumpSize = 10;
 	const int hopInterval = -1; // Never hop. Set to +ve ms value to hop.
+	const float flameLightIntensity = 0.0018f;
 
 	/* Spark Properties */
 	const int nSparkParticles = 5;
@@ -114,6 +115,8 @@ int init()
 	flame = new AdvectParticlesCentroidLights(
 		nFlameParticles, nFlameLights, lightClumpSize, hopInterval,
 		pShader, flameAlphaTex, flameDecayTex);
+
+	flame->setLightIntensity(flameLightIntensity);
 
 	sparks = new AdvectParticles(
 		nSparkParticles, sShader, sparkAlphaTex, sparkDecayTex,

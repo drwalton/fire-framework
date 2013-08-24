@@ -9,6 +9,8 @@
 #include <GL/glut.h>
 #include <gtc/matrix_transform.hpp>
 
+#include <fstream>
+
 /* Phong Fire Demo
  * Demo displays a textured mesh illuminated by a fire using Phong lighting
  * with centroid lights.
@@ -102,10 +104,24 @@ int init()
 	scene = new Scene();
 	scene->setAmbLight(ambColor * ambIntensity);
 
+	/* Edit mesh & texture filenames and PRT type here. */
+	/* mode should be UNSHADOWED, SHADOWED or INTERREFLECTED */
+	const std::string filename = "stanford.obj";
+	const std::string diffTexture = "stanford.png";
+	const PRTMode mode = SHADOWED;
+
+	/* Check if baked file exists. If not, make one. */
+	const std::string bakedFilename = filename + "prt" + 
+		(mode == UNSHADOWED ? "u" : mode == SHADOWED ? "s" : "i")
+		+ "5";
+	std::ifstream temp(bakedFilename);
+	if(!temp)
+		PRTMesh::bake(INTERREFLECTED, filename, diffTexture, 40, 5, 1);
+
 	SHShader* bunnyShader = new SHShader(false, "diffPRT");
 
 	bunny = new PRTMesh(
-		"stanford.obj.prts5",bunnyShader);
+		bakedFilename,bunnyShader);
 
 	bunny->uniformScale(0.2f);
 
