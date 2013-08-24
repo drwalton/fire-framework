@@ -203,6 +203,9 @@ void keyboard(unsigned char key, int x, int y)
 
     switch (key)
     {
+	case 't':
+		flame->saveCubemap();
+		break;
     case 'f':
     	//Switch fire mode.
     	if(flame->getShader() == tShader)

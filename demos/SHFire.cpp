@@ -111,12 +111,12 @@ int init()
 	const PRTMode mode = SHADOWED;
 
 	/* Check if baked file exists. If not, make one. */
-	const std::string bakedFilename = filename + "prt" + 
+	const std::string bakedFilename = filename + ".prt" + 
 		(mode == UNSHADOWED ? "u" : mode == SHADOWED ? "s" : "i")
 		+ "5";
 	std::ifstream temp(bakedFilename);
 	if(!temp)
-		PRTMesh::bake(INTERREFLECTED, filename, diffTexture, 40, 5, 1);
+		PRTMesh::bake(mode, filename, diffTexture, 40, 5, 1);
 
 	SHShader* bunnyShader = new SHShader(false, "diffPRT");
 

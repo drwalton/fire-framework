@@ -294,6 +294,7 @@ public:
 		bool perturb_on, bool _init_perturb);
 	void update(int dTime);
 	void onAdd();
+	void saveCubemap();
 private:
 	Renderable* targetObj;
 	CubemapShader* cubemapShader;
@@ -308,6 +309,7 @@ private:
 	glm::mat4 getRotation(int face);
 	GLuint renderbuffer;
 	GLuint framebuffer;
+	bool saveFlag;
 };
 
 #endif

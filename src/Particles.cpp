@@ -718,6 +718,11 @@ void AdvectParticlesSHCubemap::onAdd()
 	if(light == nullptr) std::cout << "Warning: SH light could not be added.\n"; 
 }
 
+void AdvectParticlesSHCubemap::saveCubemap()
+{
+	saveFlag = true;
+}
+
 void AdvectParticlesSHCubemap::init()
 {
 	cubemapShader = new CubemapShader(true, false, "FireLight");
@@ -729,15 +734,7 @@ void AdvectParticlesSHCubemap::init()
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, GC::cubemapSize, GC::cubemapSize);
 	glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
-	// Fill texture with test data for debugging.
-	std::array<GLbyte, 4 * GC::cubemapPixels> testData;
-	std::fill(testData.begin(), testData.end(), 128);
-    for(int face = 0; face < 6; ++face)
-		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + face, 0, GL_RGBA8,
-			GC::cubemapSize, GC::cubemapSize, 0, 
-			GL_RGBA, GL_UNSIGNED_BYTE, testData.data());
-
-	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+	saveFlag = false;
 }
 
 void AdvectParticlesSHCubemap::renderCubemap()
@@ -800,6 +797,37 @@ void AdvectParticlesSHCubemap::renderCubemap()
 		glPixelStorei(GL_PACK_ALIGNMENT, 1);
 		glReadPixels(0, 0, GC::cubemapSize, GC::cubemapSize, 
 			GL_RGBA, GL_FLOAT, (cubemap[face]).data());
+
+		if(saveFlag)
+		{
+			std::string filename = "cubemap" + std::to_string((long long) face) + ".bmp";
+			
+			unsigned char* img = (unsigned char*) malloc(GC::cubemapPixels * 3);
+			unsigned char* imgFlip = (unsigned char*) malloc(GC::cubemapPixels * 3);
+
+			glReadPixels(0, 0, GC::cubemapSize, GC::cubemapSize, 
+				GL_RGB, GL_UNSIGNED_BYTE, img);
+
+			for(int r = 0; r < GC::cubemapSize; ++r)
+				for(int c = 0; c < GC::cubemapSize; ++c)
+					for(int col = 0; col < 3; ++col)
+					{
+						imgFlip[(r*GC::cubemapSize + c)*3 + col] = 
+							img[(((GC::cubemapSize-1) - r)*GC::cubemapSize + c)*3 + col];
+					}
+
+			SOIL_save_image(
+					filename.c_str(),
+					SOIL_SAVE_TYPE_BMP,
+					GC::cubemapSize, GC::cubemapSize, 3,
+					imgFlip
+				);
+
+			free(img);
+			free(imgFlip);
+
+			if(face == 5) saveFlag = false;
+		}
 	}
 
 	glDisableVertexAttribArray(pos_attrib);
@@ -907,8 +935,8 @@ glm::mat4 AdvectParticlesSHCubemap::getRotation(int face)
 	else if (face == 3) //-ve y
 		return glm::rotate(glm::mat4(1.0f), 90.0f, glm::vec3(1.0f, 0.0f, 0.0f));
 	else if (face == 4) //+ve z
-		return glm::mat4(1.0f);
-	else if (face == 5) //-ve z
 		return glm::rotate(glm::mat4(1.0f), 180.0f, glm::vec3(0.0f, 1.0f, 0.0f));
-	else return glm::mat4(0.0f);
+	else if (face == 5) //-ve z
+		return glm::mat4(1.0f);
+	else return glm::mat4(0.0f); //fallback
 }
