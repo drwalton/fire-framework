@@ -57,7 +57,7 @@ void PRTMesh::bake(
 	for(int u = 0; u < width; ++u)
 		for(int v = 0; v < height; ++v)
 			for(int c = 0; c < 3; ++c)
-				diffData[(u + v*width)*3 + c] =
+				diffData[(u + v*width)*channels + c] =
 					diffDataFlip[(u + ((height-v)-1)*width)*3 + c];
 
 	SOIL_free_image_data(diffDataFlip);
@@ -477,7 +477,7 @@ void PRTMesh::renderCoefftToTexture(
 		avgCoefft += *c;
 	avgCoefft /= static_cast<float>(coefft.size());
 
-	std::vector<unsigned char> texData(width * height * 3);
+	std::vector<unsigned char> texData(width * height * 4);
 
 	// Create framebuffer
 	GLuint frame;
@@ -523,6 +523,7 @@ void PRTMesh::renderCoefftToTexture(
 	// Modify state
 	glClearColor(avgCoefft.x, avgCoefft.y, avgCoefft.z, 1.0f);
 	glDisable(GL_CULL_FACE);
+	glDisable(GL_BLEND);
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	coefftShader.use();
@@ -555,13 +556,13 @@ void PRTMesh::renderCoefftToTexture(
 
 	// Pull rendered image from GPU
 	glPixelStorei(GL_PACK_ALIGNMENT, 1);
-	glReadPixels(0, 0, width, height, GL_RGB, GL_BYTE, texData.data());
+	glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, texData.data());
 
 	SOIL_save_image
 		(
 			texFilename.c_str(),
-			SOIL_SAVE_TYPE_BMP,
-			width, height, 3,
+			SOIL_SAVE_TYPE_TGA,
+			width, height, 4,
 			texData.data()
 		);
 
@@ -581,7 +582,7 @@ void PRTMesh::writeTransferToTextures(
 	for(unsigned c = 0; c < transfer[0].size(); ++c)
 	{
 		std::string texName = prebakedFilename + ".coefft" +
-			std::to_string(static_cast<long long>(c)) + ".bmp";
+			std::to_string(static_cast<long long>(c)) + ".tga";
 		coefftFilenames.push_back(texName);
 	}
 

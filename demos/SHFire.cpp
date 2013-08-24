@@ -120,8 +120,7 @@ int init()
 
 	SHShader* bunnyShader = new SHShader(false, "diffPRT");
 
-	bunny = new PRTMesh(
-		bakedFilename,bunnyShader);
+	bunny = new PRTMesh(bakedFilename, bunnyShader);
 
 	bunny->uniformScale(0.2f);
 

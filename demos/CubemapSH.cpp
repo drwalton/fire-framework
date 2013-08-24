@@ -97,7 +97,7 @@ int init()
 
 	/* Bunny Properties */
 	const float bunnySpecExp = 1.0f;
-	const PRTMode mode = SHADOWED;
+	const PRTMode mode = UNSHADOWED;
 
 	SHShader* bunnyShader = new SHShader(false, "diffPRT");
 

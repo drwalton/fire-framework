@@ -46,8 +46,14 @@ void main()
 	for(int l = 0; l < $maxSHLights$; ++l)
 		for(int i = 0; i < $nSHCoeffts$; ++i)
 		{
-			color += vec3(texture(coefftTex, vec3(smoothTex.x, (1.0 - smoothTex.y), i))) * 
-				vec3(lightCoeffts[i + l*$nSHCoeffts$]);
+			vec4 transfer = texture(coefftTex, vec3(smoothTex.x, (1.0 - smoothTex.y), i));
+			vec3 lightCol =  vec3(transfer)* 
+					vec3(lightCoeffts[i + l*$nSHCoeffts$]);
+
+			if(transfer.w < 0.5)
+				color -= lightCol;
+			else
+				color += lightCol;
 		}
 
 	fragColor = vec4(color, 1.0);
