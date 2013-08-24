@@ -13,7 +13,7 @@
 #include<algorithm>
 
 const float AdvectParticlesLights::minColor = 0.6f;
-const float AdvectParticlesSHLights::minColor = 0.8f;
+const float AdvectParticlesSHLights::minColor = 0.6f;
 
 AdvectParticles::AdvectParticles(int maxParticles,
 	ParticleShader* shader, 
@@ -674,14 +674,16 @@ glm::vec3 AdvectParticlesCentroidSHLights::getAverageColor(
 AdvectParticlesSHCubemap::AdvectParticlesSHCubemap(
 	Renderable* targetObj,
 	int maxParticles, ParticleShader* shader, 
+	float intensity,
 	Texture* bbTex, Texture* decayTex)
 	:AdvectParticles(maxParticles, shader, bbTex, decayTex),
-	 targetObj(targetObj)
+	 targetObj(targetObj), intensity(intensity)
 { init(); }
 
 AdvectParticlesSHCubemap::AdvectParticlesSHCubemap(
 	Renderable* targetObj,
 	int _maxParticles, ParticleShader* _shader, 
+	float intensity,
 	Texture* _bbTex, Texture* _decayTex,
 	int avgLifetime, int varLifetime, 
 	glm::vec4 initAcn, glm::vec4 initVel,
@@ -697,7 +699,7 @@ AdvectParticlesSHCubemap::AdvectParticlesSHCubemap(
 	 baseRadius, centerForce,
 	 bbHeight, bbWidth,
 	 perturb_on, _init_perturb),
-	 targetObj(targetObj)
+	 targetObj(targetObj), intensity(intensity)
 { init(); }
 
 void AdvectParticlesSHCubemap::update(int dTime)
@@ -709,18 +711,41 @@ void AdvectParticlesSHCubemap::update(int dTime)
 
 void AdvectParticlesSHCubemap::onAdd()
 {
+	GLfloat clearCol[4];
+	glGetFloatv(GL_COLOR_CLEAR_VALUE, clearCol); 
+
 	renderCubemap();
 	light = scene->add(new SHLight(
 			[this] (float theta, float phi) -> glm::vec3
 			{
 				return this->cubemapLookup(theta, phi);
 			}));
-	if(light == nullptr) std::cout << "Warning: SH light could not be added.\n"; 
+
+	amb = scene->add(new SHLight(
+			[&clearCol] (float theta, float phi) -> glm::vec3
+			{
+				return glm::vec3(clearCol[0], clearCol[1], clearCol[2]);
+			}));
+
+	if(light == nullptr || amb == nullptr)
+		std::cout << "Warning: SH lights could not all be added.\n"; 
 }
 
 void AdvectParticlesSHCubemap::saveCubemap()
 {
 	saveFlag = true;
+}
+
+void AdvectParticlesSHCubemap::setIntensity(float intensity)
+{
+	this->intensity = intensity;
+	light->setIntensity(intensity);
+}
+
+void AdvectParticlesSHCubemap::setAmbIntensity(float ambIntensity)
+{
+	this->ambIntensity = ambIntensity;
+	amb->setIntensity(ambIntensity);
 }
 
 void AdvectParticlesSHCubemap::init()
@@ -742,23 +767,25 @@ void AdvectParticlesSHCubemap::renderCubemap()
 	if(!scene || !targetObj) return;
 
 	// Store current state
+	GLfloat clearCol[4];
 	GLint viewport[4];
 	GLboolean faceCull = GL_TRUE;
 	GLboolean blend = GL_FALSE;
 	GLint blendFn = GL_ONE;
+	glGetFloatv(GL_COLOR_CLEAR_VALUE, clearCol); 
 	glGetIntegerv(GL_VIEWPORT, viewport);
 	glGetBooleanv(GL_CULL_FACE, &faceCull);
 	glGetBooleanv(GL_BLEND, &blend);
 	glGetIntegerv(GL_BLEND_SRC_ALPHA, &blendFn);
 
 	//Set new state
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 	glBindRenderbuffer(GL_RENDERBUFFER, renderbuffer);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, renderbuffer);
 
 	glViewport(0, 0, GC::cubemapSize, GC::cubemapSize);
 	glDisable(GL_CULL_FACE);
-	glDisable(GL_BLEND); 
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 
 	//Set uniforms
@@ -767,7 +794,6 @@ void AdvectParticlesSHCubemap::renderCubemap()
 	cubemapShader->setDecayTexUnit(decayTex->getTexUnit());
 	cubemapShader->setBBWidth(bbWidth);
 	cubemapShader->setBBHeight(bbHeight);
-	//TODO: correct worldToObject
 	glm::mat4 worldToObject = glm::inverse(
 		targetObj->getTranslation() * targetObj->getRotation());
 	cubemapShader->setWorldToObject(worldToObject);
@@ -835,7 +861,7 @@ void AdvectParticlesSHCubemap::renderCubemap()
 
 	//Restore state
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
+	glClearColor(clearCol[0], clearCol[1], clearCol[2], clearCol[3]);
 	glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
 	if(faceCull == GL_TRUE) glEnable(GL_CULL_FACE);
 	else glDisable(GL_CULL_FACE);

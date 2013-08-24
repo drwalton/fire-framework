@@ -281,10 +281,12 @@ public:
 	AdvectParticlesSHCubemap(
 		Renderable* targetObj,
 		int _maxParticles, ParticleShader* _shader, 
+		float intensity,
 		Texture* _bbTex, Texture* _decayTex);
 	AdvectParticlesSHCubemap(
 		Renderable* targetObj,
 		int _maxParticles, ParticleShader* _shader, 
+		float intensity,
 		Texture* _bbTex, Texture* _decayTex,
 		int avgLifetime, int varLifetime, 
 		glm::vec4 initAcn, glm::vec4 initVel,
@@ -295,10 +297,13 @@ public:
 	void update(int dTime);
 	void onAdd();
 	void saveCubemap();
+	void setIntensity(float intensity);
+	void setAmbIntensity(float ambIntensity);
 private:
 	Renderable* targetObj;
 	CubemapShader* cubemapShader;
 	SHLight* light;
+	SHLight* amb;
 	void init();
 	void renderCubemap();
 	void updateLight();
@@ -310,6 +315,8 @@ private:
 	GLuint renderbuffer;
 	GLuint framebuffer;
 	bool saveFlag;
+	float intensity;
+	float ambIntensity;
 };
 
 #endif

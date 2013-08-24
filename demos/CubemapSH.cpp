@@ -36,6 +36,9 @@ PRTMesh* bunny;
 Scene* scene;
 SHLight* light;
 
+float flameIntensity = 1.8f;
+float flameAmbIntensity = 0.15f;
+
 const int k = 5;
 
 int eTime;
@@ -151,7 +154,7 @@ int init()
 	Texture* smokeDecayTex = new Texture("smokeDecay.png");
 
 	flame = new AdvectParticlesSHCubemap(
-		bunny, nFlameParticles, pShader, flameAlphaTex, flameDecayTex);
+		bunny, nFlameParticles, pShader, flameIntensity, flameAlphaTex, flameDecayTex);
 
 	sparks = new AdvectParticles(
 		nSparkParticles, sShader, sparkAlphaTex, sparkDecayTex,
@@ -172,6 +175,9 @@ int init()
 	scene->add(flame);
 	scene->add(sparks);
 	scene->add(smoke);
+
+	flame->setIntensity(flameIntensity);
+	flame->setAmbIntensity(flameAmbIntensity);
 
 	return 1;
 }
@@ -203,8 +209,28 @@ void keyboard(unsigned char key, int x, int y)
 
     switch (key)
     {
-	case 't':
+	case 'r':
 		flame->saveCubemap();
+		break;
+	case 't':
+		flameIntensity += 0.01f;
+		flame->setIntensity(flameIntensity);
+		std::cout << flameIntensity << std::endl;
+		break;
+	case 'g':
+		flameIntensity -= 0.01f;
+		flame->setIntensity(flameIntensity);
+		std::cout << flameIntensity << std::endl;
+		break;
+	case 'y':
+		flameAmbIntensity += 0.01f;
+		flame->setAmbIntensity(flameAmbIntensity);
+		std::cout << flameAmbIntensity << std::endl;
+		break;
+	case 'h':
+		flameAmbIntensity -= 0.01f;
+		flame->setAmbIntensity(flameAmbIntensity);
+		std::cout << flameAmbIntensity << std::endl;
 		break;
     case 'f':
     	//Switch fire mode.
