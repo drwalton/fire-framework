@@ -317,6 +317,7 @@ private:
 	bool saveFlag;
 	float intensity;
 	float ambIntensity;
+	static const glm::mat4 turnAround; //Rotation of PI about y-axis.
 };
 
 #endif

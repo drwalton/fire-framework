@@ -14,6 +14,8 @@
 
 const float AdvectParticlesLights::minColor = 0.6f;
 const float AdvectParticlesSHLights::minColor = 0.6f;
+const glm::mat4 AdvectParticlesSHCubemap::turnAround = 
+	glm::rotate(glm::mat4(1.0f), 180.0f, glm::vec3(0.0f, 1.0f, 0.0f));
 
 AdvectParticles::AdvectParticles(int maxParticles,
 	ParticleShader* shader, 
@@ -953,15 +955,15 @@ int AdvectParticlesSHCubemap::findFace(glm::vec3 dir)
 glm::mat4 AdvectParticlesSHCubemap::getRotation(int face)
 {
 	if(face == 0) //+ve x
-		return glm::rotate(glm::mat4(1.0f), -90.0f, glm::vec3(0.0f, 1.0f, 0.0f));
-	else if (face == 1) //-ve x
 		return glm::rotate(glm::mat4(1.0f), 90.0f, glm::vec3(0.0f, 1.0f, 0.0f));
+	else if (face == 1) //-ve x
+		return glm::rotate(glm::mat4(1.0f), -90.0f, glm::vec3(0.0f, 1.0f, 0.0f));
 	else if (face == 2) //+ve y
-		return glm::rotate(glm::mat4(1.0f), -90.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+		return glm::rotate(turnAround, -90.0f, glm::vec3(1.0f, 0.0f, 0.0f));
 	else if (face == 3) //-ve y
-		return glm::rotate(glm::mat4(1.0f), 90.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+		return glm::rotate(turnAround, 90.0f, glm::vec3(1.0f, 0.0f, 0.0f));
 	else if (face == 4) //+ve z
-		return glm::rotate(glm::mat4(1.0f), 180.0f, glm::vec3(0.0f, 1.0f, 0.0f));
+		return turnAround;
 	else if (face == 5) //-ve z
 		return glm::mat4(1.0f);
 	else return glm::mat4(0.0f); //fallback

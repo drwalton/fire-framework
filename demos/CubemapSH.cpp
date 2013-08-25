@@ -37,7 +37,7 @@ Scene* scene;
 SHLight* light;
 
 float flameIntensity = 1.8f;
-float flameAmbIntensity = 0.15f;
+float flameAmbIntensity = 0.03f;
 
 const int k = 5;
 
@@ -211,6 +211,7 @@ void keyboard(unsigned char key, int x, int y)
     {
 	case 'r':
 		flame->saveCubemap();
+		std::cout << "Cubemap saved to files." << std::endl;
 		break;
 	case 't':
 		flameIntensity += 0.01f;
