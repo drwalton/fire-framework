@@ -9,10 +9,7 @@
 
 #include <limits>
 
-/* Fire Forces Demo
- * This demo applies a force to the fire which varies with time. This is 
- * intended to demonstrate the way the lighting dynamically adapts to the
- * behaviour of the flame.
+/* Fire Demo
  */
 
 int init();
