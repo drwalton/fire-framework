@@ -76,7 +76,8 @@ int init()
 	const int sparkLifetime = 2000;
 	const int sparkVarLifetime = 200;
 	const glm::vec4 sparkInitAcn(0.0f, -0.0000004f, 0.0f, 0.0f);
-	const glm::vec4 sparkInitVel(0.0f, 0.0008f, 0.0f, 0.0f);
+	const float sparkInitVel = 0.0f;
+	const float sparkInitUpVel = 0.0008f;
 	const int avgSparkPerturb = 1000;
 	const int varSparkPerturb = 100;
 	const float sparkPerturbRadius = 0.0004f;
@@ -119,13 +120,19 @@ int init()
 	flame->setLightIntensity(flameLightIntensity);
 
 	sparks = new AdvectParticles(
-		nSparkParticles, sShader, sparkAlphaTex, sparkDecayTex,
-		sparkLifetime, sparkVarLifetime, 
-		sparkInitAcn, sparkInitVel,
-		avgSparkPerturb, varSparkPerturb, sparkPerturbRadius,
-		sparkBaseRadius, sparkCenterForce,
-		sparkBBHeight, sparkBBWidth,
-		true, true, false);
+		nSparkParticles, sShader, sparkAlphaTex, sparkDecayTex, 
+		false, true);
+
+	sparks->avgLifetime = sparkLifetime;
+	sparks->varLifetime = sparkVarLifetime;
+	sparks->initAcn = sparkInitAcn;
+	sparks->initVel = sparkInitVel;
+	sparks->initUpVel = sparkInitUpVel;
+	sparks->avgPerturbTime = avgSparkPerturb;
+	sparks->varPerturbTime = varSparkPerturb;
+	sparks->baseRadius = sparkBaseRadius;
+	sparks->bbHeight = sparkBBHeight;
+	sparks->bbWidth = sparkBBWidth;
 
 	smoke = new AdvectParticles(
 		nSmokeParticles, pShader, smokeAlphaTex, smokeDecayTex, true, false);

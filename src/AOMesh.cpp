@@ -420,17 +420,20 @@ void AOMesh::renderOcclToImage(
 	GLuint tex_vbo;
 	glGenBuffers(1, &tex_vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, tex_vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2) * data.t.size(), data.t.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2)*data.t.size(),
+		data.t.data(), GL_STATIC_DRAW);
 	GLuint occl_vbo;
 	glGenBuffers(1, &occl_vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, occl_vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertOccl.size(), vertOccl.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float)*vertOccl.size(),
+		vertOccl.data(), GL_STATIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	GLuint elem_ebo;
 	glGenBuffers(1, &elem_ebo);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elem_ebo);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLushort) * data.e.size(), data.e.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLushort)*data.e.size(),
+		data.e.data(), GL_STATIC_DRAW);
 	
 	// Rendering setup
 	// Store current state

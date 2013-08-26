@@ -106,9 +106,9 @@ int init()
 
 	/* Edit mesh & texture filenames and PRT type here. */
 	/* mode should be UNSHADOWED, SHADOWED or INTERREFLECTED */
-	const std::string filename = "stanford.obj";
-	const std::string diffTexture = "stanford.png";
-	const PRTMode mode = SHADOWED;
+	const std::string filename = "torii.obj";
+	const std::string diffTexture = "torii.png";
+	const PRTMode mode = INTERREFLECTED;
 
 	/* Check if baked file exists. If not, make one. */
 	const std::string bakedFilename = filename + ".prt" + 
@@ -116,7 +116,7 @@ int init()
 		+ "5";
 	std::ifstream temp(bakedFilename);
 	if(!temp)
-		PRTMesh::bake(mode, filename, diffTexture, 40, 5, 1);
+		PRTMesh::bake(mode, filename, diffTexture, 40, 5, 5);
 
 	SHShader* bunnyShader = new SHShader(false, "diffPRT");
 

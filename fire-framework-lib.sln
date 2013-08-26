@@ -38,6 +38,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "fire-sh-demo", "fire-sh-dem
 		{CDF71F5D-DFE3-4E4E-AFEC-3076C25D54C9} = {CDF71F5D-DFE3-4E4E-AFEC-3076C25D54C9}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "fire-demo", "fire-demo\fire-demo.vcxproj", "{1F1C9CC7-45F6-4D09-B90E-19D77DB43F0C}"
+	ProjectSection(ProjectDependencies) = postProject
+		{CDF71F5D-DFE3-4E4E-AFEC-3076C25D54C9} = {CDF71F5D-DFE3-4E4E-AFEC-3076C25D54C9}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -76,6 +81,10 @@ Global
 		{3EBAB3AC-5E5F-4FE6-A766-F3ED6C43BD93}.Debug|Win32.Build.0 = Debug|Win32
 		{3EBAB3AC-5E5F-4FE6-A766-F3ED6C43BD93}.Release|Win32.ActiveCfg = Release|Win32
 		{3EBAB3AC-5E5F-4FE6-A766-F3ED6C43BD93}.Release|Win32.Build.0 = Release|Win32
+		{1F1C9CC7-45F6-4D09-B90E-19D77DB43F0C}.Debug|Win32.ActiveCfg = Debug|Win32
+		{1F1C9CC7-45F6-4D09-B90E-19D77DB43F0C}.Debug|Win32.Build.0 = Debug|Win32
+		{1F1C9CC7-45F6-4D09-B90E-19D77DB43F0C}.Release|Win32.ActiveCfg = Release|Win32
+		{1F1C9CC7-45F6-4D09-B90E-19D77DB43F0C}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

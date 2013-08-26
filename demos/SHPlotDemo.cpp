@@ -113,6 +113,10 @@ int init()
 		std::cout << std::endl;
 		std::cout << "Please enter your choice: ";
 		std::cin >> choice;
+		if(!std::cin) std::cout << "Sorry, I didn't understand that."
+			<< "Please enter an integer from 1 to 7, and press enter.\n";
+		std::cin.clear();
+		std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 	}
 	
 	if(choice == 1) // SH Basis

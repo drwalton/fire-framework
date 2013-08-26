@@ -346,20 +346,16 @@ void PRTMesh::interreflect(
 		int currPercent = 0;
 		int nVerts = static_cast<int>(data.v.size());
 
-		#pragma omp parallel private(tid, currBounce, prevBounce)
+		#pragma omp parallel private(tid)
 		{
 			tid = omp_get_thread_num();
 			#pragma omp for
 			for(int i = 0; i < nVerts; ++i)
 			{
-				/* Zero currBounce */
-				for(auto v = currBounce.begin(); v != currBounce.end(); ++v)
-				{
-					std::vector<glm::vec3> vert;
-					for(int i = 0; i < nBands*nBands; ++i)
-						vert.push_back(glm::vec3(0.0f));
-					*v = vert;
-				}
+				std::vector<glm::vec3> vert;
+				for(int c = 0; c < nBands*nBands; ++c)
+					vert.push_back(glm::vec3(0.0f));
+				currBounce[i] = vert;
 
 				for(int x = 0; x < sqrtNSamples; ++x)
 					for(int y = 0; y < sqrtNSamples; ++y)
@@ -430,7 +426,7 @@ void PRTMesh::interreflect(
 								         tv * prevBounce[data.e[closestTri+2]][c];
 
 							currBounce[i][c] += 
-								glm::dot(data.n[i], dir) * intersectColor * avgPrevBounce;
+								2.0f * glm::dot(data.n[i], dir) * intersectColor * avgPrevBounce;
 						}
 					}
 

@@ -62,20 +62,28 @@ class AdvectParticles : public ParticleSystem
 public:
 	AdvectParticles(int maxParticles, ParticleShader* shader,
 		Texture* bbTex, Texture* decayTex, bool texScrolls = true, bool additive = true);
-	AdvectParticles(int maxParticles, ParticleShader* shader,
-		Texture* bbTex, Texture* decayTex,
-		int avgLifetime, int varLifetime, 
-		glm::vec4 initAcn, glm::vec4 initVel,
-		int avgPerturbTime, int varPerturbTime, float perturbRadius,
-		float baseRadius, float centerForce,
-		float bbHeight, float bbWidth,
-		bool perturbOn, bool initPerturb, bool texScrolls = true, bool additive = true);
 
 	void render();
 	virtual void update(int dTime);
 	virtual void setShader(ParticleShader* shader);
-	void setExtForce(const glm::vec3& extForce);
-	const float height;
+
+	glm::vec4 extForce; //External force applied to all particles.
+
+	float height;
+
+	int avgLifetime;
+	int varLifetime;
+	glm::vec4 initAcn;
+	float initVel;
+	float initUpVel;
+	int avgPerturbTime;
+	int varPerturbTime;
+	float perturbRadius;
+	float baseRadius;
+	float centerForce;
+	glm::vec3 cameraDir;
+	float bbHeight; //Particle billboard width.
+	float bbWidth;  //Particle billboard height.
 protected:
 	bool additive;
 	std::vector<AdvectParticle> particles;
@@ -92,24 +100,10 @@ protected:
 
 	Texture* bbTex;
 	Texture* decayTex;
-
-	const float bbHeight; //Particle billboard width.
-	const float bbWidth;  //Particle billboard height.
 private:
-	const int avgLifetime;
-	const int varLifetime;
-	const glm::vec4 initAcn;
-	const glm::vec4 initVel;
-	const int avgPerturbTime;
-	const int varPerturbTime;
-	const float perturbRadius;
-	const float baseRadius;
-	const float centerForce;
-	glm::vec3 cameraDir;
-
 	std::vector<glm::vec4> vel;
 	std::vector<glm::vec4> acn;
-	glm::vec4 extForce; //External force applied to all particles.
+
 	std::vector<int> time;
 	std::vector<int> lifeTime;
 	std::vector<int> perturbCounter;
@@ -121,6 +115,7 @@ private:
 	void updateParticle(int index, int dTime);
 	void spawnParticle(int index);
 	void init(Texture* bbTex, Texture* decayTex, bool texScrolls);
+	glm::vec4 getInitVel(const glm::vec4& pos);
 
 	glm::vec4 perturb(glm::vec4 input);
 	glm::vec4 randInitPos();
@@ -136,15 +131,6 @@ public:
 	AdvectParticlesLights(int _maxParticles,
 		int _nLights, ParticleShader* _shader, 
 		Texture* _bbTex, Texture* _decayTex);
-	AdvectParticlesLights(int _maxParticles, 
-		int nLights, ParticleShader* _shader, 
-		Texture* _bbTex, Texture* _decayTex,
-		int avgLifetime, int varLifetime, 
-		glm::vec4 initAcn, glm::vec4 initVel,
-		int avgPerturbTime, int varPerturbTime, float perturbRadius,
-		float baseRadius, float centerForce,
-		float bbHeight, float bbWidth,
-		bool perturb_on, bool _init_perturb);
 	const int nLights;
 	std::vector<PhongLight*> lights;
 	void onAdd();
@@ -171,16 +157,6 @@ public:
 		int _maxParticles, int _nLights, int _clumpSize,
 		int _interval, ParticleShader* _shader, 
 		Texture* _bbTex, Texture* _decayTex);
-	AdvectParticlesCentroidLights(
-		int _maxParticles, int _nLights, int _clumpSize,
-		int _interval, ParticleShader* _shader, 
-		Texture* _bbTex, Texture* _decayTex,
-		int avgLifetime, int varLifetime, 
-		glm::vec4 initAcn, glm::vec4 initVel,
-		int avgPerturbTime, int varPerturbTime, float perturbRadius,
-		float baseRadius, float centerForce,
-		float bbHeight, float bbWidth,
-		bool perturb_on, bool _init_perturb);
 	const int clumpSize;
 protected:
 	void updateLights();
@@ -207,18 +183,6 @@ public:
 		int maxParticles,
 		int nLights, ParticleShader* shader, 
 		Texture* bbTex, Texture* decayTex);
-	AdvectParticlesSHLights(
-		Renderable* targetObj,
-		float intensity,
-		int maxParticles, 
-		int nLights, ParticleShader* shader, 
-		Texture* bbTex, Texture* decayTex,
-		int avgLifetime, int varLifetime, 
-		glm::vec4 initAcn, glm::vec4 initVel,
-		int avgPerturbTime, int varPerturbTime, float perturbRadius,
-		float baseRadius, float centerForce,
-		float bbHeight, float bbWidth,
-		bool perturb_on, bool init_perturb);
 	const int nLights;
 	std::vector<SHLight*> lights;
 	void onAdd();
@@ -248,17 +212,6 @@ public:
 		int _maxParticles, int _nLights, int _clumpSize,
 		int _interval, ParticleShader* _shader, 
 		Texture* _bbTex, Texture* _decayTex);
-	AdvectParticlesCentroidSHLights(
-		Renderable* targetObj, float intensity,
-		int _maxParticles, int _nLights, int _clumpSize,
-		int _interval, ParticleShader* _shader, 
-		Texture* _bbTex, Texture* _decayTex,
-		int avgLifetime, int varLifetime, 
-		glm::vec4 initAcn, glm::vec4 initVel,
-		int avgPerturbTime, int varPerturbTime, float perturbRadius,
-		float baseRadius, float centerForce,
-		float bbHeight, float bbWidth,
-		bool perturb_on, bool _init_perturb);
 	const int clumpSize;
 protected:
 	void updateLights();
@@ -283,17 +236,6 @@ public:
 		int _maxParticles, ParticleShader* _shader, 
 		float intensity,
 		Texture* _bbTex, Texture* _decayTex);
-	AdvectParticlesSHCubemap(
-		Renderable* targetObj,
-		int _maxParticles, ParticleShader* _shader, 
-		float intensity,
-		Texture* _bbTex, Texture* _decayTex,
-		int avgLifetime, int varLifetime, 
-		glm::vec4 initAcn, glm::vec4 initVel,
-		int avgPerturbTime, int varPerturbTime, float perturbRadius,
-		float baseRadius, float centerForce,
-		float bbHeight, float bbWidth,
-		bool perturb_on, bool _init_perturb);
 	void update(int dTime);
 	void onAdd();
 	void saveCubemap();
