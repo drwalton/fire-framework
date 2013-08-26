@@ -9,14 +9,17 @@
 #include <gtc/matrix_transform.hpp>
 
 /* Phong Fire Demo
- * Demo displays a textured mesh illuminated by a fire using Phong lighting
- * with centroid lights.
+ * Demo displays a textured mesh illuminated by a fire, with and
+ *   without AO. 
  */
 
 int init();
 void display();
 void reshape (int, int);
 void keyboard(unsigned char, int, int);
+
+void rotateRenderable(Renderable*, float, float);
+void rotateRenderables();
 
 ParticleShader* tShader; // Scrolling texture shader.
 ParticleShader* pShader; // Procedural texture shader.
@@ -38,6 +41,10 @@ int eTime;
 int deTime;
 
 const float delta = 0.4f;
+
+float theta = 0.0f;
+float phi = 0.0f;
+float rotateDelta = 1.6f;
 
 int main(int argc, char** argv)
 {
@@ -149,7 +156,7 @@ int init()
 	LightShader* bunnyShader = new LightShader(false, "BlinnPhong");
 
 	Texture* bunnyDiffTex = new Texture("stanfordDiff.png");
-	Texture* bunnyAOTex = new Texture("stanfordAO.png")
+	Texture* bunnyAOTex = new Texture("stanfordAO.png");
 	Texture* bunnySpecTex = new Texture("stanfordSpec.png");
 
 	bunny = new Mesh(
@@ -165,8 +172,8 @@ int init()
 	bunny->uniformScale(0.2f);
 	bunnyAO->uniformScale(0.2f);
 
-	bunny->translate(glm::vec3(-1.0f, 0.0f, 0.0f));
-	bunnyAO->translate(glm::vec3(1.0f, 0.0f, 0.0f));
+	bunny->translate(glm::vec3(-0.5f, 0.0f, 0.0f));
+	bunnyAO->translate(glm::vec3(0.5f, 0.0f, 0.0f));
 
 	scene->add(bunny);
 	scene->add(bunnyAO);
@@ -201,7 +208,7 @@ void keyboard(unsigned char key, int x, int y)
 
     switch (key)
     {
-    case 'f':
+    case 'p':
     	//Switch fire mode.
     	if(flame->getShader() == tShader)
     	{
@@ -215,8 +222,38 @@ void keyboard(unsigned char key, int x, int y)
     	}
     	break;
 
+	case 't':
+		phi -= rotateDelta;
+		rotateRenderables();
+		break;
+	case 'g':
+		phi += rotateDelta;
+		rotateRenderables();
+		break;
+	case 'f':
+		theta += rotateDelta; 
+		rotateRenderables();
+		break;
+	case 'h':
+		theta -= rotateDelta;
+		rotateRenderables();
+		break;
     case 27:
         exit(0);
         return;
     }
+}
+
+void rotateRenderable(Renderable* renderable, float theta, float phi)
+{
+	glm::mat4 rotation(1.0f);
+	rotation = glm::rotate(rotation, phi, glm::vec3(1.0, 0.0, 0.0));
+	rotation = glm::rotate(rotation, theta, glm::vec3(0.0, 1.0, 0.0));
+	renderable->setRotation(rotation);
+}
+
+void rotateRenderables()
+{
+	rotateRenderable(bunny, theta, phi);
+	rotateRenderable(bunnyAO, theta, phi);
 }
