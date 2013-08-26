@@ -69,7 +69,7 @@ int main(int argc, char** argv)
 int init()
 {
 	/* Ambient Light Properties */
-	const float ambIntensity = 0.5f;
+	const float ambIntensity = 0.3f;
 	const glm::vec4 ambColor(0.7f, 0.7f, 0.9f, 1.0f); //light blue
 
 	/* Flame Properties */
@@ -77,7 +77,7 @@ int init()
 	const int nFlameLights = 10;
 	const int lightClumpSize = 10;
 	const int hopInterval = -1; // Never hop. Set to +ve ms value to hop.
-	const float flameLightIntensity = 0.0018f;
+	const float flameLightIntensity = 0.003f;
 
 	/* Spark Properties */
 	const int nSparkParticles = 5;
