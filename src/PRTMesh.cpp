@@ -424,9 +424,9 @@ void PRTMesh::interreflect(
 								(1-(tu+tv)) * prevBounce[data.e[closestTri  ]][c] +
 								         tu * prevBounce[data.e[closestTri+1]][c] +
 								         tv * prevBounce[data.e[closestTri+2]][c];
-
+							
 							currBounce[i][c] += 
-								2.0f * glm::dot(data.n[i], dir) * intersectColor * avgPrevBounce;
+								glm::dot(data.n[i], dir) * intersectColor * avgPrevBounce;
 						}
 					}
 
@@ -585,6 +585,7 @@ void PRTMesh::writeTransferToTextures(
 	for(unsigned i = 0; i < coefftFilenames.size(); ++i)
 	{
 		std::vector<glm::vec3> currCoefft;
+		//currCoefft = glm::clamp(currCoefft, glm::vec3(0.0f), glm::vec3(1.0f));
 		for(auto v = transfer.begin(); v != transfer.end(); ++v)
 			currCoefft.push_back((*v)[i]);
 

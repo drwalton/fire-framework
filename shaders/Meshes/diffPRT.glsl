@@ -36,25 +36,25 @@ uniform sampler2DArray coefftTex;
 
 layout(std140) uniform SHBlock
 {
-	vec4 lightCoeffts[$nSHCoeffts$ * $maxSHLights$];	
+	vec4 lightCoeffts[$nSHCoeffts$];	
 	int nLights;
 };
 
 void main()
 {
 	vec3 color = vec3(0.0, 0.0, 0.0);
-	for(int l = 0; l < $maxSHLights$; ++l)
-		for(int i = 0; i < $nSHCoeffts$; ++i)
-		{
-			vec4 transfer = texture(coefftTex, vec3(smoothTex.x, (1.0 - smoothTex.y), i));
-			vec3 lightCol =  vec3(transfer)* 
-					vec3(lightCoeffts[i + l*$nSHCoeffts$]);
 
-			if(transfer.w < 0.5)
-				color -= lightCol;
-			else
-				color += lightCol;
-		}
+	for(int i = 0; i < $nSHCoeffts$; ++i)
+	{
+		vec4 transfer = texture(coefftTex, vec3(smoothTex.x, (1.0 - smoothTex.y), i));
+		vec3 lightCol =  vec3(transfer)* 
+				vec3(lightCoeffts[i]);
+
+		if(transfer.w < 0.5)
+			color -= lightCol;
+		else
+			color += lightCol;
+	}
 
 	fragColor = vec4(color, 1.0);
 }

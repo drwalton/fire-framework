@@ -3,6 +3,7 @@
 
 #include <GL/glew.h>
 #include <array>
+#include <set>
 
 #include "Light.hpp"
 #include "GC.hpp"
@@ -22,7 +23,7 @@ struct phongBlock
 
 struct SHBlock
 {
-	glm::vec4 lightCoeffts[GC::nSHCoeffts * GC::maxSHLights];
+	glm::vec4 lightCoeffts[GC::nSHCoeffts];
 };
 
 /* LightManager classes, designed to maintain data and 
@@ -50,14 +51,12 @@ class SHLightManager
 public:
 	SHLightManager();
 	SHLight* add(SHLight* l);
-	SHLight* update(SHLight* l);
+	void update();
 	SHLight* remove(SHLight* l);
 private:
-	std::array<SHLight*, GC::maxSHLights> lights;
+	std::set<SHLight*> lights;
 	SHBlock block;
 	GLuint block_ubo;
-	void updateBlock();
-	int nLights;
 };
 
 #endif

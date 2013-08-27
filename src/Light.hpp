@@ -77,7 +77,6 @@ public:
 	const std::vector<glm::vec3>& getCoeffts() {return retCoeffts;};
 	void rotateCoeffts(glm::mat4 rotation);
 	void pointAt(glm::vec3 dir); //N.B. Rotates so the image of (1,0,0) is dir.
-	int index;
 	SHLightManager* manager;
 	float getIntensity() {return intensity;};
 	void setIntensity(float intensity);
@@ -93,7 +92,7 @@ private:
 
 template <typename Fn>
 SHLight::SHLight(Fn func)
-	:index(-1), manager(nullptr), rotation(SHMat(GC::nSHBands)),
+	:manager(nullptr), rotation(SHMat(GC::nSHBands)),
 	 color(glm::vec3(1.0f))
 {
 	coeffts = SH::shProject(GC::sqrtSHSamples, GC::nSHBands, func);

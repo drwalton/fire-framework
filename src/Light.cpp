@@ -56,14 +56,12 @@ void SHLight::setCoeffts(std::vector<glm::vec3> _coeffts)
 {
 	coeffts = _coeffts;
 	retCoeffts = rotation * coeffts * intensity * color;
-	if(manager) manager->update(this);
 }
 
 void SHLight::rotateCoeffts(glm::mat4 _rotation)
 {
 	rotation = SHMat(_rotation, GC::nSHBands);
 	retCoeffts = rotation * coeffts * intensity * color;
-	manager->update(this);
 }
 
 void SHLight::pointAt(glm::vec3 dir)
@@ -83,19 +81,16 @@ void SHLight::pointAt(glm::vec3 dir)
 		look,
 		GC::nSHBands);
 	retCoeffts = rotation * coeffts * intensity * color;
-	manager->update(this);
 }
 
 void SHLight::setIntensity(float intensity)
 {
 	this->intensity = intensity;
 	retCoeffts = rotation * coeffts * intensity * color;
-	manager->update(this);
 }
 
 void SHLight::setColor(const glm::vec3& color)
 {
 	this->color = color;
 	retCoeffts = rotation * coeffts * intensity * color;
-	manager->update(this);
 }

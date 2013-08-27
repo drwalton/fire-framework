@@ -47,7 +47,7 @@ int main(int argc, char** argv)
     glutInitDisplayMode(GLUT_DOUBLE);
     glutInitWindowSize(500, 500);
     glutInitWindowPosition(100, 100);
-    glutCreateWindow("Fire and Phong Lighting Demo");
+    glutCreateWindow("Particle Fire Demo");
     glewInit();
     int good = init();
     if(!good) return 0;
@@ -143,6 +143,8 @@ int init()
 
 		scene->add(flame);
 	}
+
+	scene->camera->translate(glm::vec3(0.0f, 0.0f, -3.0f));
 
 	return 1;
 }

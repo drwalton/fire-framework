@@ -66,6 +66,8 @@ void Scene::update(int dTime)
 	{
 		(*i)->update(dTime);
 	}
+
+	shManager.update();
 }
 
 Renderable* Scene::add(Renderable* const r)
