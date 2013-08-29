@@ -36,7 +36,6 @@ Mesh* bunny;
 AOMesh* bunnyAO;
 
 Scene* scene;
-SHLight* light;
 
 bool meshMode = true; //true=Phong, false=AO
 
@@ -159,6 +158,7 @@ int init()
 	scene->add(smoke);
 
 	LightShader* bunnyShader = new LightShader(false, "BlinnPhong");
+	LightShader* aoBunnyShader = new LightShader(false, "BlinnPhongAO");
 
 	Texture* bunnyDiffTex = new Texture("stanfordDiff.png");
 	Texture* bunnySpecTex = new Texture("stanfordSpec.png");
@@ -178,7 +178,7 @@ int init()
 			"stanfordDiff.png", "stanfordDiff.png", "stanfordSpec.png", 
 			1.0f, 30);
 
-	bunnyAO = new AOMesh(aoFilename, bunnyShader);
+	bunnyAO = new AOMesh(aoFilename, aoBunnyShader);
 
 	bunny->uniformScale(0.2f);
 	bunnyAO->uniformScale(0.2f);

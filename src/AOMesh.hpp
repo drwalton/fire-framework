@@ -15,7 +15,8 @@ class Texture;
 struct AOMeshVertex
 {
 	glm::vec4  v; //Position
-	glm::vec3  n; //Bent normal
+	glm::vec3  n; //Normal
+	glm::vec3  bn; //Bent normal
 	glm::vec2  t; //Tex coord
 };
 
@@ -80,6 +81,7 @@ private:
 	GLuint e_vbo;
 	GLuint v_attrib;
 	GLuint n_attrib;
+	GLuint bn_attrib;
 	GLuint t_attrib;
 };
 

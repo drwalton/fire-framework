@@ -47,6 +47,7 @@ void AOMesh::init(
 
 	v_attrib = shader->getAttribLoc("vPosition");
 	n_attrib = shader->getAttribLoc("vNorm");
+	bn_attrib = shader->getAttribLoc("vBentNorm");
 	t_attrib = shader->getAttribLoc("vTexCoord");
 }
 
@@ -64,6 +65,7 @@ void AOMesh::render()
 	shader->use();
 	glEnableVertexAttribArray(v_attrib);
 	glEnableVertexAttribArray(n_attrib);
+	glEnableVertexAttribArray(bn_attrib);
 	glEnableVertexAttribArray(t_attrib);
 
 	glBindVertexBuffer(0, v_vbo, 0, sizeof(AOMeshVertex));
@@ -71,6 +73,8 @@ void AOMesh::render()
 	glVertexAttribBinding(v_attrib, 0);
 	glVertexAttribFormat(n_attrib, 3, GL_FLOAT, GL_FALSE, offsetof(AOMeshVertex, n));
 	glVertexAttribBinding(n_attrib, 0);
+	glVertexAttribFormat(bn_attrib, 3, GL_FLOAT, GL_FALSE, offsetof(AOMeshVertex, bn));
+	glVertexAttribBinding(bn_attrib, 0);
 	glVertexAttribFormat(t_attrib, 2, GL_FLOAT, GL_FALSE, offsetof(AOMeshVertex, t));
 	glVertexAttribBinding(t_attrib, 0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -83,6 +87,7 @@ void AOMesh::render()
 
 	glDisableVertexAttribArray(v_attrib);
 	glDisableVertexAttribArray(n_attrib);
+	glDisableVertexAttribArray(bn_attrib);
 	glDisableVertexAttribArray(t_attrib);
 
 	glUseProgram(0);
@@ -114,7 +119,8 @@ void AOMesh::bake(
 	{
 		mesh[i].v = coarseData.v[i];
 		mesh[i].t = coarseData.t[i];
-		mesh[i].n = glm::vec3(0.0f);
+		mesh[i].n = coarseData.n[i];
+		mesh[i].bn = glm::vec3(0.0f);
 
 		for(int x = 0; x < sqrtNSamples; ++x)
 			for(int y = 0; y < sqrtNSamples; ++y)
@@ -159,14 +165,14 @@ void AOMesh::bake(
 				}
 
 				if(!intersect)
-					mesh[i].n += dir;
+					mesh[i].bn += dir;
 			} // end for x, y
 
 		/* Normalize if non-zero (avoid divide by zero!) */
-		if(!(abs(mesh[i].n.x) < EPS && 
-				abs(mesh[i].n.x) < EPS && 
-				abs(mesh[i].n.z) < EPS))
-				mesh[i].n = glm::normalize(mesh[i].n);
+		if(!(abs(mesh[i].bn.x) < EPS && 
+				abs(mesh[i].bn.x) < EPS && 
+				abs(mesh[i].bn.z) < EPS))
+				mesh[i].bn = glm::normalize(mesh[i].bn);
 	}
 
 	std::cout 
@@ -288,6 +294,10 @@ void AOMesh::writePrebakedFile(
 			<< v->n.x << " "
 			<< v->n.y << " "
 			<< v->n.z << std::endl;
+		file
+			<< v->bn.x << " "
+			<< v->bn.y << " "
+			<< v->bn.z << std::endl;
 		file 
 			<< v->t.x << " "
 			<< v->t.y << std::endl;
@@ -335,6 +345,10 @@ void AOMesh::readPrebakedFile(
 		file >> vert.n.x;
 		file >> vert.n.y;
 		file >> vert.n.z;
+
+		file >> vert.bn.x;
+		file >> vert.bn.y;
+		file >> vert.bn.z;
 
 		file >> vert.t.x;
 		file >> vert.t.y;
