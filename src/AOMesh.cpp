@@ -311,7 +311,7 @@ void AOMesh::writePrebakedFile(
 	file << "Textures" << std::endl;
 
 	file << ambTex  << std::endl;
-	file << diffTex << std::endl;
+	file << ambTex  << std::endl;
 	file << specTex << std::endl;
 	file << specExp << std::endl;
 

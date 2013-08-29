@@ -266,6 +266,8 @@ float AdvectParticles::saturate(float val, float min)
 	return glm::mix(min, 1.0f, val);
 }
 
+const float AdvectParticlesLights::specIntensity = 0.0001f;
+
 AdvectParticlesLights::AdvectParticlesLights(int _maxParticles, int _nLights, 
 	ParticleShader* _shader, Texture* _bbTex, Texture* _decayTex)
 	:AdvectParticles(_maxParticles, _shader, _bbTex, _decayTex),
@@ -274,7 +276,9 @@ AdvectParticlesLights::AdvectParticlesLights(int _maxParticles, int _nLights,
 	// Set up vector of lights.
 	for(int i = 0; i < nLights; ++i)
 	{
-		lights.push_back(new PhongLight(getOrigin()));
+		PhongLight* light = new PhongLight(getOrigin());
+		light->setSpecular(glm::vec4(specIntensity, specIntensity, specIntensity, 1.0f));
+		lights.push_back(light);
 	}
 	particleColors = loadImage(decayTex->filename);
 }

@@ -142,6 +142,7 @@ protected:
 	glm::vec4 getParticleColor(float decay);
 	std::vector<glm::vec4> particleColors;
 private:
+	static const float specIntensity;
 	float lightIntensity;
 	static const float minColor;
 };

@@ -73,7 +73,7 @@ void main()
 
 	vec3 norm = normalize(smoothNorm);
 
-	vec3 view = normalize(-vec3(cameraPos) - vec3(worldPos));
+	vec3 view = normalize(vec3(cameraPos) - vec3(worldPos));
 
 	for(int i = 0; i < $maxPhongLights$; ++i)
 	{

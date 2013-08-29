@@ -34,10 +34,11 @@ AdvectParticles*               smoke;
 
 Mesh* bunny;
 AOMesh* bunnyAO;
+Mesh* bunnyAO2;
 
 Scene* scene;
 
-bool meshMode = true; //true=Phong, false=AO
+int meshMode = 0; //0=Phong, 1=AO, 2=AO(no bent normal)
 
 const int k = 5;
 
@@ -102,7 +103,7 @@ int init()
 	const int nSmokeParticles = 20;
 
 	/* Bunny Properties */
-	const float bunnySpecExp = 1.0f;
+	const float bunnySpecExp = 500.0f;
 
 	glClearColor(ambColor.x, ambColor.y, ambColor.z, ambColor.w);
 
@@ -162,6 +163,7 @@ int init()
 
 	Texture* bunnyDiffTex = new Texture("stanfordDiff.png");
 	Texture* bunnySpecTex = new Texture("stanfordSpec.png");
+	Texture* bunnyAOTex = new Texture("stanford.obj.aoamb.bmp");
 
 	const std::string filename = "stanford.obj";
 
@@ -180,8 +182,14 @@ int init()
 
 	bunnyAO = new AOMesh(aoFilename, aoBunnyShader);
 
+	bunnyAO2 = new Mesh(
+		filename,
+		bunnyAOTex, bunnyAOTex, bunnySpecTex,
+		bunnySpecExp, bunnyShader);
+
 	bunny->uniformScale(0.2f);
 	bunnyAO->uniformScale(0.2f);
+	bunnyAO2->uniformScale(0.2f);
 
 	scene->add(bunny);
 
@@ -231,17 +239,25 @@ void keyboard(unsigned char key, int x, int y)
 
 	case 'm':
 		//Switch mesh mode.
-		if(!meshMode)
+		if(meshMode == 0)
 		{
+			std::cout << "Switching to AO..." << std::endl;
 			scene->add(bunnyAO);
 			scene->remove(bunny);
 		}
-		else
+		else if(meshMode == 1)
 		{
-			scene->add(bunny);
+			std::cout << "Switching to AO (no bent normals)..." << std::endl;
+			scene->add(bunnyAO2);
 			scene->remove(bunnyAO);
 		}
-		meshMode = !meshMode;
+		else
+		{
+			std::cout << "Switching to Blinn-Phong..." << std::endl;
+			scene->add(bunny);
+			scene->remove(bunnyAO2);
+		}
+		meshMode = meshMode == 2 ? 0 : meshMode+1;
 		break;
 
 	case 't':
