@@ -48,6 +48,16 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ao-and-phong-demo", "ao-and
 		{CDF71F5D-DFE3-4E4E-AFEC-3076C25D54C9} = {CDF71F5D-DFE3-4E4E-AFEC-3076C25D54C9}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "light-demo", "light-demo\light-demo.vcxproj", "{5C39B183-B066-4FC7-A5E9-A0AED231BDF0}"
+	ProjectSection(ProjectDependencies) = postProject
+		{CDF71F5D-DFE3-4E4E-AFEC-3076C25D54C9} = {CDF71F5D-DFE3-4E4E-AFEC-3076C25D54C9}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "fire-lighting-demo", "fire-lighting-demo\fire-lighting-demo.vcxproj", "{78206B1B-96A4-4716-B625-8D0D17FFDF52}"
+	ProjectSection(ProjectDependencies) = postProject
+		{CDF71F5D-DFE3-4E4E-AFEC-3076C25D54C9} = {CDF71F5D-DFE3-4E4E-AFEC-3076C25D54C9}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -94,6 +104,14 @@ Global
 		{395DB734-36AE-4591-AF7B-4B35ABCEE2BC}.Debug|Win32.Build.0 = Debug|Win32
 		{395DB734-36AE-4591-AF7B-4B35ABCEE2BC}.Release|Win32.ActiveCfg = Release|Win32
 		{395DB734-36AE-4591-AF7B-4B35ABCEE2BC}.Release|Win32.Build.0 = Release|Win32
+		{5C39B183-B066-4FC7-A5E9-A0AED231BDF0}.Debug|Win32.ActiveCfg = Debug|Win32
+		{5C39B183-B066-4FC7-A5E9-A0AED231BDF0}.Debug|Win32.Build.0 = Debug|Win32
+		{5C39B183-B066-4FC7-A5E9-A0AED231BDF0}.Release|Win32.ActiveCfg = Release|Win32
+		{5C39B183-B066-4FC7-A5E9-A0AED231BDF0}.Release|Win32.Build.0 = Release|Win32
+		{78206B1B-96A4-4716-B625-8D0D17FFDF52}.Debug|Win32.ActiveCfg = Debug|Win32
+		{78206B1B-96A4-4716-B625-8D0D17FFDF52}.Debug|Win32.Build.0 = Debug|Win32
+		{78206B1B-96A4-4716-B625-8D0D17FFDF52}.Release|Win32.ActiveCfg = Release|Win32
+		{78206B1B-96A4-4716-B625-8D0D17FFDF52}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

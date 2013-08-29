@@ -38,11 +38,11 @@ public:
 	PhongLight* add(PhongLight* l);
 	PhongLight* update(PhongLight* l);
 	PhongLight* remove(PhongLight* l);
+	void updateBlock();
 private:
 	std::array<PhongLight*, GC::maxPhongLights> lights;
 	phongBlock block;
 	GLuint block_ubo;
-	void updateBlock();
 	int nLights;
 };
 

@@ -11,8 +11,8 @@
 
 #include <fstream>
 
-/* Phong Fire Demo
- * Demo displays a textured mesh illuminated by a fire using Phong lighting
+/* SH Fire Demo
+ * Demo displays a textured mesh illuminated by a fire using PRT lighting
  * with centroid lights.
  */
 

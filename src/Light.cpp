@@ -52,23 +52,29 @@ void PhongLight::update()
 	if(manager) manager->update(this);
 }
 
-void SHLight::setCoeffts(std::vector<glm::vec3> _coeffts)
+void SHLight::setCoeffts(std::vector<glm::vec3> coeffts)
 {
-	coeffts = _coeffts;
+	this->coeffts = coeffts;
 	retCoeffts = rotation * coeffts * intensity * color;
 }
 
-void SHLight::rotateCoeffts(glm::mat4 _rotation)
+void SHLight::rotateCoeffts(const glm::mat4& rotation)
 {
-	rotation = SHMat(_rotation, GC::nSHBands);
-	retCoeffts = rotation * coeffts * intensity * color;
+	this->rotation = SHMat(rotation, GC::nSHBands);
+	retCoeffts = this->rotation * coeffts * intensity * color;
+}
+
+void SHLight::rotateCoeffts(const SHMat& rotation)
+{
+	this->rotation = rotation;
+	retCoeffts = this->rotation * coeffts * intensity * color;
 }
 
 void SHLight::pointAt(glm::vec3 dir)
 {
 	dir = glm::normalize(dir);
-	float theta = -asin(dir.y);
-	float phi = atan2(dir.z, dir.x) + PI;
+	float theta = asin(dir.y);
+	float phi = atan2(dir.z, dir.x);
 
 	glm::mat4 look = glm::rotate(glm::mat4(1.0f),
 		(theta * 180.0f) / PI,

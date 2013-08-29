@@ -33,6 +33,7 @@
     <ClInclude Include="..\src\SphereFunc.hpp" />
     <ClInclude Include="..\src\SpherePlot.hpp" />
     <ClInclude Include="..\src\Texture.hpp" />
+    <ClInclude Include="..\src\UserInput.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\AOMesh.cpp" />
@@ -54,6 +55,7 @@
     <ClCompile Include="..\src\SphereFunc.cpp" />
     <ClCompile Include="..\src\SpherePlot.cpp" />
     <ClCompile Include="..\src\Texture.cpp" />
+    <ClCompile Include="..\src\UserInput.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\src\CMakeLists.txt" />

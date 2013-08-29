@@ -2,6 +2,7 @@
 #include "Camera.hpp"
 #include "Texture.hpp"
 #include "Particles.hpp"
+#include "UserInput.hpp"
 
 #include <glm.hpp>
 #include <GL/glut.h>
@@ -16,7 +17,6 @@ int init();
 void display();
 void reshape (int, int);
 void keyboard(unsigned char, int, int);
-int getNoParticles();
 
 ParticleShader* sShader; // Static texture shader.
 ParticleShader* tShader; // Scrolling texture shader.
@@ -85,21 +85,12 @@ int init()
 	std::cout << ">  3. Single flame with scrolling textures." << std::endl;
 	std::cout << ">  4. Single flame with procedural textures." << std::endl;
 
-	int choice = -1;
-	while(!(choice >= 1 && choice <= 4))
-	{
-		std::cout << std::endl;
-		std::cout << "Please enter your choice: ";
-		std::cin >> choice;
-		if(!std::cin) std::cout << "Sorry, I didn't understand that."
-			<< "Please enter an integer from 1 to 4, and press enter.\n";
-		std::cin.clear();
-		std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-	}
+	int choice = UserInput::getInt(1, 4, "Please enter your choice:");
 	
 	if(choice == 1) // Billboard rendering method comparison
 	{
-		int nParticles = getNoParticles();
+		int nParticles = UserInput::getInt(
+			1, 1000000, "Please enter desired no. of particles:");
 		const float height = -1.0f;
 		const float spacing = 1.0f;
 
@@ -123,7 +114,8 @@ int init()
 	{
 		const float height = -1.0f;
 
-		int nParticles = getNoParticles();
+		int nParticles = UserInput::getInt(
+			1, 1000000, "Please enter desired no. of particles:");
 
 		AdvectParticles* flame;
 
@@ -200,20 +192,4 @@ void keyboard(unsigned char key, int x, int y)
 		adjust->centerForce = centerForce;
 		break;
     }
-}
-
-int getNoParticles()
-{
-	int choice = -1;
-	while(!(choice >= 1))
-	{
-		std::cout << std::endl;
-		std::cout << "Please enter desired no. of particles (A few hundred is recommended): ";
-		std::cin >> choice;
-		if(!std::cin) std::cout << "Sorry, I didn't understand that."
-			<< "Please enter a positive integer and press enter.\n";
-		std::cin.clear();
-		std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-	}
-	return choice;
 }

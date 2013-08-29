@@ -48,6 +48,9 @@ public:
 	void setAmbLight(glm::vec4 _ambLight);
 
 	Camera* camera;
+
+	PhongLightManager phongManager;
+	SHLightManager shManager;
 private:
 	glm::vec4 ambLight;
 	GLuint ambBlock_ubo;
@@ -56,9 +59,6 @@ private:
 	std::set<Renderable*> translucent;
 
 	std::set<Shader*> shaders;
-
-	PhongLightManager phongManager;
-	SHLightManager shManager;
 };
 
 #endif

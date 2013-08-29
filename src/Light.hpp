@@ -75,7 +75,8 @@ public:
 	void setFunc(Fn func);
 	void setCoeffts(std::vector<glm::vec3> _coeffts);
 	const std::vector<glm::vec3>& getCoeffts() {return retCoeffts;};
-	void rotateCoeffts(glm::mat4 rotation);
+	void rotateCoeffts(const glm::mat4& rotation);
+	void rotateCoeffts(const SHMat& rotation);
 	void pointAt(glm::vec3 dir); //N.B. Rotates so the image of (1,0,0) is dir.
 	SHLightManager* manager;
 	float getIntensity() {return intensity;};
