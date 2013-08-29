@@ -384,16 +384,16 @@ void AOMesh::renderOcclToImage(
 	unsigned char* ambDataFlip = SOIL_load_image(
 		ambIm.c_str(),
 		&width, &height, &channels,
-		SOIL_LOAD_RGB);
+		SOIL_LOAD_RGBA);
 
 	unsigned char* ambData = static_cast<unsigned char*>(
 		malloc(width*height*channels*sizeof(unsigned char)));
 
 	for(int u = 0; u < width; ++u)
 		for(int v = 0; v < height; ++v)
-			for(int c = 0; c < 3; ++c)
-				ambData[(u + v*width)*3 + c] =
-					ambDataFlip[(u + ((height-v)-1)*width)*3 + c];
+			for(int c = 0; c < channels; ++c)
+				ambData[(u + v*width)*channels + c] =
+					ambDataFlip[(u + ((height-v)-1)*width)*channels + c];
 
 	SOIL_free_image_data(ambDataFlip);
 

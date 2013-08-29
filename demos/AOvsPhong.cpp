@@ -3,10 +3,13 @@
 #include "Texture.hpp"
 #include "Particles.hpp"
 #include "Mesh.hpp"
+#include "AOMesh.hpp"
 
 #include <glm.hpp>
 #include <GL/glut.h>
 #include <gtc/matrix_transform.hpp>
+
+#include <fstream>
 
 /* Phong Fire Demo
  * Demo displays a textured mesh illuminated by a fire, with and
@@ -30,10 +33,12 @@ AdvectParticles*               sparks;
 AdvectParticles*               smoke;
 
 Mesh* bunny;
-Mesh* bunnyAO;
+AOMesh* bunnyAO;
 
 Scene* scene;
 SHLight* light;
+
+bool meshMode = true; //true=Phong, false=AO
 
 const int k = 5;
 
@@ -156,27 +161,29 @@ int init()
 	LightShader* bunnyShader = new LightShader(false, "BlinnPhong");
 
 	Texture* bunnyDiffTex = new Texture("stanfordDiff.png");
-	Texture* bunnyAOTex = new Texture("stanfordAO.png");
 	Texture* bunnySpecTex = new Texture("stanfordSpec.png");
 
+	const std::string filename = "stanford.obj";
+
 	bunny = new Mesh(
-		"stanford.obj",
+		filename,
 		bunnyDiffTex, bunnyDiffTex, bunnySpecTex,
 		bunnySpecExp, bunnyShader);
 
-	bunnyAO = new Mesh(
-		"stanford.obj",
-		bunnyAOTex, bunnyAOTex, bunnySpecTex,
-		bunnySpecExp, bunnyShader);
+	const std::string aoFilename = filename + ".ao";
+
+	std::ifstream temp(aoFilename);
+	if(!temp)
+		AOMesh::bake(filename, filename, 
+			"stanfordDiff.png", "stanfordDiff.png", "stanfordSpec.png", 
+			1.0f, 30);
+
+	bunnyAO = new AOMesh(aoFilename, bunnyShader);
 
 	bunny->uniformScale(0.2f);
 	bunnyAO->uniformScale(0.2f);
 
-	bunny->translate(glm::vec3(-0.5f, 0.0f, 0.0f));
-	bunnyAO->translate(glm::vec3(0.5f, 0.0f, 0.0f));
-
 	scene->add(bunny);
-	scene->add(bunnyAO);
 
 	return 1;
 }
@@ -221,6 +228,21 @@ void keyboard(unsigned char key, int x, int y)
     		smoke->setShader(tShader);
     	}
     	break;
+
+	case 'm':
+		//Switch mesh mode.
+		if(!meshMode)
+		{
+			scene->add(bunnyAO);
+			scene->remove(bunny);
+		}
+		else
+		{
+			scene->add(bunny);
+			scene->remove(bunnyAO);
+		}
+		meshMode = !meshMode;
+		break;
 
 	case 't':
 		phi -= rotateDelta;
