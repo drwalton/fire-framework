@@ -14,7 +14,7 @@ namespace GC
 	/* SH Lighting */
 	const int nSHBands = 5;
 	const int nSHCoeffts = nSHBands * nSHBands;
-	const int sqrtSHSamples = 5;
+	const int sqrtSHSamples = 30;
 	const int nSHSamples = sqrtSHSamples * sqrtSHSamples;
 	const int maxSHLights = 10;
 	const int nSHBounces = 5;

@@ -242,11 +242,14 @@ public:
 	void saveCubemap();
 	void setIntensity(float intensity);
 	void setAmbIntensity(float ambIntensity);
+	float getIntensity() {return intensity;}
+	SHLight* light;
+	SHLight* amb;
+	glm::vec4 clearColor;
+	glm::vec4 ambColor;
 private:
 	Renderable* targetObj;
 	CubemapShader* cubemapShader;
-	SHLight* light;
-	SHLight* amb;
 	void init();
 	void renderCubemap();
 	void updateLight();

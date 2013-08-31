@@ -13,7 +13,7 @@
 #include<algorithm>
 
 const float AdvectParticlesLights::minColor = 0.6f;
-const float AdvectParticlesSHLights::minColor = 0.6f;
+const float AdvectParticlesSHLights::minColor = 0.7f;
 const glm::mat4 AdvectParticlesSHCubemap::turnAround = 
 	glm::rotate(glm::mat4(1.0f), 180.0f, glm::vec3(0.0f, 1.0f, 0.0f));
 
@@ -554,7 +554,8 @@ AdvectParticlesSHCubemap::AdvectParticlesSHCubemap(
 	float intensity,
 	Texture* bbTex, Texture* decayTex)
 	:AdvectParticles(maxParticles, shader, bbTex, decayTex),
-	 targetObj(targetObj), intensity(intensity)
+	 targetObj(targetObj), intensity(intensity), 
+	 clearColor(glm::vec4(0.0f)), ambColor(glm::vec4(0.0f))
 { init(); }
 
 void AdvectParticlesSHCubemap::update(int dTime)
@@ -566,9 +567,6 @@ void AdvectParticlesSHCubemap::update(int dTime)
 
 void AdvectParticlesSHCubemap::onAdd()
 {
-	GLfloat clearCol[4];
-	glGetFloatv(GL_COLOR_CLEAR_VALUE, clearCol); 
-
 	renderCubemap();
 	light = scene->add(new SHLight(
 			[this] (float theta, float phi) -> glm::vec3
@@ -577,9 +575,9 @@ void AdvectParticlesSHCubemap::onAdd()
 			}));
 
 	amb = scene->add(new SHLight(
-			[&clearCol] (float theta, float phi) -> glm::vec3
+			[this] (float theta, float phi) -> glm::vec3
 			{
-				return glm::vec3(clearCol[0], clearCol[1], clearCol[2]);
+				return glm::vec3(ambColor);
 			}));
 
 	if(light == nullptr || amb == nullptr)
@@ -634,13 +632,14 @@ void AdvectParticlesSHCubemap::renderCubemap()
 	glGetIntegerv(GL_BLEND_SRC_ALPHA, &blendFn);
 
 	//Set new state
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClearColor(clearColor.x, clearColor.y, clearColor.z, clearColor.w);
 	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 	glBindRenderbuffer(GL_RENDERBUFFER, renderbuffer);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, renderbuffer);
 
 	glViewport(0, 0, GC::cubemapSize, GC::cubemapSize);
 	glDisable(GL_CULL_FACE);
+	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 
 	//Set uniforms
@@ -812,9 +811,9 @@ glm::mat4 AdvectParticlesSHCubemap::getRotation(int face)
 	else if (face == 1) //-ve x
 		return glm::rotate(glm::mat4(1.0f), -90.0f, glm::vec3(0.0f, 1.0f, 0.0f));
 	else if (face == 2) //+ve y
-		return glm::rotate(turnAround, -90.0f, glm::vec3(1.0f, 0.0f, 0.0f));
-	else if (face == 3) //-ve y
 		return glm::rotate(turnAround, 90.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+	else if (face == 3) //-ve y
+		return glm::rotate(turnAround, -90.0f, glm::vec3(1.0f, 0.0f, 0.0f));
 	else if (face == 4) //+ve z
 		return turnAround;
 	else if (face == 5) //-ve z

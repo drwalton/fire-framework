@@ -73,8 +73,8 @@ void SHLight::rotateCoeffts(const SHMat& rotation)
 void SHLight::pointAt(glm::vec3 dir)
 {
 	dir = glm::normalize(dir);
-	float theta = asin(dir.y);
-	float phi = atan2(dir.z, dir.x);
+	float theta = -asin(dir.y);
+	float phi = -atan2(dir.z, dir.x);
 
 	glm::mat4 look = glm::rotate(glm::mat4(1.0f),
 		(theta * 180.0f) / PI,

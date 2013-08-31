@@ -4,6 +4,7 @@
 #include "Particles.hpp"
 #include "Mesh.hpp"
 #include "PRTMesh.hpp"
+#include "SpherePlot.hpp"
 
 #include <glm.hpp>
 #include <GL/glut.h>
@@ -33,11 +34,11 @@ AdvectParticles*          smoke;
 
 PRTMesh* bunny;
 
+SpherePlot* plot;
+bool showPlot = false;
+
 Scene* scene;
 SHLight* light;
-
-float flameIntensity = 1.8f;
-float flameAmbIntensity = 0.03f;
 
 const int k = 5;
 
@@ -68,7 +69,8 @@ int main(int argc, char** argv)
 // Called by glutInit().
 int init()
 {
-	glClearColor(0.7f, 0.7f, 0.9f, 1.0f); // Light blue
+	const glm::vec4 clearColor(0.7f, 0.7f, 0.9f, 1.0f); // Light blue
+	glClearColor(clearColor.x, clearColor.y, clearColor.z, clearColor.w);
 
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_DEPTH_TEST);
@@ -77,6 +79,8 @@ int init()
 
 	/* Flame Properties */
 	const int nFlameParticles = 400;
+	const float flameIntensity = 2.31f;
+	const float flameAmbIntensity = 0.01f;
 
 	/* Spark Properties */
 	const int nSparkParticles = 5;
@@ -98,7 +102,7 @@ int init()
 
 	/* Bunny Properties */
 	const float bunnySpecExp = 1.0f;
-	const PRTMode mode = UNSHADOWED;
+	const PRTMode mode = SHADOWED;
 
 	SHShader* bunnyShader = new SHShader(false, "diffPRT");
 
@@ -157,6 +161,8 @@ int init()
 	flame = new AdvectParticlesSHCubemap(
 		bunny, nFlameParticles, pShader, flameIntensity, flameAlphaTex, flameDecayTex);
 
+	flame->ambColor = clearColor;
+
 	sparks = new AdvectParticles(
 		nSparkParticles, sShader, sparkAlphaTex, sparkDecayTex, 
 		false, true);
@@ -175,9 +181,9 @@ int init()
 	smoke = new AdvectParticles(
 		nSmokeParticles, pShader, smokeAlphaTex, smokeDecayTex);
 
-	flame->translate(glm::vec3(0.0f, 0.0f, 0.5f));
-	sparks->translate(glm::vec3(0.0f, 0.0f, 0.5f));
-	smoke->translate(glm::vec3(0.0f, 1.0f, 0.5f));
+	flame->translate(glm::vec3(0.0f, 0.0f, 1.0f));
+	sparks->translate(glm::vec3(0.0f, 0.0f, 1.0f));
+	smoke->translate(glm::vec3(0.0f, 1.0f, 1.0f));
 
 	scene->add(flame);
 	scene->add(sparks);
@@ -185,6 +191,22 @@ int init()
 
 	flame->setIntensity(flameIntensity);
 	flame->setAmbIntensity(flameAmbIntensity);
+
+	Shader* plotShader = new Shader(false, "SpherePlot");
+
+	plot = new SpherePlot(
+		[] (float theta, float phi) -> 
+		float {
+			return SH::evaluate(flame->light->getCoeffts(), theta, phi).x / 
+				flame->getIntensity();
+			},
+		40, plotShader);
+
+	plot->translate(glm::vec3(-1.0f, 0.0f, 0.0f));
+
+	plot->uniformScale(0.08f);
+
+	scene->camera->translate(glm::vec3(0.0f, 0.0f, -4.0f));
 
 	return 1;
 }
@@ -196,6 +218,18 @@ void display()
 	eTime = glutGet(GLUT_ELAPSED_TIME);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	scene->update(deTime);
+
+	if(showPlot)
+	{
+		plot->replot(
+		[] (float theta, float phi) -> 
+		float {
+			return SH::evaluate(flame->light->getCoeffts(), theta, phi).x / 
+				flame->getIntensity();
+			},
+		40);
+	}
+
 	scene->render();
 	glutSwapBuffers();
 	glutPostRedisplay();
@@ -216,29 +250,20 @@ void keyboard(unsigned char key, int x, int y)
 
     switch (key)
     {
+	case 'p':
+		if(showPlot)
+		{
+			scene->remove(plot);
+		}
+		else
+		{
+			scene->add(plot);
+		}
+		showPlot = !showPlot;
+		break;
 	case 'r':
 		flame->saveCubemap();
 		std::cout << "Cubemap saved to files." << std::endl;
-		break;
-	case 't':
-		flameIntensity += 0.01f;
-		flame->setIntensity(flameIntensity);
-		std::cout << flameIntensity << std::endl;
-		break;
-	case 'g':
-		flameIntensity -= 0.01f;
-		flame->setIntensity(flameIntensity);
-		std::cout << flameIntensity << std::endl;
-		break;
-	case 'y':
-		flameAmbIntensity += 0.01f;
-		flame->setAmbIntensity(flameAmbIntensity);
-		std::cout << flameAmbIntensity << std::endl;
-		break;
-	case 'h':
-		flameAmbIntensity -= 0.01f;
-		flame->setAmbIntensity(flameAmbIntensity);
-		std::cout << flameAmbIntensity << std::endl;
 		break;
     case 'f':
     	//Switch fire mode.

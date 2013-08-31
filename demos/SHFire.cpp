@@ -30,6 +30,7 @@ AdvectParticles*                 sparks;
 AdvectParticles*                 smoke;
 
 SpherePlot* plot;
+bool showPlot = false;
 
 PRTMesh* bunny;
 
@@ -71,9 +72,9 @@ int init()
 
 	/* Flame Properties */
 	const int nFlameParticles = 400;
-	const float flameIntensity = 2.0f;
-	const int nFlameLights = 5;
-	const int lightClumpSize = 4;
+	const float flameIntensity = 1.0f;
+	const int nFlameLights = 2;
+	const int lightClumpSize = 10;
 	const int hopInterval = -1; // Never hop. Set to +ve ms value to hop.
 
 	/* Spark Properties */
@@ -94,9 +95,6 @@ int init()
 	/* Smoke Properties */
 	const int nSmokeParticles = 20;
 
-	/* Bunny Properties */
-	const float bunnySpecExp = 1.0f;
-
 	glClearColor(ambColor.x, ambColor.y, ambColor.z, ambColor.w);
 
 	glEnable(GL_CULL_FACE);
@@ -107,9 +105,9 @@ int init()
 
 	/* Edit mesh & texture filenames and PRT type here. */
 	/* mode should be UNSHADOWED, SHADOWED or INTERREFLECTED */
-	const std::string filename = "torii.obj";
-	const std::string diffTexture = "torii.png";
-	const PRTMode mode = INTERREFLECTED;
+	const std::string filename = "stanford.obj";
+	const std::string diffTexture = filename + ".diff.png";
+	const PRTMode mode = SHADOWED;
 
 	/* Check if baked file exists. If not, make one. */
 	const std::string bakedFilename = filename + ".prt" + 
@@ -187,9 +185,9 @@ int init()
 
 	plot->translate(glm::vec3(-1.0f, 0.0f, 0.0f));
 
-	scene->add(plot);
+	plot->uniformScale(0.08f);
 
-	plot->uniformScale(0.2f);
+	scene->camera->translate(glm::vec3(0.0f, 0.0f, -4.0f));
 
 	return 1;
 }
@@ -202,17 +200,20 @@ void display()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	scene->update(deTime);
 
-	plot->replot(
-		[] (float theta, float phi) -> 
-		float {
-			std::vector<glm::vec3> allLights(GC::nSHCoeffts);
-			std::fill(allLights.begin(), allLights.end(), glm::vec3(0.0f));
-			for(size_t l = 0; l < flame->lights.size(); ++l)
-				for(size_t c = 0; c < GC::nSHCoeffts; ++c)
-					allLights[c] += flame->lights[l]->getCoeffts()[c];
-			return SH::evaluate(allLights, theta, phi).x / flame->getIntensity();
-			},
-			40);
+	if(showPlot)
+	{
+		plot->replot(
+			[] (float theta, float phi) -> 
+			float {
+				std::vector<glm::vec3> allLights(GC::nSHCoeffts);
+				std::fill(allLights.begin(), allLights.end(), glm::vec3(0.0f));
+				for(size_t l = 0; l < flame->lights.size(); ++l)
+					for(size_t c = 0; c < GC::nSHCoeffts; ++c)
+						allLights[c] += flame->lights[l]->getCoeffts()[c];
+				return SH::evaluate(allLights, theta, phi).x / flame->getIntensity();
+				},
+				40);
+	}
 
 	scene->render();
 	glutSwapBuffers();
@@ -234,6 +235,17 @@ void keyboard(unsigned char key, int x, int y)
 
     switch (key)
     {
+	case 'p':
+		if(showPlot)
+		{
+			scene->remove(plot);
+		}
+		else
+		{
+			scene->add(plot);
+		}
+		showPlot = !showPlot;
+
     case 'f':
     	//Switch fire mode.
     	if(flame->getShader() == tShader)
