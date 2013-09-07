@@ -22,15 +22,17 @@ bool fileExists(const std::string& filename)
 MeshData Mesh::loadSceneFile(
 	const std::string& filename)
 {
+	std::string fullPath = "../models/" + filename;
+
 	Assimp::Importer importer;
 
-	const aiScene* scene = importer.ReadFile(filename,
+	const aiScene* scene = importer.ReadFile(fullPath,
 		aiProcess_CalcTangentSpace | aiProcess_Triangulate |
 		aiProcess_JoinIdenticalVertices | aiProcess_SortByPType |
 		aiProcess_GenSmoothNormals);
 
 	if(!scene) throw MeshFileException(
-		"Mesh file " + filename + " could not be loaded\n");
+		"Mesh file " + fullPath + " could not be loaded\n");
 
 	std::cout << "Loading scene from file: " << filename << std::endl;
 	std::cout << "> " << scene->mNumMeshes << " meshes in scene." << std::endl;
@@ -91,7 +93,7 @@ MeshData Mesh::loadSceneFile(
 
 	MeshData mesh = combineData(data);
 
-	std::cout << "All meshes loaded from " + filename + ".\n";
+	std::cout << "All meshes loaded from " + fullPath + ".\n";
 
 	return mesh;
 }

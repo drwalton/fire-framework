@@ -45,10 +45,10 @@ protected:
 	static const std::vector<std::string> SH_SUBS;
 private:
 	GLuint id;
-	GLuint loadShader(const std::string& filename, int shaderType, bool DEBUG,
-		std::vector<std::string> subs);
-	GLuint compileShader(const std::string& filename, bool hasGeomShader, bool DEBUG,
-		std::vector<std::string> subs);
+	GLuint loadShader(const std::string& filename,
+	int shaderType, bool DEBUG, std::vector<std::string> subs);
+	GLuint compileShader(const std::string& filename,
+		bool hasGeomShader, bool DEBUG,	std::vector<std::string> subs);
 	GLuint modelToWorld_u;
 	GLuint cameraBlock_i;
 };

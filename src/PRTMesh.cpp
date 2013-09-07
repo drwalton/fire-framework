@@ -22,7 +22,7 @@ PRTMesh::PRTMesh(
 
 	try
 	{
-		readPrebakedFile(mesh, elems, coefftFilenames, bakedFilename);
+		readPrebakedFile(mesh, elems, coefftFilenames, "../models/" + bakedFilename);
 	} 
 	catch(const MeshFileException& e)
 	{
@@ -42,6 +42,7 @@ PRTMesh::~PRTMesh()
 void PRTMesh::bake(
 	PRTMode mode,
 	const std::string& meshFilename,
+	const std::string& bakedFilename,
 	const std::string& diffTex,
 	int sqrtNSamples,
 	int nBands,
@@ -196,37 +197,34 @@ void PRTMesh::bake(
 	free(diffData);
 
 	std::vector<std::string> coefftFilenames;
-	std::string prebakedFilename = PRTMesh::genPrebakedFilename(meshFilename, mode, nBands);
 
 	PRTMesh::writeTransferToTextures(transfer, 
-		data, prebakedFilename, coefftFilenames, width, height);
+		data, bakedFilename + genExt(mode, nBands), coefftFilenames, width, height);
 
-	PRTMesh::writePrebakedFile(mesh, data.e, coefftFilenames, prebakedFilename);
+	PRTMesh::writePrebakedFile(mesh, data.e, coefftFilenames, 
+		"../models/" + bakedFilename + genExt(mode, nBands));
 }
 
-std::string PRTMesh::genPrebakedFilename(
-	const std::string& filename,
-	PRTMode mode,
-	int nBands)
+std::string PRTMesh::genExt(PRTMode mode, int nBands)
 {
-	std::string prebakedFilename = filename + ".prt";
+	std::string ext = "";
 
 	switch(mode)
 	{
 	case UNSHADOWED:
-		prebakedFilename += "u";
+		ext += "u";
 		break;
 	case SHADOWED:
-		prebakedFilename += "s";
+		ext += "s";
 		break;
 	case INTERREFLECTED:
-		prebakedFilename += "i";
+		ext += "i";
 		break;
 	}
 
-	prebakedFilename += std::to_string(static_cast<long long>(nBands));
+	ext += std::to_string(static_cast<long long>(nBands));
 
-	return prebakedFilename;
+	return ext;
 }
 
 void PRTMesh::writePrebakedFile(

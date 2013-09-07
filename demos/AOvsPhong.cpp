@@ -161,8 +161,8 @@ int init()
 	LightShader* bunnyShader = new LightShader(false, "BlinnPhong");
 	LightShader* aoBunnyShader = new LightShader(false, "BlinnPhongAO");
 
-	Texture* bunnyDiffTex = new Texture("stanfordDiff.png");
-	Texture* bunnySpecTex = new Texture("stanfordSpec.png");
+	Texture* bunnyDiffTex = new Texture("ceramic.png");
+	Texture* bunnySpecTex = new Texture("white.png");
 
 	const std::string filename = "stanford.obj";
 
@@ -171,17 +171,15 @@ int init()
 		bunnyDiffTex, bunnyDiffTex, bunnySpecTex,
 		bunnySpecExp, bunnyShader);
 
-	const std::string aoFilename = filename + ".ao";
-
-	std::ifstream temp(aoFilename);
+	std::ifstream temp("../models/stanfordCeramic.ao");
 	if(!temp)
-		AOMesh::bake(filename, filename, 
-			"stanfordDiff.png", "stanfordDiff.png", "stanfordSpec.png", 
-			1.0f, 30);
+		AOMesh::bake(filename, filename, "stanfordCeramic",
+			"ceramic.png", "ceramic.png", "white.png", 
+			bunnySpecExp, 30);
 
-	Texture* bunnyAOTex = new Texture("stanford.obj.aoamb.bmp");
+	Texture* bunnyAOTex = new Texture("stanfordCeramic.aoamb.bmp");
 
-	bunnyAO = new AOMesh(aoFilename, aoBunnyShader);
+	bunnyAO = new AOMesh("stanfordCeramic.ao", aoBunnyShader);
 
 	bunnyAO2 = new Mesh(
 		filename,

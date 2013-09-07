@@ -253,9 +253,11 @@ int AdvectParticles::randi(int low, int high)
 
 std::vector<glm::vec4> AdvectParticles::loadImage(const std::string& filename)
 {
+	std::string fullPath = "../textures/" + filename;
+
 	int width, height, channels;
 	unsigned char* data = SOIL_load_image(
-		filename.c_str(),
+		fullPath.c_str(),
 		&width, &height, &channels,
 		SOIL_LOAD_RGB);
 

@@ -41,6 +41,7 @@ public:
 	static void bake(
 		PRTMode mode,
 		const std::string& meshFilename,
+		const std::string& bakedFilename,
 		const std::string& diffTex,
 		int sqrtNSamples,
 		int nBands,
@@ -50,11 +51,7 @@ public:
 	void update(int dTime) {};
 	Shader* getShader() {return static_cast<Shader*>(shader);};
 private:
-	static std::string genPrebakedFilename(
-		const std::string& filename,
-		PRTMode mode,
-		int nBands
-		);
+	static std::string genExt(PRTMode mode, int nBands);
 
 	void readPrebakedFile(
 		std::vector<PRTMeshVertex>& mesh,

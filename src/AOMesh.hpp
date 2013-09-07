@@ -37,6 +37,7 @@ public:
 	static void bake(
 		const std::string& coarseMeshFilename,
 		const std::string& fineMeshFilename,
+		const std::string& bakedFilename,
 		const std::string& ambTex,
 		const std::string& diffTex,
 		const std::string& specTex,

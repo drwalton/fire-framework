@@ -9,13 +9,15 @@ GLuint Texture::nextTexUnit = 0;
 Texture::Texture(const std::string& filename)
 	:filename(filename)
 {
+	std::string fullPath = "../textures/" + filename;
+
 	texUnit = genTexUnit();
 
 	glActiveTexture(GL_TEXTURE0 + texUnit);
 
 	id = SOIL_load_OGL_texture
 	(		 
-		filename.c_str(),
+		fullPath.c_str(),
 		SOIL_LOAD_AUTO,
 		SOIL_CREATE_NEW_ID,
 		SOIL_FLAG_INVERT_Y
@@ -23,7 +25,7 @@ Texture::Texture(const std::string& filename)
 
 	if(id == 0) 
 	{
-		std::cout << "Texture file " + filename + " could not be loaded.\n";
+		std::cout << "Texture file " + fullPath + " could not be loaded.\n";
 	}
 }
 
@@ -60,7 +62,7 @@ ArrayTexture::ArrayTexture(const std::vector<std::string>& filenames)
 	{
 		unsigned char* fileData = SOIL_load_image
 			(
-				f->c_str(),
+				("../textures/" + *f).c_str(),
 				&width, &height, &channels,
 				SOIL_LOAD_AUTO
 			);

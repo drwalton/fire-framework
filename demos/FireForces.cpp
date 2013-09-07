@@ -48,7 +48,7 @@ int main(int argc, char** argv)
     glutInitDisplayMode(GLUT_DOUBLE);
     glutInitWindowSize(500, 500);
     glutInitWindowPosition(100, 100);
-    glutCreateWindow("Fire and Phong Lighting Demo");
+    glutCreateWindow("Fire External Forces Demo");
     glewInit();
     int good = init();
     if(!good) return 0;
@@ -143,12 +143,12 @@ int init()
 
 	LightShader* bunnyShader = new LightShader(false, "BlinnPhong");
 
-	Texture* bunnyAmbTex = new Texture("bunnyAmb.png");
-	Texture* bunnyDiffTex = new Texture("bunnyDiff.png");
-	Texture* bunnySpecTex = new Texture("bunnySpec.png");
+	Texture* bunnyAmbTex = new Texture("ceramic.png");
+	Texture* bunnyDiffTex = new Texture("ceramic.png");
+	Texture* bunnySpecTex = new Texture("white.png");
 
 	bunny = new Mesh(
-		"../models/stanford.obj",
+		"stanford.obj",
 		bunnyAmbTex, bunnyDiffTex, bunnySpecTex,
 		bunnySpecExp, bunnyShader);
 

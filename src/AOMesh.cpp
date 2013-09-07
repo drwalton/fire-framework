@@ -20,7 +20,7 @@ AOMesh::AOMesh(
 	std::vector<GLushort> elems;
 	try
 	{
-		readPrebakedFile(mesh, elems, bakedFilename);
+		readPrebakedFile(mesh, elems, "../models/" + bakedFilename);
 	}
 	catch(const MeshFileException& e)
 	{
@@ -104,6 +104,7 @@ void AOMesh::render()
 void AOMesh::bake(
 	const std::string& coarseMeshFilename,
 	const std::string& fineMeshFilename,
+	const std::string& bakedFilename,
 	const std::string& ambTex,
 	const std::string& diffTex,
 	const std::string& specTex,
@@ -270,11 +271,12 @@ void AOMesh::bake(
 	} // end parallel
 	std::cout << " 100% complete" << std::endl;
 
-	AOMesh::renderOcclToImage(fineOccl, ambTex, coarseMeshFilename + ".aoamb.bmp", fineData);
+	AOMesh::renderOcclToImage(fineOccl, ambTex, 
+		"../textures/" + bakedFilename + ".aoamb.bmp", fineData);
 
 	writePrebakedFile(mesh, coarseData.e,
-		coarseMeshFilename + ".aoamb.bmp", diffTex, specTex, specExp,
-		coarseMeshFilename + ".ao");
+		bakedFilename + ".aoamb.bmp", bakedFilename + ".aoamb.bmp", specTex, specExp,
+		"../models/" + bakedFilename + ".ao");
 }
 
 
@@ -319,7 +321,7 @@ void AOMesh::writePrebakedFile(
 	file << "Textures" << std::endl;
 
 	file << ambTex  << std::endl;
-	file << ambTex  << std::endl;
+	file << diffTex  << std::endl;
 	file << specTex << std::endl;
 	file << specExp << std::endl;
 
@@ -405,7 +407,7 @@ void AOMesh::renderOcclToImage(
 	/* Most image formats are upside down, so load data and flip it. */
 	int width, height, channels;
 	unsigned char* ambDataFlip = SOIL_load_image(
-		ambIm.c_str(),
+		("../textures/" + ambIm).c_str(),
 		&width, &height, &channels,
 		SOIL_LOAD_RGBA);
 

@@ -40,8 +40,7 @@ Shader::Shader(bool hasGeomShader, const std::string& filename,
 }
 
 Shader::Shader(bool hasGeomShader, const std::string& filename,
-	std::vector<std::string> subs,
-	bool hasCamera, bool hasModelToWorld)
+	std::vector<std::string> subs, bool hasCamera, bool hasModelToWorld)
 	:filename(filename)
 {
 	id = compileShader(filename, hasGeomShader, true, subs);
@@ -66,11 +65,11 @@ void Shader::setModelToWorld(const glm::mat4& modelToWorld)
 	glUseProgram(0);
 }
 
-GLuint Shader::loadShader(const std::string& filename, int shaderType,
-	bool DEBUG,	std::vector<std::string> subs)
+GLuint Shader::loadShader(const std::string& filename,
+	int shaderType, bool DEBUG, std::vector<std::string> subs)
 {
 	glswInit();
-	glswSetPath("./", ".glsl");
+	glswSetPath("../shaders/", ".glsl");
 
 	const char* source;
 	switch(shaderType)
@@ -141,10 +140,10 @@ GLuint Shader::loadShader(const std::string& filename, int shaderType,
 	glswShutdown();
 }
 
-GLuint Shader::compileShader(const std::string& filename, bool hasGeomShader, bool DEBUG,
-	std::vector<std::string> subs)
+GLuint Shader::compileShader(const std::string& filename,
+		bool hasGeomShader, bool DEBUG,	std::vector<std::string> subs)
 {
-	if(DEBUG) std::cout << "Attempting to load shaders from ./" << filename << ".glsl" << std::endl;
+	if(DEBUG) std::cout << "Attempting to load shaders from ../shaders/" << filename << ".glsl" << std::endl;
 
 	GLuint vertexShader = loadShader(filename, GL_VERTEX_SHADER, DEBUG, subs);
 	GLuint fragmentShader = loadShader(filename, GL_FRAGMENT_SHADER, DEBUG, subs);
