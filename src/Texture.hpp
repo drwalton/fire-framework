@@ -6,10 +6,6 @@
 
 #include <string>
 #include <vector>
-#include <exception>
-
-class NoImageFileException : public std::exception {};
-class BadImageDimException : public std::exception {};
 
 /* Texture
  * Wraps the loading of an image from a file,

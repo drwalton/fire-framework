@@ -81,6 +81,22 @@ void AdvectParticles::init(Texture* bbTex, Texture* decayTex, bool texScrolls)
 	pos_attrib = shader->getAttribLoc("vPos");
 	decay_attrib = shader->getAttribLoc("vDecay");
 	if(texScrolls) randTex_attrib = shader->getAttribLoc("vRandTex");
+
+	glGenVertexArrays(1, &vao);
+	glBindVertexArray(vao);
+
+	glBindBuffer(GL_ARRAY_BUFFER, particles_vbo);
+	glEnableVertexAttribArray(pos_attrib);
+	glEnableVertexAttribArray(decay_attrib);
+	glEnableVertexAttribArray(randTex_attrib);
+	glVertexAttribPointer(pos_attrib, 4, GL_FLOAT, GL_FALSE, sizeof(AdvectParticle),
+		reinterpret_cast<GLvoid*>(offsetof(AdvectParticle, pos)));
+	glVertexAttribPointer(decay_attrib, 1, GL_FLOAT, GL_FALSE, sizeof(AdvectParticle), 
+		reinterpret_cast<GLvoid*>(offsetof(AdvectParticle, decay)));
+	glVertexAttribPointer(randTex_attrib, 1, GL_FLOAT, GL_FALSE, sizeof(AdvectParticle), 
+		reinterpret_cast<GLvoid*>(offsetof(AdvectParticle, randTex)));
+
+	glBindVertexArray(0);
 }
 
 void AdvectParticles::render()
@@ -106,28 +122,13 @@ void AdvectParticles::render()
 	glBufferSubData(GL_ARRAY_BUFFER, 0, particles.size()*sizeof(AdvectParticle),
 		particles.data());
 
-	glEnableVertexAttribArray(pos_attrib);
-	glEnableVertexAttribArray(decay_attrib);
-	glEnableVertexAttribArray(randTex_attrib);
-
-	glBindVertexBuffer(0, particles_vbo, 0, sizeof(AdvectParticle));
-	glVertexAttribFormat(pos_attrib, 4, GL_FLOAT, GL_FALSE,
-		offsetof(AdvectParticle, pos));
-	glVertexAttribBinding(pos_attrib, 0);
-	glVertexAttribFormat(decay_attrib, 1, GL_FLOAT, GL_FALSE,
-		offsetof(AdvectParticle, decay));
-	glVertexAttribBinding(decay_attrib, 0);
-	glVertexAttribFormat(randTex_attrib, 1, GL_FLOAT, GL_FALSE,
-		offsetof(AdvectParticle, randTex));
-	glVertexAttribBinding(randTex_attrib, 0);
+	glBindVertexArray(vao);
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	
 	glDrawArrays(GL_POINTS, 0, particles.size());
 
-	glDisableVertexAttribArray(pos_attrib);
-	glDisableVertexAttribArray(decay_attrib);
-	glDisableVertexAttribArray(randTex_attrib);
+	glBindVertexArray(0);
 
 	glUseProgram(0);
 	glDisable(GL_BLEND);
@@ -153,6 +154,21 @@ void AdvectParticles::setShader(ParticleShader* shader)
 
 	pos_attrib = shader->getAttribLoc("vPos");
 	decay_attrib = shader->getAttribLoc("vDecay");
+
+	glBindVertexArray(vao);
+
+	glBindBuffer(GL_ARRAY_BUFFER, particles_vbo);
+	glEnableVertexAttribArray(pos_attrib);
+	glEnableVertexAttribArray(decay_attrib);
+	glEnableVertexAttribArray(randTex_attrib);
+	glVertexAttribPointer(pos_attrib, 4, GL_FLOAT, GL_FALSE, sizeof(AdvectParticle),
+		reinterpret_cast<GLvoid*>(offsetof(AdvectParticle, pos)));
+	glVertexAttribPointer(decay_attrib, 1, GL_FLOAT, GL_FALSE, sizeof(AdvectParticle), 
+		reinterpret_cast<GLvoid*>(offsetof(AdvectParticle, decay)));
+	glVertexAttribPointer(randTex_attrib, 1, GL_FLOAT, GL_FALSE, sizeof(AdvectParticle), 
+		reinterpret_cast<GLvoid*>(offsetof(AdvectParticle, randTex)));
+
+	glBindVertexArray(0);
 }
 
 void AdvectParticles::update(int dTime)
@@ -312,7 +328,7 @@ void AdvectParticlesLights::update(int dTime)
 
 void AdvectParticlesLights::setLightIntensity(float lightIntensity)
 {
-	this->lightIntensity = lightIntensity;
+	this->lightIntensity = lightIntensity / lights.size();
 }
 
 glm::vec4 AdvectParticlesLights::getParticleColor(float decay)

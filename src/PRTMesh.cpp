@@ -20,8 +20,15 @@ PRTMesh::PRTMesh(
 	std::vector<GLushort> elems;
 	std::vector<std::string> coefftFilenames;
 
-	readPrebakedFile(mesh, elems, coefftFilenames, bakedFilename);
-	
+	try
+	{
+		readPrebakedFile(mesh, elems, coefftFilenames, bakedFilename);
+	} 
+	catch(const MeshFileException& e)
+	{
+		std::cout << e.msg;
+		return;
+	}
 	arrTex = new ArrayTexture(coefftFilenames);
 
 	init(mesh, elems);
@@ -265,7 +272,8 @@ void PRTMesh::readPrebakedFile(
 {
 	std::ifstream file(filename);
 
-	if(!file) throw(new MeshFileException);
+	if(!file) throw(MeshFileException(
+		"Prebaked mesh file " + filename + " could not be found.\n"));
 
 	char ignore[30];
 
@@ -632,6 +640,19 @@ void PRTMesh::init(
 
 	v_attrib = shader->getAttribLoc("vPosition");
 	t_attrib = shader->getAttribLoc("vTexCoord");
+
+	glGenVertexArrays(1, &vao);
+	glBindVertexArray(vao);
+
+	glBindBuffer(GL_ARRAY_BUFFER, v_vbo);
+	glEnableVertexAttribArray(v_attrib);
+	glEnableVertexAttribArray(t_attrib);
+	glVertexAttribPointer(v_attrib, 4, GL_FLOAT, GL_FALSE, sizeof(PRTMeshVertex),
+		reinterpret_cast<GLvoid*>(offsetof(PRTMeshVertex, v)));
+	glVertexAttribPointer(t_attrib, 2, GL_FLOAT, GL_FALSE, sizeof(PRTMeshVertex), 
+		reinterpret_cast<GLvoid*>(offsetof(PRTMeshVertex, t)));
+
+	glBindVertexArray(0);
 }
 
 void PRTMesh::render()
@@ -643,24 +664,14 @@ void PRTMesh::render()
 	shader->setTexUnit(arrTex->getTexUnit());
 
 	shader->use();
-	glEnableVertexAttribArray(v_attrib);
-	glEnableVertexAttribArray(t_attrib);
 
-	glBindVertexBuffer(0, v_vbo, 0, sizeof(PRTMeshVertex));
-	glVertexAttribFormat(v_attrib, 4, GL_FLOAT, GL_FALSE, 0);
-	glVertexAttribBinding(v_attrib, 0);
-	glVertexAttribFormat(t_attrib, 2, GL_FLOAT, GL_FALSE, offsetof(PRTMeshVertex, t));
-	glVertexAttribBinding(t_attrib, 0);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-
+	glBindVertexArray(vao);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, e_ebo);
 
 	glDrawElements(GL_TRIANGLES, (GLsizei) numElems, GL_UNSIGNED_SHORT, 0);
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-	glDisableVertexAttribArray(v_attrib);
-	glDisableVertexAttribArray(t_attrib);
+	glBindVertexArray(0);
 
 	glUseProgram(0);
 }

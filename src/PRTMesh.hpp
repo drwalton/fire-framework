@@ -101,6 +101,7 @@ private:
 
 	ArrayTexture* arrTex;
 
+	GLuint vao;
 	GLuint v_vbo;
 	GLuint e_ebo;
 	GLuint v_attrib;

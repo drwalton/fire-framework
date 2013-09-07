@@ -6,14 +6,18 @@
 
 #include <vector>
 #include <string>
-#include <exception>
 
 #include <glm.hpp>
 #include <GL/glew.h>
 
 bool fileExists(const std::string& filename);
 
-class MeshFileException : public std::exception {};
+class MeshFileException
+{
+public:
+	MeshFileException(const std::string& msg) {this->msg = msg;};
+	std::string msg;
+};
 
 struct MeshData
 {
@@ -70,6 +74,7 @@ private:
 	Texture* specTex;
 	float specExp;
 
+	GLuint vao;
 	GLuint v_vbo;
 	GLuint e_vbo;
 	GLuint v_attrib;

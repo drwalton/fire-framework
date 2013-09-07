@@ -29,7 +29,8 @@ MeshData Mesh::loadSceneFile(
 		aiProcess_JoinIdenticalVertices | aiProcess_SortByPType |
 		aiProcess_GenSmoothNormals);
 
-	if(!scene) throw new MeshFileException;
+	if(!scene) throw MeshFileException(
+		"Mesh file " + filename + " could not be loaded\n");
 
 	std::cout << "Loading scene from file: " << filename << std::endl;
 	std::cout << "> " << scene->mNumMeshes << " meshes in scene." << std::endl;
@@ -90,6 +91,8 @@ MeshData Mesh::loadSceneFile(
 
 	MeshData mesh = combineData(data);
 
+	std::cout << "All meshes loaded from " + filename + ".\n";
+
 	return mesh;
 }
 
@@ -125,7 +128,16 @@ Mesh::Mesh(
 	ambTex(ambTex), diffTex(diffTex),
 	specTex(specTex), specExp(exponent)
 {
-	MeshData data = loadSceneFile(meshFilename);
+	MeshData data;
+	try
+	{
+		 data = loadSceneFile(meshFilename);
+	} 
+	catch(const MeshFileException& e)
+	{
+		std::cout << e.msg;
+		return;
+	}
 	init(data);
 }
 
@@ -162,6 +174,22 @@ void Mesh::init(const MeshData& data)
 	v_attrib = shader->getAttribLoc("vPosition");
 	n_attrib = shader->getAttribLoc("vNorm");
 	t_attrib = shader->getAttribLoc("vTexCoord");
+
+	glGenVertexArrays(1, &vao);
+	glBindVertexArray(vao);
+
+	glBindBuffer(GL_ARRAY_BUFFER, v_vbo);
+	glEnableVertexAttribArray(v_attrib);
+	glEnableVertexAttribArray(n_attrib);
+	glEnableVertexAttribArray(t_attrib);
+	glVertexAttribPointer(v_attrib, 4, GL_FLOAT, GL_FALSE, sizeof(MeshVertex),
+		reinterpret_cast<GLvoid*>(offsetof(MeshVertex, v)));
+	glVertexAttribPointer(n_attrib, 3, GL_FLOAT, GL_FALSE, sizeof(MeshVertex), 
+		reinterpret_cast<GLvoid*>(offsetof(MeshVertex, n)));
+	glVertexAttribPointer(t_attrib, 2, GL_FLOAT, GL_FALSE, sizeof(MeshVertex), 
+		reinterpret_cast<GLvoid*>(offsetof(MeshVertex, t)));
+
+	glBindVertexArray(0);
 }
 
 void Mesh::render()
@@ -176,28 +204,14 @@ void Mesh::render()
 	shader->setSpecExp(specExp);
 
 	shader->use();
-	glEnableVertexAttribArray(v_attrib);
-	glEnableVertexAttribArray(n_attrib);
-	glEnableVertexAttribArray(t_attrib);
 
-	glBindVertexBuffer(0, v_vbo, 0, sizeof(MeshVertex));
-	glVertexAttribFormat(v_attrib, 4, GL_FLOAT, GL_FALSE, 0);
-	glVertexAttribBinding(v_attrib, 0);
-	glVertexAttribFormat(n_attrib, 3, GL_FLOAT, GL_FALSE, offsetof(MeshVertex, n));
-	glVertexAttribBinding(n_attrib, 0);
-	glVertexAttribFormat(t_attrib, 2, GL_FLOAT, GL_FALSE, offsetof(MeshVertex, t));
-	glVertexAttribBinding(t_attrib, 0);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-
+	glBindVertexArray(vao);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, e_vbo);
 
 	glDrawElements(GL_TRIANGLES, (GLsizei) numElems, GL_UNSIGNED_SHORT, 0);
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-	glDisableVertexAttribArray(v_attrib);
-	glDisableVertexAttribArray(n_attrib);
-	glDisableVertexAttribArray(t_attrib);
+	glBindVertexArray(0);
 
 	glUseProgram(0);
 }

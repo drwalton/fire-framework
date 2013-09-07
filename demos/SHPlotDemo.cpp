@@ -142,9 +142,9 @@ int init()
 		plotApproximations( 
 		[] (float theta, float phi) -> float
 		{
-			return pulse(theta, phi, glm::vec3(0.0f, 1.0f, 0.0f), 4.0f, 3.0f);
+			return pulse(theta, phi, glm::vec3(0.0f, 1.0f, 0.0f), 1.0f, 3.0f);
 		},
-			8, 2.0f, glm::vec3(-7.0, 0.0, 0.0));
+			8, 5.0f, glm::vec3(-7.0, 0.0, 0.0));
 
 	else if(choice == 5) // Circle
 		plotApproximations( 

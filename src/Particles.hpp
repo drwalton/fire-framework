@@ -93,6 +93,7 @@ protected:
 	std::vector<glm::vec4> loadImage(const std::string& filename);
 	float saturate(float val, float min);
 
+	GLuint vao;
 	GLuint particles_vbo;
 	GLuint pos_attrib;
 	GLuint decay_attrib;

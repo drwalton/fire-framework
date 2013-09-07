@@ -20,7 +20,11 @@ Texture::Texture(const std::string& filename)
 		SOIL_CREATE_NEW_ID,
 		SOIL_FLAG_INVERT_Y
 	);
-	if(id == 0) throw(new NoImageFileException);
+
+	if(id == 0) 
+	{
+		std::cout << "Texture file " + filename + " could not be loaded.\n";
+	}
 }
 
 Texture::~Texture()

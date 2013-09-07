@@ -148,7 +148,7 @@ int init()
 	Texture* bunnySpecTex = new Texture("bunnySpec.png");
 
 	bunny = new Mesh(
-		"bunny.obj",
+		"../models/stanford.obj",
 		bunnyAmbTex, bunnyDiffTex, bunnySpecTex,
 		bunnySpecExp, bunnyShader);
 

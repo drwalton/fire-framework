@@ -77,6 +77,7 @@ private:
 	Texture* specTex;
 	float specExp;
 
+	GLuint vao;
 	GLuint v_vbo;
 	GLuint e_vbo;
 	GLuint v_attrib;

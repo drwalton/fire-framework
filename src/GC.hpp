@@ -8,7 +8,7 @@
 namespace GC
 {
 	/* Phong Lighting */
-	const int maxPhongLights = 50;
+	const int maxPhongLights = 200;
 	const int maxMaterials = 4;
 
 	/* SH Lighting */

@@ -18,8 +18,15 @@ AOMesh::AOMesh(
 {
 	std::vector<AOMeshVertex> mesh;
 	std::vector<GLushort> elems;
-
-	readPrebakedFile(mesh, elems, bakedFilename);
+	try
+	{
+		readPrebakedFile(mesh, elems, bakedFilename);
+	}
+	catch(const MeshFileException& e)
+	{
+		std::cout << e.msg;
+		return;
+	}
 	init(mesh, elems);
 }
 
@@ -49,6 +56,25 @@ void AOMesh::init(
 	n_attrib = shader->getAttribLoc("vNorm");
 	bn_attrib = shader->getAttribLoc("vBentNorm");
 	t_attrib = shader->getAttribLoc("vTexCoord");
+
+	glGenVertexArrays(1, &vao);
+	glBindVertexArray(vao);
+
+	glBindBuffer(GL_ARRAY_BUFFER, v_vbo);
+	glEnableVertexAttribArray(v_attrib);
+	glEnableVertexAttribArray(n_attrib);
+	glEnableVertexAttribArray(bn_attrib);
+	glEnableVertexAttribArray(t_attrib);
+	glVertexAttribPointer(v_attrib, 4, GL_FLOAT, GL_FALSE, sizeof(AOMeshVertex),
+		reinterpret_cast<GLvoid*>(offsetof(AOMeshVertex, v)));
+	glVertexAttribPointer(n_attrib, 3, GL_FLOAT, GL_FALSE, sizeof(AOMeshVertex), 
+		reinterpret_cast<GLvoid*>(offsetof(AOMeshVertex, n)));
+	glVertexAttribPointer(bn_attrib, 3, GL_FLOAT, GL_FALSE, sizeof(AOMeshVertex), 
+		reinterpret_cast<GLvoid*>(offsetof(AOMeshVertex, bn)));
+	glVertexAttribPointer(t_attrib, 2, GL_FLOAT, GL_FALSE, sizeof(AOMeshVertex), 
+		reinterpret_cast<GLvoid*>(offsetof(AOMeshVertex, t)));
+
+	glBindVertexArray(0);
 }
 
 void AOMesh::render()
@@ -63,32 +89,14 @@ void AOMesh::render()
 	shader->setSpecExp(specExp);
 
 	shader->use();
-	glEnableVertexAttribArray(v_attrib);
-	glEnableVertexAttribArray(n_attrib);
-	glEnableVertexAttribArray(bn_attrib);
-	glEnableVertexAttribArray(t_attrib);
 
-	glBindVertexBuffer(0, v_vbo, 0, sizeof(AOMeshVertex));
-	glVertexAttribFormat(v_attrib, 4, GL_FLOAT, GL_FALSE, 0);
-	glVertexAttribBinding(v_attrib, 0);
-	glVertexAttribFormat(n_attrib, 3, GL_FLOAT, GL_FALSE, offsetof(AOMeshVertex, n));
-	glVertexAttribBinding(n_attrib, 0);
-	glVertexAttribFormat(bn_attrib, 3, GL_FLOAT, GL_FALSE, offsetof(AOMeshVertex, bn));
-	glVertexAttribBinding(bn_attrib, 0);
-	glVertexAttribFormat(t_attrib, 2, GL_FLOAT, GL_FALSE, offsetof(AOMeshVertex, t));
-	glVertexAttribBinding(t_attrib, 0);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-
+	glBindVertexArray(vao);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, e_vbo);
 
 	glDrawElements(GL_TRIANGLES, (GLsizei) numElems, GL_UNSIGNED_SHORT, 0);
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-	glDisableVertexAttribArray(v_attrib);
-	glDisableVertexAttribArray(n_attrib);
-	glDisableVertexAttribArray(bn_attrib);
-	glDisableVertexAttribArray(t_attrib);
+	glBindVertexArray(0);
 
 	glUseProgram(0);
 }
@@ -325,7 +333,8 @@ void AOMesh::readPrebakedFile(
 {
 	std::ifstream file(filename);
 
-	if(!file) throw(new MeshFileException);
+	if(!file) throw(MeshFileException(
+		"Prebaked mesh file " + filename + " could not be found.\n"));
 
 	char ignore[10];
 

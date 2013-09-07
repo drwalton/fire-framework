@@ -79,10 +79,10 @@ int init()
 
 	/* Flame Properties */
 	const int nFlameParticles = 400;
-	const int nFlameLights = 10;
-	const int lightClumpSize = 10;
+	const int nFlameLights = 200;
+	const int lightClumpSize = 1;
 	const int hopInterval = -1; // Never hop. Set to +ve ms value to hop.
-	const float flameLightIntensity = 0.003f;
+	const float flameLightIntensity = 0.05f;
 
 	/* Spark Properties */
 	const int nSparkParticles = 5;
@@ -163,7 +163,6 @@ int init()
 
 	Texture* bunnyDiffTex = new Texture("stanfordDiff.png");
 	Texture* bunnySpecTex = new Texture("stanfordSpec.png");
-	Texture* bunnyAOTex = new Texture("stanford.obj.aoamb.bmp");
 
 	const std::string filename = "stanford.obj";
 
@@ -179,6 +178,8 @@ int init()
 		AOMesh::bake(filename, filename, 
 			"stanfordDiff.png", "stanfordDiff.png", "stanfordSpec.png", 
 			1.0f, 30);
+
+	Texture* bunnyAOTex = new Texture("stanford.obj.aoamb.bmp");
 
 	bunnyAO = new AOMesh(aoFilename, aoBunnyShader);
 
