@@ -81,6 +81,23 @@ void SpherePlot::uploadMeshToGPU(const SpherePlotMesh& mesh)
 	pos_attrib = shader->getAttribLoc("vPosition");
 	norm_attrib = shader->getAttribLoc("vNorm");
 	positive_attrib = shader->getAttribLoc("vPositive");
+
+	glGenVertexArrays(1, &vao);
+	glBindVertexArray(vao);
+
+	glBindBuffer(GL_ARRAY_BUFFER, v_vbo);
+
+	glEnableVertexAttribArray(pos_attrib);
+	glEnableVertexAttribArray(norm_attrib);
+	glEnableVertexAttribArray(positive_attrib);
+	glVertexAttribPointer(pos_attrib, 4, GL_FLOAT, GL_FALSE, sizeof(SpherePlotVertex),
+		reinterpret_cast<GLvoid*>(offsetof(SpherePlotVertex, pos)));
+	glVertexAttribPointer(norm_attrib, 3, GL_FLOAT, GL_FALSE, sizeof(SpherePlotVertex), 
+		reinterpret_cast<GLvoid*>(offsetof(SpherePlotVertex, norm)));
+	glVertexAttribPointer(positive_attrib, 2, GL_FLOAT, GL_FALSE, sizeof(SpherePlotVertex), 
+		reinterpret_cast<GLvoid*>(offsetof(SpherePlotVertex, positive)));
+
+	glBindVertexArray(0);
 }
 
 void SpherePlot::render()
@@ -90,21 +107,7 @@ void SpherePlot::render()
 	shader->setModelToWorld(modelToWorld);
 	shader->use();
 
-	glEnableVertexAttribArray(pos_attrib);
-	glEnableVertexAttribArray(norm_attrib);
-	glEnableVertexAttribArray(positive_attrib);
-
-	glBindVertexBuffer(0, v_vbo, 0, sizeof(SpherePlotVertex));
-	glVertexAttribFormat(pos_attrib, 4, GL_FLOAT, GL_FALSE,
-		offsetof(SpherePlotVertex, pos));
-	glVertexAttribBinding(pos_attrib, 0);
-	glVertexAttribFormat(norm_attrib, 3, GL_FLOAT, GL_FALSE,
-		offsetof(SpherePlotVertex, norm));
-	glVertexAttribBinding(norm_attrib, 0);
-	glVertexAttribFormat(positive_attrib, 1, GL_FLOAT, GL_FALSE,
-		offsetof(SpherePlotVertex, positive));
-	glVertexAttribBinding(positive_attrib, 0);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(vao);
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, e_vbo);
 	
@@ -112,9 +115,7 @@ void SpherePlot::render()
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-	glDisableVertexAttribArray(pos_attrib);
-	glDisableVertexAttribArray(norm_attrib);
-	glDisableVertexAttribArray(positive_attrib);
+	glBindVertexArray(0);
 
 	glUseProgram(0);
 }

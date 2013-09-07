@@ -57,6 +57,7 @@ private:
 
 	GLsizei numElems;
 
+	GLuint vao;
 	GLuint v_vbo;
 	GLuint e_vbo;
 	GLuint pos_attrib;
