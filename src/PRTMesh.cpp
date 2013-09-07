@@ -55,7 +55,7 @@ void PRTMesh::bake(
 	/* Most image formats are upside down, so load data and flip it. */
 	int width, height, channels;
 	unsigned char* diffDataFlip = SOIL_load_image(
-		diffTex.c_str(),
+		("../textures/" + diffTex).c_str(),
 		&width, &height, &channels,
 		SOIL_LOAD_RGB);
 
@@ -562,7 +562,7 @@ void PRTMesh::renderCoefftToTexture(
 
 	SOIL_save_image
 		(
-			texFilename.c_str(),
+			("../textures/" + texFilename).c_str(),
 			SOIL_SAVE_TYPE_TGA,
 			width, height, 4,
 			texData.data()

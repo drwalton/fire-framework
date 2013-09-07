@@ -261,6 +261,9 @@ private:
 	glm::mat4 getRotation(int face);
 	GLuint renderbuffer;
 	GLuint framebuffer;
+	GLuint cube_vao;
+	GLuint cube_pos_attrib;
+	GLuint cube_decay_attrib;
 	bool saveFlag;
 	float intensity;
 	float ambIntensity;

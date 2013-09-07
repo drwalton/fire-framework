@@ -106,39 +106,39 @@ int init()
 
 	SHShader* bunnyShader = new SHShader(false, "diffPRT");
 
-	Texture* bunnyDiffTex = new Texture("bunnyDiff.png");
+	Texture* bunnyDiffTex = new Texture("terracotta.png");
 
 	if(mode == UNSHADOWED)
 	{	
-		if(!fileExists("stanford.obj.prtu" + toString(GC::nSHBands)))
+		if(!fileExists("../models/stanford.obj.prtu" + toString(GC::nSHBands)))
 			PRTMesh::bake(UNSHADOWED, 
-				"stanford.obj", "bunnyDiff.png", 
+				"stanford.obj", "stanford", "terracotta.png", 
 				GC::sqrtSHSamples, GC::nSHBands);
 
 		bunny = new PRTMesh(
-			"stanford.obj.prtu" + toString(GC::nSHBands), bunnyShader);
+			"stanford.prtu" + toString(GC::nSHBands), bunnyShader);
 	}
 
 	if(mode == SHADOWED)
 	{	
-		if(!fileExists("stanford.obj.prts" + toString(GC::nSHBands)))
+		if(!fileExists("../models/stanford.prts" + toString(GC::nSHBands)))
 			PRTMesh::bake(SHADOWED, 
-				"stanford.obj", "bunnyDiff.png", 
+				"stanford.obj", "stanford", "terracotta.png", 
 				GC::sqrtSHSamples, GC::nSHBands);
 
 		bunny = new PRTMesh(
-			"stanford.obj.prts" + toString(GC::nSHBands), bunnyShader);
+			"stanford.prts" + toString(GC::nSHBands), bunnyShader);
 	}
 
 	if(mode == INTERREFLECTED)
 	{	
-		if(!fileExists("stanford.obj.prti" + toString(GC::nSHBands)))
+		if(!fileExists("../models/stanford.prti" + toString(GC::nSHBands)))
 			PRTMesh::bake(INTERREFLECTED, 
-				"stanford.obj", "bunnyDiff.png", 
+				"stanford.obj", "stanford", "terracotta.png", 
 				GC::sqrtSHSamples, GC::nSHBands);
 
 		bunny = new PRTMesh(
-			"stanford.obj.prti" + toString(GC::nSHBands), bunnyShader);
+			"stanford.prti" + toString(GC::nSHBands), bunnyShader);
 	}
 
 	bunny->uniformScale(0.2f);

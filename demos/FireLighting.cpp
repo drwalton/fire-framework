@@ -125,16 +125,16 @@ int init()
 	else if(choice == 3 || choice == 4 || choice == 5)
 	{
 		const std::string filename = "stanford.obj";
-		const std::string diffTexture = "stanford.png";
+		const std::string diffTexture = "terracotta.png";
 		const PRTMode mode = SHADOWED;
 
 		/* Check if baked file exists. If not, make one. */
-		const std::string bakedFilename = filename + ".prt" + 
+		const std::string bakedFilename = std::string("stanford.prt") + 
 			(mode == UNSHADOWED ? "u" : mode == SHADOWED ? "s" : "i")
 			+ "5";
-		std::ifstream temp(bakedFilename);
+		std::ifstream temp("../models/" + bakedFilename);
 		if(!temp)
-			PRTMesh::bake(mode, filename, diffTexture, 40, 5, 5);
+			PRTMesh::bake(mode, filename, "stanford", diffTexture, 40, 5, 5);
 
 		SHShader* bunnyShader = new SHShader(false, "diffPRT");
 

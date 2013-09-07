@@ -630,6 +630,22 @@ void AdvectParticlesSHCubemap::init()
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, GC::cubemapSize, GC::cubemapSize);
 	glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
+	cube_pos_attrib = cubemapShader->getAttribLoc("vPos");
+	cube_decay_attrib = cubemapShader->getAttribLoc("vDecay");
+
+	glGenVertexArrays(1, &cube_vao);
+	glBindVertexArray(cube_vao);
+
+	glBindBuffer(GL_ARRAY_BUFFER, particles_vbo);
+	glEnableVertexAttribArray(cube_pos_attrib);
+	glEnableVertexAttribArray(cube_decay_attrib);
+	glVertexAttribPointer(cube_pos_attrib, 4, GL_FLOAT, GL_FALSE, sizeof(AdvectParticle),
+		reinterpret_cast<GLvoid*>(offsetof(AdvectParticle, pos)));
+	glVertexAttribPointer(cube_decay_attrib, 1, GL_FLOAT, GL_FALSE, sizeof(AdvectParticle), 
+		reinterpret_cast<GLvoid*>(offsetof(AdvectParticle, decay)));
+
+	glBindVertexArray(0);
+
 	saveFlag = false;
 }
 
@@ -673,16 +689,7 @@ void AdvectParticlesSHCubemap::renderCubemap()
 
 	cubemapShader->use();
 
-	glEnableVertexAttribArray(pos_attrib);
-	glEnableVertexAttribArray(decay_attrib);
-
-	glBindVertexBuffer(0, particles_vbo, 0, sizeof(AdvectParticle));
-	glVertexAttribFormat(pos_attrib, 4, GL_FLOAT, GL_FALSE,
-		offsetof(AdvectParticle, pos));
-	glVertexAttribBinding(pos_attrib, 0);
-	glVertexAttribFormat(decay_attrib, 1, GL_FLOAT, GL_FALSE,
-		offsetof(AdvectParticle, decay));
-	glVertexAttribBinding(decay_attrib, 0);
+	glBindVertexArray(cube_vao);
 
 	for(int face = 0; face < 6; ++face)
 	{
@@ -728,8 +735,7 @@ void AdvectParticlesSHCubemap::renderCubemap()
 		}
 	}
 
-	glDisableVertexAttribArray(pos_attrib);
-	glDisableVertexAttribArray(decay_attrib);
+	glBindVertexArray(0);
 
 	//Restore state
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
